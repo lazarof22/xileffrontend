@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   AppBar, Toolbar, Typography, Drawer, List, ListItemButton,
-  ListItemIcon, ListItemText, IconButton, Box, Divider
+  ListItemIcon, ListItemText, IconButton, Box, Divider,
+  Collapse
 } from '@mui/material';
 
 import MenuIcon from '@mui/icons-material/Menu';
@@ -26,27 +27,60 @@ import Groups2Icon from '@mui/icons-material/Groups2';
 import StoreIcon from '@mui/icons-material/Store';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
+import Avatar from '@mui/material/Avatar';
+import React from 'react';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import ViewModuleIcon from '@mui/icons-material/ViewModule';
+import AssuredWorkloadIcon from '@mui/icons-material/AssuredWorkload';
+import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
+import BuildIcon from '@mui/icons-material/Build';
+import ContentPasteIcon from '@mui/icons-material/ContentPaste';
+import GroupsIcon from '@mui/icons-material/Groups';
+import VillaIcon from '@mui/icons-material/Villa';
 
-const drawerWidth = 260;
+const drawerWidth = 300;
 const collapsedWidth = 72;
 
 const menuItems = [
+  { text: 'Modulos Principales', icon: <DashboardIcon />, path: '/dashboard' },
+  { text: 'Contabilidad y Finanzas', icon: <DashboardIcon />, path: '/dashboard' },
+  { text: 'Nomina y Recursos Humanos', icon: <DashboardIcon />, path: '/dashboard' },
+  { text: 'Produccion y Logistica', icon: <DashboardIcon />, path: '/dashboard' },
+  { text: 'Clientes y Proveedores', icon: <DashboardIcon />, path: '/dashboard' },
+];
+
+const modulosPrincipales = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
   { text: 'Inventario', icon: <InventoryIcon />, path: '/inventario' },
   { text: 'Ventas', icon: <MonetizationOnIcon />, path: '/ventas' },
   { text: 'Compras', icon: <ShoppingCartIcon />, path: '/compras' },
   { text: 'Punto de Venta', icon: <PointOfSaleIcon />, path: '/punto_venta' },
+];
+
+const contablilidadFinanzas = [
   { text: 'Contabilidad', icon: <AccountBalanceIcon />, path: '/contabilidad' },
   { text: 'Activos', icon: <DatasetIcon />, path: '/activos_fijos' },
   { text: 'Costos', icon: <AttachMoneyIcon />, path: '/costos' },
   { text: 'finanzas', icon: <CreditCardIcon />, path: '/finanzas' },
+];
+const nominaRecursosHumanos = [
   { text: 'Nomina', icon: <PeopleAltIcon />, path: '/nomina' },
+];
+const produccionLogistica = [
   { text: 'Produccion', icon: <FactoryIcon />, path: '/produccion' },
   { text: 'Planificacion', icon: <CalendarMonthIcon />, path: '/planificacion' },
+];
+const clientesProveedores = [
   { text: 'Clientes', icon: <Groups2Icon />, path: '/clientes' },
   { text: 'Proveedores', icon: <StoreIcon />, path: '/proveedores' },
+];
+const reportesAuditoria = [
   { text: 'Reportes', icon: <FeedIcon />, path: '/reportes' },
   { text: 'Auditoria', icon: <VerifiedUserIcon />, path: '/auditoria' },
+];
+
+const menuSections = [
   { text: 'Configuración', icon: <SettingsIcon />, path: '/configuracion' },
   { text: 'Licencias', icon: <VpnKeyIcon />, path: '/licencias' },
 ];
@@ -61,6 +95,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const drawerW = collapsed && !hovered ? collapsedWidth : drawerWidth;
 
+  const [openSection, setOpenSection] = useState<string | null>(null);
+
+  const handleSectionClick = (section: string) => {
+    setOpenSection(prev => (prev === section ? null : section));
+  };
+
+  const handleDrawerLeave = () => {
+    setHovered(false);
+
+    // 👇 CERRAR TODO cuando se colapsa
+    if (collapsed) {
+      setOpenSection(null);
+    }
+  };
+
+
   return (
     <Box sx={{ display: 'flex' }}>
       {/* APPBAR */}
@@ -71,9 +121,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <Typography variant='h6' sx={{ ml: 8, flexGrow: 1 }}>🚀 SISTEMA XILEF 🚀</Typography>
           <Typography sx={{ m: 2, }}>SISTEMA INTEGRAL ERP</Typography>
           {/* Botón colapsar manual */}
-          <IconButton color="inherit" onClick={() => setCollapsed(!collapsed)} sx={{}}>
+          <IconButton color="inherit" onClick={() => setCollapsed(!collapsed)} sx={{ mr: 2 }}>
             <MenuIcon />
           </IconButton>
+          <Avatar sx={{ width: 33, height: 33 }} src="/broken-image.jpg" />
         </Toolbar>
       </AppBar>
 
@@ -82,7 +133,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         variant="permanent"
         open
         onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
+        onMouseLeave={handleDrawerLeave}
         sx={{
           display: { xs: 'none', sm: 'block' },
           '& .MuiDrawer-paper': {
@@ -99,43 +150,345 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           }}>
           🚀
         </Typography>
+
+
         <List>
-          {menuItems.map((item) => {
-            const active = pathname === item.path;
+          <ListItemButton onClick={() => handleSectionClick('modulos')}>
+            <ListItemIcon>
+              <ViewModuleIcon fontSize='large' sx={{ color: 'white' }} />
+            </ListItemIcon>
+            <ListItemText primary="Modulos Principales" />
+            {openSection === 'modulos' ? <ExpandLess /> : <ExpandMore />}
+          </ListItemButton>
+          <Collapse in={openSection === 'modulos'} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              {modulosPrincipales.map((item) => {
+                const active = pathname === item.path;
 
-            return (
-              <ListItemButton
-                key={item.text}
-                onClick={() => router.push(item.path)}
-                sx={{
-                  minHeight: 48,
-                  justifyContent: collapsed && !hovered ? 'center' : 'flex-start',
-                  px: 2.5,
-                  background: active ? 'rgba(255,255,255,0.15)' : 'transparent',
-                  borderLeft: active ? '4px solid #3498db' : '4px solid transparent',
-                }}
-              >
-                <ListItemIcon
-                  sx={{
-                    color: 'white',
-                    minWidth: 0,
-                    mr: collapsed && !hovered ? 'auto' : 2,
-                    justifyContent: 'center',
-                  }}
-                >
-                  {item.icon}
-                </ListItemIcon>
+                return (
+                  <ListItemButton
+                    key={item.text}
+                    onClick={() => router.push(item.path)}
+                    sx={{
+                      minHeight: 48,
+                      justifyContent: collapsed && !hovered ? 'center' : 'flex-start',
+                      opacity: collapsed && !hovered ? 0 : 1,
+                      pl: 4,
+                      background: active ? 'rgba(255,255,255,0.15)' : 'transparent',
+                      borderLeft: active ? '4px solid #3498db' : '4px solid transparent',
+                    }}
+                  >
+                    <ListItemIcon
+                      sx={{
+                        color: 'white',
+                        minWidth: 0,
+                        mr: collapsed && !hovered ? 'auto' : 2,
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {item.icon}
+                    </ListItemIcon>
 
-                {/* TEXTO SOLO SI NO ESTÁ MINI */}
-                <ListItemText
-                  primary={item.text}
-                  sx={{
-                    opacity: collapsed && !hovered ? 0 : 1,
-                  }}
-                />
-              </ListItemButton>
-            );
-          })}
+                    {/* TEXTO SOLO SI NO ESTÁ MINI */}
+                    <ListItemText
+                      primary={item.text}
+                      sx={{
+                        opacity: collapsed && !hovered ? 0 : 1,
+                      }}
+                    />
+                  </ListItemButton>
+                );
+              })}
+            </List>
+          </Collapse>
+          <ListItemButton onClick={() => handleSectionClick('contabilidad')}>
+            <ListItemIcon>
+              <AssuredWorkloadIcon fontSize='large' sx={{ color: 'white' }} />
+            </ListItemIcon>
+            <ListItemText primary="Contabilidad y Finanzas" />
+            {openSection === 'contabilidad' ? <ExpandLess /> : <ExpandMore />}
+          </ListItemButton>
+          <Collapse in={openSection === 'contabilidad'} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              {contablilidadFinanzas.map((item) => {
+                const active = pathname === item.path;
+
+                return (
+                  <ListItemButton
+                    key={item.text}
+                    onClick={() => router.push(item.path)}
+                    sx={{
+                      minHeight: 48,
+                      justifyContent: collapsed && !hovered ? 'center' : 'flex-start',
+                      opacity: collapsed && !hovered ? 0 : 1,
+                      pl: 4,
+                      background: active ? 'rgba(255,255,255,0.15)' : 'transparent',
+                      borderLeft: active ? '4px solid #3498db' : '4px solid transparent',
+                    }}
+                  >
+                    <ListItemIcon
+                      sx={{
+                        color: 'white',
+                        minWidth: 0,
+                        mr: collapsed && !hovered ? 'auto' : 2,
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {item.icon}
+                    </ListItemIcon>
+
+                    {/* TEXTO SOLO SI NO ESTÁ MINI */}
+                    <ListItemText
+                      primary={item.text}
+                      sx={{
+                        opacity: collapsed && !hovered ? 0 : 1,
+                      }}
+                    />
+                  </ListItemButton>
+                );
+              })}
+            </List>
+          </Collapse>
+          <ListItemButton onClick={() => handleSectionClick('rrhh')}>
+            <ListItemIcon>
+              <AssignmentIndIcon fontSize='large' sx={{ color: 'white' }} />
+            </ListItemIcon>
+            <ListItemText primary="Recursos Humanos" />
+            {openSection === 'rrhh' ? <ExpandLess /> : <ExpandMore />}
+          </ListItemButton>
+          <Collapse in={openSection === 'rrhh'} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              {nominaRecursosHumanos.map((item) => {
+                const active = pathname === item.path;
+
+                return (
+                  <ListItemButton
+                    key={item.text}
+                    onClick={() => router.push(item.path)}
+                    sx={{
+                      minHeight: 48,
+                      justifyContent: collapsed && !hovered ? 'center' : 'flex-start',
+                      opacity: collapsed && !hovered ? 0 : 1,
+                      pl: 4,
+                      background: active ? 'rgba(255,255,255,0.15)' : 'transparent',
+                      borderLeft: active ? '4px solid #3498db' : '4px solid transparent',
+                    }}
+                  >
+                    <ListItemIcon
+                      sx={{
+                        color: 'white',
+                        minWidth: 0,
+                        mr: collapsed && !hovered ? 'auto' : 2,
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {item.icon}
+                    </ListItemIcon>
+
+                    {/* TEXTO SOLO SI NO ESTÁ MINI */}
+                    <ListItemText
+                      primary={item.text}
+                      sx={{
+                        opacity: collapsed && !hovered ? 0 : 1,
+                      }}
+                    />
+                  </ListItemButton>
+                );
+              })}
+            </List>
+          </Collapse>
+          <ListItemButton onClick={() => handleSectionClick('produccion')}>
+            <ListItemIcon>
+              <VillaIcon fontSize='large' sx={{ color: 'white' }} />
+            </ListItemIcon>
+            <ListItemText primary="Producción y Logística" />
+            {openSection === 'produccion' ? <ExpandLess /> : <ExpandMore />}
+          </ListItemButton>
+          <Collapse in={openSection === 'produccion'} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              {produccionLogistica.map((item) => {
+                const active = pathname === item.path;
+
+                return (
+                  <ListItemButton
+                    key={item.text}
+                    onClick={() => router.push(item.path)}
+                    sx={{
+                      minHeight: 48,
+                      justifyContent: collapsed && !hovered ? 'center' : 'flex-start',
+                      opacity: collapsed && !hovered ? 0 : 1,
+                      pl: 4,
+                      background: active ? 'rgba(255,255,255,0.15)' : 'transparent',
+                      borderLeft: active ? '4px solid #3498db' : '4px solid transparent',
+                    }}
+                  >
+                    <ListItemIcon
+                      sx={{
+                        color: 'white',
+                        minWidth: 0,
+                        mr: collapsed && !hovered ? 'auto' : 2,
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {item.icon}
+                    </ListItemIcon>
+
+                    {/* TEXTO SOLO SI NO ESTÁ MINI */}
+                    <ListItemText
+                      primary={item.text}
+                      sx={{
+                        opacity: collapsed && !hovered ? 0 : 1,
+                      }}
+                    />
+                  </ListItemButton>
+                );
+              })}
+            </List>
+          </Collapse>
+          <ListItemButton onClick={() => handleSectionClick('clientes')}>
+            <ListItemIcon>
+              <GroupsIcon fontSize='large' sx={{ color: 'white' }} />
+            </ListItemIcon>
+            <ListItemText primary="Clientes y Proveedores" />
+            {openSection === 'clientes' ? <ExpandLess /> : <ExpandMore />}
+          </ListItemButton>
+          <Collapse in={openSection === 'clientes'} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              {clientesProveedores.map((item) => {
+                const active = pathname === item.path;
+
+                return (
+                  <ListItemButton
+                    key={item.text}
+                    onClick={() => router.push(item.path)}
+                    sx={{
+                      minHeight: 48,
+                      justifyContent: collapsed && !hovered ? 'center' : 'flex-start',
+                      opacity: collapsed && !hovered ? 0 : 1,
+                      pl: 4,
+                      background: active ? 'rgba(255,255,255,0.15)' : 'transparent',
+                      borderLeft: active ? '4px solid #3498db' : '4px solid transparent',
+                    }}
+                  >
+                    <ListItemIcon
+                      sx={{
+                        color: 'white',
+                        minWidth: 0,
+                        mr: collapsed && !hovered ? 'auto' : 2,
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {item.icon}
+                    </ListItemIcon>
+
+                    {/* TEXTO SOLO SI NO ESTÁ MINI */}
+                    <ListItemText
+                      primary={item.text}
+                      sx={{
+                        opacity: collapsed && !hovered ? 0 : 1,
+                      }}
+                    />
+                  </ListItemButton>
+                );
+              })}
+            </List>
+          </Collapse>
+          <ListItemButton onClick={() => handleSectionClick('reportes')}>
+            <ListItemIcon>
+              <ContentPasteIcon fontSize='large' sx={{ color: 'white' }} />
+            </ListItemIcon>
+            <ListItemText primary="Reportes y Auditoría" />
+            {openSection === 'reportes' ? <ExpandLess /> : <ExpandMore />}
+          </ListItemButton>
+          <Collapse in={openSection === 'reportes'} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              {reportesAuditoria.map((item) => {
+                const active = pathname === item.path;
+
+                return (
+                  <ListItemButton
+                    key={item.text}
+                    onClick={() => router.push(item.path)}
+                    sx={{
+                      minHeight: 48,
+                      justifyContent: collapsed && !hovered ? 'center' : 'flex-start',
+                      opacity: collapsed && !hovered ? 0 : 1,
+                      pl: 4,
+                      background: active ? 'rgba(255,255,255,0.15)' : 'transparent',
+                      borderLeft: active ? '4px solid #3498db' : '4px solid transparent',
+                    }}
+                  >
+                    <ListItemIcon
+                      sx={{
+                        color: 'white',
+                        minWidth: 0,
+                        mr: collapsed && !hovered ? 'auto' : 2,
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {item.icon}
+                    </ListItemIcon>
+
+                    {/* TEXTO SOLO SI NO ESTÁ MINI */}
+                    <ListItemText
+                      primary={item.text}
+                      sx={{
+                        opacity: collapsed && !hovered ? 0 : 1,
+                      }}
+                    />
+                  </ListItemButton>
+                );
+              })}
+            </List>
+          </Collapse>
+          <ListItemButton onClick={() => handleSectionClick('config')}>
+            <ListItemIcon>
+              <BuildIcon fontSize='large' sx={{ color: 'white' }} />
+            </ListItemIcon>
+            <ListItemText primary="Configuración" />
+            {openSection === 'config' ? <ExpandLess /> : <ExpandMore />}
+          </ListItemButton>
+          <Collapse in={openSection === 'config'} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              {menuSections.map((item) => {
+                const active = pathname === item.path;
+
+                return (
+                  <ListItemButton
+                    key={item.text}
+                    onClick={() => router.push(item.path)}
+                    sx={{
+                      minHeight: 48,
+                      justifyContent: collapsed && !hovered ? 'center' : 'flex-start',
+                      opacity: collapsed && !hovered ? 0 : 1,
+                      pl: 4,
+                      background: active ? 'rgba(255,255,255,0.15)' : 'transparent',
+                      borderLeft: active ? '4px solid #3498db' : '4px solid transparent',
+                    }}
+                  >
+                    <ListItemIcon
+                      sx={{
+                        color: 'white',
+                        minWidth: 0,
+                        mr: collapsed && !hovered ? 'auto' : 2,
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {item.icon}
+                    </ListItemIcon>
+
+                    {/* TEXTO SOLO SI NO ESTÁ MINI */}
+                    <ListItemText
+                      primary={item.text}
+                      sx={{
+                        opacity: collapsed && !hovered ? 0 : 1,
+                      }}
+                    />
+                  </ListItemButton>
+                );
+              })}
+            </List>
+          </Collapse>
         </List>
       </Drawer>
 
