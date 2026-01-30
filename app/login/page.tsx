@@ -19,6 +19,10 @@ import Box from '@mui/material/Box';
 import SendIcon from '@mui/icons-material/Send';
 import Checkbox from '@mui/material/Checkbox';
 import Avatar from '@mui/material/Avatar';
+import { useRouter } from 'next/navigation';
+import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
+import LockIcon from '@mui/icons-material/Lock';
+
 
 export default function LoginPage() {
     const [showPassword, setShowPassword] = React.useState(false);
@@ -32,6 +36,9 @@ export default function LoginPage() {
     const handleMouseUpPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
     };
+
+    const router = useRouter();
+
     return (
         <>
             <Box sx={{
@@ -41,19 +48,22 @@ export default function LoginPage() {
                 alignItems: 'center',
             }}>
                 <Card sx={{ width: 400, height: 510, borderRadius: 3, boxShadow: 24 }}>
-                    <CardMedia>
-                        <Avatar
-                            sx={{ width: 100, height: 100, marginLeft: 'auto', marginRight: 'auto', marginTop: 2, borderColor: '#00e5ff', borderWidth: 1, borderStyle: 'solid' }}
-                        />
-                    </CardMedia>
-                    <CardContent sx={{ justifyItems: 'center', alignItems: 'center', display: 'flex', flexDirection: 'column' }}>
-                        <Typography gutterBottom variant="h5" component="div" textAlign={'center'} m={'2'}>
-                            Bienvenido a ACIT
-                        </Typography>
-                        <Typography gutterBottom variant="h5" component="div" textAlign={'center'}>
-                            Incio de Sesión
-                        </Typography>
-                        <FormControl sx={{ m: 1, width: '30ch' }} variant="outlined">
+                    <CardContent sx={{mt:2, justifyItems: 'center', alignItems: 'center', display: 'flex', flexDirection: 'column' }}>
+                        <Box display={'flex'} sx={{ alignItems: 'center' }}>
+                            <RocketLaunchIcon sx={{ fontSize: 40 }} />
+                            <Typography gutterBottom variant="h5" component="div" textAlign={'center'} m={'2'}>
+                                SISTEMA XILEF
+                            </Typography>
+                            <RocketLaunchIcon sx={{ fontSize: 40 }} />
+                        </Box>
+                        <Box display={'flex'} mt={2}>
+                            <LockIcon sx={{ fontSize: 25 }} />
+                            <Typography gutterBottom component="div" textAlign={'center'} m={'2'}>
+                                Sistema Integral ERP
+                            </Typography>
+                            <LockIcon sx={{ fontSize: 25 }} />
+                        </Box>
+                        <FormControl sx={{ m: 2, width: '40ch' }} variant="outlined">
                             <InputLabel htmlFor="outlined-adornment-usuario">Usuario</InputLabel>
                             <OutlinedInput
                                 id="outlined-adornment-usuario"
@@ -65,7 +75,7 @@ export default function LoginPage() {
                                 label="Usuario"
                             />
                         </FormControl>
-                        <FormControl sx={{ m: 1, width: '30ch' }} variant="outlined">
+                        <FormControl sx={{ m: 2, width: '40ch' }} variant="outlined">
                             <InputLabel htmlFor="outlined-adornment-password">Contraseña</InputLabel>
                             <OutlinedInput
                                 id="outlined-adornment-password"
@@ -88,7 +98,7 @@ export default function LoginPage() {
                                 label="Password"
                             />
                         </FormControl>
-                        <Box sx={{ ml: -10 }}>
+                        <Box display={'flex'} sx={{}}>
                             <label>
                                 <Checkbox
                                     /*checked={""}
@@ -100,17 +110,39 @@ export default function LoginPage() {
                                     }}*/
                                     color="primary"
                                 />
-                                Guardar Credenciales
+                                Recuerdame
                             </label>
+                            <Button sx={{ ml: 6 }} href="#text-buttons">Olvidaste tu contraseña</Button>
                         </Box>
                     </CardContent>
-                    <CardActions sx={{ justifyItems: 'center', alignItems: 'center', display: 'flex', flexDirection: 'column' }}>
-                        <Button variant="contained" endIcon={<SendIcon />} sx={{ width: '32ch', height: 43, }}>
-                            Iniciar Sesión
-                        </Button>
+                    <CardActions sx={{ display: 'flex', justifyContent: 'center' }}>
+                        <Box sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            width: '100%',
+                            maxWidth: 400
+                        }}>
+                            <Button
+                                variant="contained"
+                                endIcon={<SendIcon />}
+                                sx={{ width: { xs: '100%', sm: '32ch' }, height: 43 }}
+                                onClick={() => router.push('/dashboard')}
+                            >
+                                Iniciar Sesión
+                            </Button>
+                            <Button
+                                variant="outlined"
+                                endIcon={<SendIcon />}
+                                sx={{ width: { xs: '100%', sm: '32ch' }, height: 43, mt: 1 }}
+                                onClick={() => router.push('/dashboard')}
+                            >
+                                Registrarse
+                            </Button>
+                        </Box>
                     </CardActions>
                 </Card>
-            </Box>
+            </Box >
         </>
     );
 }

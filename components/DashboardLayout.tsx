@@ -8,14 +8,24 @@ import {
 } from '@mui/material';
 
 import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import DashboardIcon from '@mui/icons-material/Dashboard';
-import ComputerIcon from '@mui/icons-material/Computer';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import SettingsIcon from '@mui/icons-material/Settings';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import DatasetIcon from '@mui/icons-material/Dataset';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import CreditCardIcon from '@mui/icons-material/CreditCard';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import FactoryIcon from '@mui/icons-material/Factory';
+import FeedIcon from '@mui/icons-material/Feed';
+import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
+import Groups2Icon from '@mui/icons-material/Groups2';
+import StoreIcon from '@mui/icons-material/Store';
+import VpnKeyIcon from '@mui/icons-material/VpnKey';
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 
 const drawerWidth = 260;
 const collapsedWidth = 72;
@@ -26,19 +36,19 @@ const menuItems = [
   { text: 'Ventas', icon: <MonetizationOnIcon />, path: '/ventas' },
   { text: 'Compras', icon: <ShoppingCartIcon />, path: '/compras' },
   { text: 'Punto de Venta', icon: <PointOfSaleIcon />, path: '/punto_venta' },
-  { text: 'Contabilidad', icon: <SettingsIcon />, path: '/contabilidad' },
-  { text: 'Activos', icon: <SettingsIcon />, path: '/activos_fijos' },
-  { text: 'Costos', icon: <SettingsIcon />, path: '/costos' },
-  { text: 'finanzas', icon: <SettingsIcon />, path: '/finanzas' },
-  { text: 'Nomina', icon: <SettingsIcon />, path: '/nomina' },
-  { text: 'Produccion', icon: <SettingsIcon />, path: '/produccion' },
-  { text: 'Planificacion', icon: <SettingsIcon />, path: '/planificacion' },
-  { text: 'Clientes', icon: <SettingsIcon />, path: '/clientes' },
-  { text: 'Proveedores', icon: <SettingsIcon />, path: '/proveedores' },
-  { text: 'Reportes', icon: <SettingsIcon />, path: '/reportes' },
-  { text: 'Auditoria', icon: <SettingsIcon />, path: '/auditoria' },
+  { text: 'Contabilidad', icon: <AccountBalanceIcon />, path: '/contabilidad' },
+  { text: 'Activos', icon: <DatasetIcon />, path: '/activos_fijos' },
+  { text: 'Costos', icon: <AttachMoneyIcon />, path: '/costos' },
+  { text: 'finanzas', icon: <CreditCardIcon />, path: '/finanzas' },
+  { text: 'Nomina', icon: <PeopleAltIcon />, path: '/nomina' },
+  { text: 'Produccion', icon: <FactoryIcon />, path: '/produccion' },
+  { text: 'Planificacion', icon: <CalendarMonthIcon />, path: '/planificacion' },
+  { text: 'Clientes', icon: <Groups2Icon />, path: '/clientes' },
+  { text: 'Proveedores', icon: <StoreIcon />, path: '/proveedores' },
+  { text: 'Reportes', icon: <FeedIcon />, path: '/reportes' },
+  { text: 'Auditoria', icon: <VerifiedUserIcon />, path: '/auditoria' },
   { text: 'Configuración', icon: <SettingsIcon />, path: '/configuracion' },
-  { text: 'Licencias', icon: <SettingsIcon />, path: '/licencias' },
+  { text: 'Licencias', icon: <VpnKeyIcon />, path: '/licencias' },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
