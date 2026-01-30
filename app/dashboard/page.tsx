@@ -11,7 +11,10 @@ export default function dashboardPage() {
           sx={{
             width: '100%',
             height: 60,
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background:
+              "linear-gradient(135deg, rgba(0,114,255,0.9), rgba(142,45,226,0.9)), url('https://images.unsplash.com/photo-1554224155-6726b3ff858f')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
             alignContent: 'center'
           }}>
           <Typography variant="h5" color='white' sx={{ ml: 2 }}>
