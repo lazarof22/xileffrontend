@@ -38,6 +38,7 @@ import BuildIcon from '@mui/icons-material/Build';
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import GroupsIcon from '@mui/icons-material/Groups';
 import VillaIcon from '@mui/icons-material/Villa';
+import AccountMenu from './AccountMenuButton';
 
 const drawerWidth = 300;
 const collapsedWidth = 72;
@@ -124,7 +125,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <IconButton color="inherit" onClick={() => setCollapsed(!collapsed)} sx={{ mr: 2 }}>
             <MenuIcon />
           </IconButton>
-          <Avatar sx={{ width: 33, height: 33 }} src="/broken-image.jpg" />
+          <AccountMenu/>
         </Toolbar>
       </AppBar>
 
