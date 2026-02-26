@@ -7,6 +7,12 @@ import InventoryIcon from '@mui/icons-material/Inventory';
 import SupervisedUserCircleIcon from '@mui/icons-material/SupervisedUserCircle';
 import WcIcon from '@mui/icons-material/Wc';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import CustomDataGrid from "@/components/CustomDataGridR";
+
+const rows = [
+  { id: 1, codigo: "f002", producto: "Laptop Acer Predator", categoria:"tecnologias", precioCompra: 320, precioVenta: 360, stock:10, stockMinimo:5, estado:"Activo" },
+  { id: 2, codigo: "f003", producto: "Laptop Gigabyte Aorus", categoria:"tecnologias", precioCompra: 410, precioVenta: 480, stock:15, stockMinimo:5, estado:"Activo" },
+];
 
 export default function InventoryPage() {
   return (
@@ -33,29 +39,26 @@ export default function InventoryPage() {
             Actualizar
           </Button>
         </Box>
-        <Box display={'flex'} ml={2}>
-          <Card sx={{ width: 'auto', display: 'inline-flex', m: 2 }}>
-            <CardContent sx={{ py: 2, px: 3 }}>
-              <Typography variant="h6"><MonetizationOnIcon fontSize='large' sx={{ mr: 1 }} />Ventas del Mes:</Typography>
-              <Typography variant="h4" color='primary' textAlign={'center'}>$1,250</Typography>
-            </CardContent>
-          </Card>
+        <Box ml={2}>
           <Card sx={{ width: 'auto', display: 'inline-flex', m: 2 }}>
             <CardContent>
-              <Typography variant="h6"><InventoryIcon fontSize='large' sx={{ mr: 1 }} />Productos en Stock:</Typography>
-              <Typography variant="h4" color='primary' textAlign={'center'}>320</Typography>
-            </CardContent>
-          </Card>
-          <Card sx={{ width: 'auto', display: 'inline-flex', m: 2 }}>
-            <CardContent>
-              <Typography variant="h6"><SupervisedUserCircleIcon fontSize='large' sx={{ mr: 1 }} />Clientes Activos:</Typography>
-              <Typography variant="h4" color='primary' textAlign={'center'}>4</Typography>
-            </CardContent>
-          </Card>
-          <Card sx={{ width: 'auto', display: 'inline-flex', m: 2 }}>
-            <CardContent>
-              <Typography variant="h6"><WcIcon fontSize='large' sx={{ mr: 1 }} />Empleados:</Typography>
-              <Typography variant="h4" color='primary' textAlign={'center'}>6</Typography>
+              <CustomDataGrid
+                title="Productos"
+                rows={rows}
+                getRowId={(row) => row.id}
+                columns={[
+                  { field: "codigo", headerName: "Codigo" },
+                  { field: "producto", headerName: "Producto"},
+                  { field: "categoria", headerName: "Categoria"},
+                  { field: "precioCompra", headerName: "Precio de Compra", numeric: true },
+                  { field: "precioVenta", headerName: "Precio de Venta", numeric: true },
+                  { field: "stock", headerName: "Stock", numeric: true },
+                  { field: "stockMinimo", headerName: "Stock Minimo", numeric: true },
+                  { field: "estado", headerName: "Estado"},
+                ]}
+                onEditRow={(row) => console.log("Editar", row)}
+                onDeleteRow={(row) => console.log("Eliminar", row)}
+              />
             </CardContent>
           </Card>
         </Box>
