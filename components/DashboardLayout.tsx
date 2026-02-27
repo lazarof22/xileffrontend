@@ -156,7 +156,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <List>
           <ListItemButton onClick={() => handleSectionClick('modulos')}>
             <ListItemIcon>
-              <ViewModuleIcon fontSize='large' sx={{ color: 'white' }} />
+              <ViewModuleIcon fontSize='medium' sx={{ color: 'white' }} />
             </ListItemIcon>
             <ListItemText primary="Modulos Principales" />
             {openSection === 'modulos' ? <ExpandLess /> : <ExpandMore />}
@@ -204,7 +204,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </Collapse>
           <ListItemButton onClick={() => handleSectionClick('contabilidad')}>
             <ListItemIcon>
-              <AssuredWorkloadIcon fontSize='large' sx={{ color: 'white' }} />
+              <AssuredWorkloadIcon fontSize='medium' sx={{ color: 'white' }} />
             </ListItemIcon>
             <ListItemText primary="Contabilidad y Finanzas" />
             {openSection === 'contabilidad' ? <ExpandLess /> : <ExpandMore />}
@@ -252,7 +252,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </Collapse>
           <ListItemButton onClick={() => handleSectionClick('rrhh')}>
             <ListItemIcon>
-              <AssignmentIndIcon fontSize='large' sx={{ color: 'white' }} />
+              <AssignmentIndIcon fontSize='medium' sx={{ color: 'white' }} />
             </ListItemIcon>
             <ListItemText primary="Recursos Humanos" />
             {openSection === 'rrhh' ? <ExpandLess /> : <ExpandMore />}
@@ -300,7 +300,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </Collapse>
           <ListItemButton onClick={() => handleSectionClick('produccion')}>
             <ListItemIcon>
-              <VillaIcon fontSize='large' sx={{ color: 'white' }} />
+              <VillaIcon fontSize='medium' sx={{ color: 'white' }} />
             </ListItemIcon>
             <ListItemText primary="Producción y Logística" />
             {openSection === 'produccion' ? <ExpandLess /> : <ExpandMore />}
@@ -348,7 +348,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </Collapse>
           <ListItemButton onClick={() => handleSectionClick('clientes')}>
             <ListItemIcon>
-              <GroupsIcon fontSize='large' sx={{ color: 'white' }} />
+              <GroupsIcon fontSize='medium' sx={{ color: 'white' }} />
             </ListItemIcon>
             <ListItemText primary="Clientes y Proveedores" />
             {openSection === 'clientes' ? <ExpandLess /> : <ExpandMore />}
@@ -396,7 +396,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </Collapse>
           <ListItemButton onClick={() => handleSectionClick('reportes')}>
             <ListItemIcon>
-              <ContentPasteIcon fontSize='large' sx={{ color: 'white' }} />
+              <ContentPasteIcon fontSize='medium' sx={{ color: 'white' }} />
             </ListItemIcon>
             <ListItemText primary="Reportes y Auditoría" />
             {openSection === 'reportes' ? <ExpandLess /> : <ExpandMore />}
@@ -444,7 +444,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </Collapse>
           <ListItemButton onClick={() => handleSectionClick('config')}>
             <ListItemIcon>
-              <BuildIcon fontSize='large' sx={{ color: 'white' }} />
+              <BuildIcon fontSize='medium' sx={{ color: 'white' }} />
             </ListItemIcon>
             <ListItemText primary="Configuración" />
             {openSection === 'config' ? <ExpandLess /> : <ExpandMore />}

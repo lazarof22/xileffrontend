@@ -20,9 +20,19 @@ import {
     TextField,
     IconButton,
     Stack,
+    Button,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
+    Grid,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 
 type Order = "asc" | "desc";
 
@@ -124,6 +134,40 @@ export default function CustomDataGrid<T>({
         page * rowsPerPage + rowsPerPage
     );
 
+    const handleExportPDF = () => {
+        const doc = new jsPDF();
+
+        doc.setFontSize(16);
+        doc.text(title, 14, 15);
+
+        const tableColumn = columns.map((col) => col.headerName);
+
+        const tableRows = filteredRows.map((row) =>
+            columns.map((col) => String(row[col.field]))
+        );
+
+        autoTable(doc, {
+            head: [tableColumn],
+            body: tableRows,
+            startY: 20,
+        });
+
+        doc.save(`${title}.pdf`);
+    };
+
+    const [openDeleteDialog, setOpenDeleteDialog] = React.useState(false);
+    const [rowToDelete, setRowToDelete] = React.useState<T | null>(null);
+    const [openEditDialog, setOpenEditDialog] = React.useState(false);
+    const [rowToEdit, setRowToEdit] = React.useState<T | null>(null);
+    const [editForm, setEditForm] = React.useState<Partial<T>>({});
+
+    const handleEditChange = (field: keyof T, value: any) => {
+        setEditForm((prev) => ({
+            ...prev,
+            [field]: value,
+        }));
+    };
+
     return (
         <Box sx={{ width: "100%" }}>
             <Paper sx={{ width: "100%", mb: 2 }}>
@@ -139,6 +183,14 @@ export default function CustomDataGrid<T>({
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />
+                    <Button
+                        variant="outlined"
+                        color="error"
+                        size="small"
+                        startIcon={<PictureAsPdfIcon sx={{ fontSize: "medium" }} />}
+                        onClick={handleExportPDF}>
+                        Exportar PDF
+                    </Button>
                 </Toolbar>
 
                 <TableContainer>
@@ -239,7 +291,9 @@ export default function CustomDataGrid<T>({
                                                     color="primary"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        onEditRow?.(row);
+                                                        setRowToEdit(row);
+                                                        setEditForm(row);
+                                                        setOpenEditDialog(true);
                                                     }}
                                                 >
                                                     <EditIcon />
@@ -249,7 +303,8 @@ export default function CustomDataGrid<T>({
                                                     color="error"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        onDeleteRow?.(row);
+                                                        setRowToDelete(row);
+                                                        setOpenDeleteDialog(true);
                                                     }}
                                                 >
                                                     <DeleteIcon />
@@ -276,6 +331,92 @@ export default function CustomDataGrid<T>({
                     }}
                 />
             </Paper>
+            <Dialog
+                open={openDeleteDialog}
+                onClose={() => setOpenDeleteDialog(false)}
+            >
+                <DialogTitle>Confirmar eliminación</DialogTitle>
+
+                <DialogContent>
+                    <DialogContentText>
+                        ¿Estás seguro que deseas eliminar este registro?
+                        Esta acción no se puede deshacer.
+                    </DialogContentText>
+                </DialogContent>
+
+                <DialogActions>
+                    <Button
+                        onClick={() => setOpenDeleteDialog(false)}
+                        color="inherit"
+                    >
+                        Cancelar
+                    </Button>
+
+                    <Button
+                        onClick={() => {
+                            if (rowToDelete) {
+                                onDeleteRow?.(rowToDelete);
+                            }
+                            setOpenDeleteDialog(false);
+                            setRowToDelete(null);
+                        }}
+                        color="error"
+                        variant="contained"
+                    >
+                        Eliminar
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            <Dialog
+                open={openEditDialog}
+                onClose={() => setOpenEditDialog(false)}
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogTitle>Editar Registro</DialogTitle>
+                <DialogContent>
+                    <Grid container spacing={2} sx={{ mt: 1 }}>
+                        {columns.map((column) => (
+                            <Grid item xs={12} key={String(column.field)}>
+                                <TextField
+                                    fullWidth
+                                    label={column.headerName}
+                                    value={editForm[column.field] ?? ""}
+                                    onChange={(e) =>
+                                        handleEditChange(column.field, e.target.value)
+                                    }
+                                />
+                            </Grid>
+                        ))}
+                    </Grid>
+                </DialogContent>
+
+                <DialogActions>
+                    <Button
+                        onClick={() => setOpenEditDialog(false)}
+                        color="inherit"
+                    >
+                        Cancelar
+                    </Button>
+
+                    <Button
+                        variant="contained"
+                        onClick={() => {
+                            if (rowToEdit) {
+                                const updatedRow = {
+                                    ...rowToEdit,
+                                    ...editForm,
+                                };
+                                onEditRow?.(updatedRow);
+                            }
+                            setOpenEditDialog(false);
+                            setRowToEdit(null);
+                        }}
+                    >
+                        Guardar Cambios
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 }
