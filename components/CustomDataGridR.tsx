@@ -169,7 +169,7 @@ export default function CustomDataGrid<T>({
     };
 
     return (
-        <Box sx={{ width: "100%" }}>
+        <Box sx={{ width: '100%', overflowX: 'auto' }}>
             <Paper sx={{ width: "100%", mb: 2 }}>
                 <Toolbar sx={{ display: "flex", gap: 2 }}>
                     <Typography sx={{ flex: "1 1 auto" }} variant="h6">

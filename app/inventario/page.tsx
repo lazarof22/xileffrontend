@@ -10,6 +10,9 @@ import {
   MenuItem,
   Snackbar,
   Alert,
+  Checkbox,
+  FormControlLabel,
+  Tab,
 } from '@mui/material';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import InventoryIcon from '@mui/icons-material/Inventory';
@@ -21,8 +24,7 @@ import AddIcon from '@mui/icons-material/Add';
 import AssignmentAddIcon from '@mui/icons-material/AssignmentAdd';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import React from 'react';
-
-
+import { TabContext, TabList, TabPanel } from "@mui/lab";
 
 export default function InventoryPage() {
   const [rows, setRows] = React.useState([
@@ -50,7 +52,7 @@ export default function InventoryPage() {
         [field]: value,
       };
 
-      // 🔥 Validar automáticamente cuando cambia algo
+      //Valida automáticamente cuando cambia algo
       setTimeout(() => {
         validateForm();
       }, 0);
@@ -132,6 +134,114 @@ export default function InventoryPage() {
     return Object.keys(tempErrors).length === 0;
   };
 
+  const [openAdjustDialog, setOpenAdjustDialog] = React.useState(false);
+
+  const [selectedProductId, setSelectedProductId] = React.useState<number | "">("");
+
+  const [increaseChecked, setIncreaseChecked] = React.useState(false);
+  const [decreaseChecked, setDecreaseChecked] = React.useState(false);
+
+  const [increaseAmount, setIncreaseAmount] = React.useState("");
+  const [decreaseAmount, setDecreaseAmount] = React.useState("");
+
+  const [decreaseReason, setDecreaseReason] = React.useState("");
+
+  const decreaseReasons = [
+    "Producto dañado",
+    "Venta manual",
+    "Pérdida",
+    "Ajuste administrativo",
+  ];
+
+  const handleIncreaseCheck = (checked: boolean) => {
+    setIncreaseChecked(checked);
+    if (checked) {
+      setDecreaseChecked(false);
+      setDecreaseAmount("");
+      setDecreaseReason("");
+    }
+  };
+
+  const handleDecreaseCheck = (checked: boolean) => {
+    setDecreaseChecked(checked);
+    if (checked) {
+      setIncreaseChecked(false);
+      setIncreaseAmount("");
+    }
+  };
+
+  const handleConfirmAdjustment = () => {
+    if (!selectedProductId) return;
+
+    const selectedProduct = rows.find(r => r.id === selectedProductId);
+    if (!selectedProduct) return;
+
+    const now = new Date();
+
+    let movementType = "";
+    let quantity = 0;
+
+    setRows((prev) =>
+      prev.map((row) => {
+        if (row.id !== selectedProductId) return row;
+
+        let newStock = row.stock;
+
+        if (increaseChecked) {
+          quantity = Number(increaseAmount);
+          movementType = "Entrada";
+          newStock += quantity;
+        }
+
+        if (decreaseChecked) {
+          quantity = Number(decreaseAmount);
+          movementType = "Salida";
+          newStock -= quantity;
+          if (newStock < 0) newStock = 0;
+        }
+
+        return {
+          ...row,
+          stock: newStock,
+        };
+      })
+    );
+
+    // 🔥 Registrar en Kardex
+    setKardex(prev => [
+      ...prev,
+      {
+        id: Date.now(),
+        fecha: now.toLocaleString(),
+        producto: selectedProduct.producto,
+        tipo: movementType,
+        cantidad: quantity,
+        motivo: decreaseChecked ? decreaseReason : "Ingreso de inventario",
+        stockFinal:
+          movementType === "Entrada"
+            ? selectedProduct.stock + quantity
+            : selectedProduct.stock - quantity,
+      }
+    ]);
+
+    // Reset
+    setOpenAdjustDialog(false);
+    setSelectedProductId("");
+    setIncreaseChecked(false);
+    setDecreaseChecked(false);
+    setIncreaseAmount("");
+    setDecreaseAmount("");
+    setDecreaseReason("");
+  };
+
+  const [tabValue, setTabValue] = React.useState("1");
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
+    setTabValue(newValue);
+  };
+
+  const [kardex, setKardex] = React.useState<any[]>([]);
+
   return (
     <DashboardLayout>
       <Box>
@@ -160,33 +270,69 @@ export default function InventoryPage() {
             >
               Nuevo Producto
             </Button>
-            <Button variant="contained" startIcon={<AssignmentAddIcon />} sx={{ ml: 1 }}>
-              Ajsute de Inventario
+            <Button
+              variant="contained"
+              startIcon={<AssignmentAddIcon />}
+              sx={{ ml: 1 }}
+              onClick={() => setOpenAdjustDialog(true)}
+            >
+              Ajuste de Inventario
             </Button>
           </Box>
         </Box>
-        <Box ml={2}>
-          <Card sx={{ width: 'auto', display: 'inline-flex', m: 2 }}>
-            <CardContent>
-              <CustomDataGrid
-                title="Productos"
-                rows={rows}
-                getRowId={(row) => row.id}
-                columns={[
-                  { field: "codigo", headerName: "Codigo" },
-                  { field: "producto", headerName: "Producto" },
-                  { field: "categoria", headerName: "Categoria" },
-                  { field: "precioCompra", headerName: "Precio de Compra", numeric: true },
-                  { field: "precioVenta", headerName: "Precio de Venta", numeric: true },
-                  { field: "stock", headerName: "Stock", numeric: true },
-                  { field: "stockMinimo", headerName: "Stock Minimo", numeric: true },
-                  { field: "estado", headerName: "Estado" },
-                ]}
-                onEditRow={(row) => console.log("Editar", row)}
-                onDeleteRow={(row) => console.log("Eliminar", row)}
-              />
-            </CardContent>
-          </Card>
+        <Box sx={{ width: '100%', px: 2 }}>
+          <TabContext value={tabValue}>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', mt: 2 }}>
+              <TabList onChange={handleTabChange}>
+                <Tab label="Productos" value="1" />
+                <Tab label="Kardex" value="2" />
+              </TabList>
+            </Box>
+
+            {/* TAB PRODUCTOS */}
+            <TabPanel value="1">
+              <Card sx={{ width: '100%' }}>
+                <CardContent>
+                  <CustomDataGrid
+                    title="Productos"
+                    rows={rows}
+                    getRowId={(row) => row.id}
+                    columns={[
+                      { field: "codigo", headerName: "Codigo" },
+                      { field: "producto", headerName: "Producto" },
+                      { field: "categoria", headerName: "Categoria" },
+                      { field: "precioCompra", headerName: "Precio Compra", numeric: true },
+                      { field: "precioVenta", headerName: "Precio Venta", numeric: true },
+                      { field: "stock", headerName: "Stock", numeric: true },
+                      { field: "stockMinimo", headerName: "Stock Minimo", numeric: true },
+                      { field: "estado", headerName: "Estado" },
+                    ]}
+                  />
+                </CardContent>
+              </Card>
+            </TabPanel>
+
+            {/* TAB KARDEX */}
+            <TabPanel value="2">
+              <Card sx={{ width: '100%' }}>
+                <CardContent>
+                  <CustomDataGrid
+                    title="Registro Kardex"
+                    rows={kardex}
+                    getRowId={(row) => row.id}
+                    columns={[
+                      { field: "fecha", headerName: "Fecha" },
+                      { field: "producto", headerName: "Producto" },
+                      { field: "tipo", headerName: "Tipo" },
+                      { field: "cantidad", headerName: "Cantidad", numeric: true },
+                      { field: "motivo", headerName: "Motivo" },
+                      { field: "stockFinal", headerName: "Stock Final", numeric: true },
+                    ]}
+                  />
+                </CardContent>
+              </Card>
+            </TabPanel>
+          </TabContext>
           <Dialog
             open={openCreateDialog}
             onClose={() => setOpenCreateDialog(false)}
@@ -319,6 +465,117 @@ export default function InventoryPage() {
               Producto agregado correctamente
             </Alert>
           </Snackbar>
+          <Dialog
+            open={openAdjustDialog}
+            onClose={() => setOpenAdjustDialog(false)}
+            maxWidth="sm"
+            fullWidth
+          >
+            <DialogTitle>Ajuste de Inventario</DialogTitle>
+
+            <DialogContent sx={{ mt: 2 }}>
+
+              {/* Select Producto */}
+              <TextField
+                select
+                fullWidth
+                label="Producto"
+                margin="normal"
+                value={selectedProductId}
+                onChange={(e) => setSelectedProductId(Number(e.target.value))}
+              >
+                {rows.map((row) => (
+                  <MenuItem key={row.id} value={row.id}>
+                    {row.producto}
+                  </MenuItem>
+                ))}
+              </TextField>
+
+              {/* Checkbox Aumentar */}
+              <Box mt={2}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={increaseChecked}
+                      onChange={(e) => handleIncreaseCheck(e.target.checked)}
+                    />
+                  }
+                  label="Aumentar Stock"
+                />
+              </Box>
+
+              {increaseChecked && (
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Cantidad a aumentar"
+                  margin="normal"
+                  value={increaseAmount}
+                  onChange={(e) => setIncreaseAmount(e.target.value)}
+                />
+              )}
+
+              {/* Checkbox Disminuir */}
+              <Box mt={2}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={decreaseChecked}
+                      onChange={(e) => handleDecreaseCheck(e.target.checked)}
+                    />
+                  }
+                  label="Disminuir Stock"
+                />
+              </Box>
+
+              {decreaseChecked && (
+                <>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Cantidad a disminuir"
+                    margin="normal"
+                    value={decreaseAmount}
+                    onChange={(e) => setDecreaseAmount(e.target.value)}
+                  />
+
+                  <TextField
+                    select
+                    fullWidth
+                    label="Motivo"
+                    margin="normal"
+                    value={decreaseReason}
+                    onChange={(e) => setDecreaseReason(e.target.value)}
+                  >
+                    {decreaseReasons.map((reason) => (
+                      <MenuItem key={reason} value={reason}>
+                        {reason}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </>
+              )}
+            </DialogContent>
+
+            <DialogActions>
+              <Button onClick={() => setOpenAdjustDialog(false)}>
+                Cancelar
+              </Button>
+
+              <Button
+                variant="contained"
+                onClick={handleConfirmAdjustment}
+                disabled={
+                  !selectedProductId ||
+                  (!increaseChecked && !decreaseChecked) ||
+                  (increaseChecked && !increaseAmount) ||
+                  (decreaseChecked && (!decreaseAmount || !decreaseReason))
+                }
+              >
+                Confirmar
+              </Button>
+            </DialogActions>
+          </Dialog>
         </Box>
       </Box>
     </DashboardLayout>
