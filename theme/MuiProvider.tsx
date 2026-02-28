@@ -122,7 +122,10 @@ const theme = createTheme({
             styleOverrides: {
                 root: {
                     borderRadius: 0,
-                    backgroundColor: '#2c3e50',
+                    background:
+                        "linear-gradient(100deg, #2c3e50, rgba(142,45,226,0.9)),url('/images/login-bg.jpg')",
+                    backgroundSize: "cover",
+                    backgroundPosition: "bottom",
                 },
             },
         },
