@@ -138,10 +138,6 @@ export default function InventoryPage() {
                     ? productoObj.nombre_producto || 'Sin nombre'
                     : 'Producto desconocido';
 
-                const stockInicial = typeof productoObj === 'object' && productoObj !== null
-                    ? productoObj.stock_inicial ?? '-'
-                    : '-';
-
                 return {
                     id: k._id,
                     fecha: new Date(k.fecha).toLocaleString(),
@@ -149,7 +145,7 @@ export default function InventoryPage() {
                     tipo: k.tipo,
                     cantidad: k.cantidad,
                     motivo: k.motivo,
-                    stockFinal: stockInicial, // ✅ Ahora muestra el stock real
+                    stockFinal: k.stock, // ✅ Ahora muestra el stock real
                 };
             });
 
