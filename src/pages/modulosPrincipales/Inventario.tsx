@@ -19,7 +19,7 @@ import {
     Tab,
     CircularProgress,
 } from '@mui/material';
-import CustomDataGrid from "../../components/CustomDataGrid";
+import CustomDataGrid from "../../components/CustomDataGridR";
 import AddIcon from '@mui/icons-material/Add';
 import AssignmentAddIcon from '@mui/icons-material/AssignmentAdd';
 import { useEffect, useState } from 'react';
