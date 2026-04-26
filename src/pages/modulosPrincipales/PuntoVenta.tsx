@@ -15,7 +15,8 @@ import ShoppingBasketIcon from '@mui/icons-material/ShoppingBasket';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import SearchIcon from "@mui/icons-material/Search";
 import jsPDF from "jspdf";
-import DashboardLayout from '../../components/DashboardLayout';
+import DeleteIcon from "@mui/icons-material/Delete";
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 
 export default function PuntoVentaPage() {
     const [search, setSearch] = React.useState("");
@@ -295,475 +296,506 @@ export default function PuntoVentaPage() {
     };
 
     return (
-            <Box>
-                <Box
-                    sx={{
-                        width: '100%',
-                        height: 60,
-                        background:
-                            "linear-gradient(135deg, rgba(0,114,255,0.9), rgba(142,45,226,0.9)), url('/images/login-bg.jpg')",
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                        alignContent: 'center',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        px: 2,
-                    }}>
-                    <Typography variant="h5" sx={{ ml: 2, color:'white' }}>
-                        Punto de Venta
-                    </Typography>
-                    <Box>
-                        <Button
-                            variant="contained"
-                            startIcon={<AddIcon />}
-                            sx={{
-                                ml: 1,
-                                background: "linear-gradient(135deg, rgb(0, 174, 255), rgba(196, 45, 226, 0.9))",
-                                color: "#fff",
-                                textTransform: "none",
-                                fontWeight: 600,
-                                boxShadow: "none",
-                                "&:hover": {
-                                    background: "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))",
-                                    boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
-                                }
-                            }}
-                        >
-                            Nueva Venta
-                        </Button>
-                        <Button
-                            variant="contained"
-                            size="small"
-                            startIcon={<PictureAsPdfIcon sx={{ fontSize: "medium" }} />}
-                            sx={{
-                                ml: 1,
-                                background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
-                                color: "#fff",
-                                textTransform: "none",
-                                fontWeight: 600,
-                                boxShadow: "none",
-                                "&:hover": {
-                                    background: "linear-gradient(135deg, rgba(255,0,0,1), rgb(196, 45, 226))",
-                                    boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
-                                }
-                            }}
-                        >
-                            Exportar PDF
-                        </Button>
-                    </Box>
+        <Box>
+            <Box
+                sx={{
+                    width: '100%',
+                    height: 60,
+                    background:
+                        "linear-gradient(135deg, rgba(0,114,255,0.9), rgba(142,45,226,0.9)), url('/images/login-bg.jpg')",
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    alignContent: 'center',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    px: 2,
+                }}>
+                <Typography variant="h5" sx={{ ml: 2, color: 'white' }}>
+                    Punto de Venta
+                </Typography>
+                <Box>
+                    <Button
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        sx={{
+                            ml: 1,
+                            background: "linear-gradient(135deg, rgb(0, 174, 255), rgba(196, 45, 226, 0.9))",
+                            color: "#fff",
+                            textTransform: "none",
+                            fontWeight: 600,
+                            boxShadow: "none",
+                            "&:hover": {
+                                background: "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))",
+                                boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
+                            }
+                        }}
+                    >
+                        Nueva Venta
+                    </Button>
+                    <Button
+                        variant="contained"
+                        size="small"
+                        startIcon={<PictureAsPdfIcon sx={{ fontSize: "medium" }} />}
+                        sx={{
+                            ml: 1,
+                            background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
+                            color: "#fff",
+                            textTransform: "none",
+                            fontWeight: 600,
+                            boxShadow: "none",
+                            "&:hover": {
+                                background: "linear-gradient(135deg, rgba(255,0,0,1), rgb(196, 45, 226))",
+                                boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
+                            }
+                        }}
+                    >
+                        Exportar PDF
+                    </Button>
                 </Box>
-                <Box
-                    sx={{
-                        display: "flex",
-                        gap: 2,
-                        width: "100%",
-                        flexDirection: { xs: "column", md: "row" },
-                        mt: 2,
-                    }}
-                >
-                    <Box sx={{ width: "100%" }}>
-                        {/* 🔵 Tabs */}
-                        <Tabs
-                            value={tab}
-                            onChange={handleChangeTab}
-                            slotProps={{ indicator: { sx: { display: "none" } } }}
-                            centered
+            </Box>
+            <Box
+                sx={{
+                    display: "flex",
+                    gap: 2,
+                    width: "100%",
+                    flexDirection: { xs: "column", md: "row" },
+                    mt: 2,
+                }}
+            >
+                <Box sx={{ width: "100%" }}>
+                    {/* 🔵 Tabs */}
+                    <Tabs
+                        value={tab}
+                        onChange={handleChangeTab}
+                        slotProps={{ indicator: { sx: { display: "none" } } }}
+                        centered
+                        sx={{
+                            background: "#f4f6f8",
+                            borderRadius: "10px",
+                            p: 0.5,
+                            ml: 1,
+                            mr: 1,
+                            minHeight: "auto",
+                            "& .MuiTabs-flexContainer": {
+                                gap: 1
+                            }
+                        }}
+                    >
+                        <Tab
+                            icon={<ShoppingBasketIcon sx={{ fontSize: "large" }} />}
+                            iconPosition="start"
+                            label="Productos"
                             sx={{
-                                background: "#f4f6f8",
+                                textTransform: "none",
+                                fontWeight: 600,
                                 borderRadius: "10px",
-                                p: 0.5,
-                                ml: 1,
-                                mr: 1,
-                                minHeight: "auto",
-                                "& .MuiTabs-flexContainer": {
-                                    gap: 1
-                                }
-                            }}
-                        >
-                            <Tab
-                                icon={<ShoppingBasketIcon sx={{ fontSize: "large" }} />}
-                                iconPosition="start"
-                                label="Productos"
-                                sx={{
-                                    textTransform: "none",
-                                    fontWeight: 600,
-                                    borderRadius: "10px",
-                                    minHeight: 45,
-                                    width: "auto",
-                                    transition: "all 0.3s ease",
-                                    color: tab === 0 ? "#fff" : "#555",
+                                minHeight: 45,
+                                width: "auto",
+                                transition: "all 0.3s ease",
+                                color: tab === 0 ? "#fff" : "#555",
+                                background:
+                                    tab === 0
+                                        ? "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))"
+                                        : "transparent",
+                                "&:hover": {
                                     background:
                                         tab === 0
                                             ? "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))"
-                                            : "transparent",
-                                    "&:hover": {
-                                        background:
-                                            tab === 0
-                                                ? "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))"
-                                                : "#e0e0e0",
-                                    },
-                                    "&.Mui-selected": {
-                                        color: "#ffffff",
-                                        background:
-                                            "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))"
-                                    },
-                                }}
-                            />
+                                            : "#e0e0e0",
+                                },
+                                "&.Mui-selected": {
+                                    color: "#ffffff",
+                                    background:
+                                        "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))"
+                                },
+                            }}
+                        />
 
-                            <Tab
-                                icon={
-                                    <Badge
-                                        badgeContent={
-                                            carrito.reduce((acc, item) => acc + item.cantidad, 0)
-                                        }
-                                        color="error"
-                                        overlap="circular"
-                                    >
-                                        <ShoppingCartIcon />
-                                    </Badge>
-                                }
-                                iconPosition="start"
-                                label="Carrito"
-                                sx={{
-                                    textTransform: "none",
-                                    fontWeight: 600,
-                                    borderRadius: "10px",
-                                    minHeight: 45,
-                                    transition: "all 0.3s ease",
-                                    color: tab === 1 ? "#fff" : "#555",
+                        <Tab
+                            icon={
+                                <Badge
+                                    badgeContent={
+                                        carrito.reduce((acc, item) => acc + item.cantidad, 0)
+                                    }
+                                    color="error"
+                                    overlap="circular"
+                                >
+                                    <ShoppingCartIcon />
+                                </Badge>
+                            }
+                            iconPosition="start"
+                            label="Carrito"
+                            sx={{
+                                textTransform: "none",
+                                fontWeight: 600,
+                                borderRadius: "10px",
+                                minHeight: 45,
+                                transition: "all 0.3s ease",
+                                color: tab === 1 ? "#fff" : "#555",
+                                background:
+                                    tab === 1
+                                        ? "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))"
+                                        : "transparent",
+                                "&:hover": {
                                     background:
                                         tab === 1
                                             ? "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))"
-                                            : "transparent",
-                                    "&:hover": {
-                                        background:
-                                            tab === 1
-                                                ? "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))"
-                                                : "#e0e0e0",
-                                    },
-                                    "&.Mui-selected": {
-                                        color: "#ffffff",
-                                        background:
-                                            "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))"
-                                    },
-                                }}
-                            />
-                        </Tabs>
+                                            : "#e0e0e0",
+                                },
+                                "&.Mui-selected": {
+                                    color: "#ffffff",
+                                    background:
+                                        "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))"
+                                },
+                            }}
+                        />
+                    </Tabs>
 
-                        {/* ================= TAB PRODUCTOS ================= */}
-                        {tab === 0 && (
-                            <Card>
-                                <CardContent>
-                                    <Box
-                                        sx={{
-                                            display: "flex",
-                                            justifyContent: "center",
-                                            mb: 3
+                    {/* ================= TAB PRODUCTOS ================= */}
+                    {tab === 0 && (
+                        <Card>
+                            <CardContent>
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        justifyContent: "center",
+                                        mb: 3
+                                    }}
+                                >
+                                    <TextField
+                                        placeholder="Buscar producto..."
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                        slotProps={{
+                                            input: {
+                                                startAdornment: (
+                                                    <InputAdornment position="start">
+                                                        <SearchIcon sx={{ color: "#a78bfa" }} />
+                                                    </InputAdornment>
+                                                )
+                                            }
                                         }}
-                                    >
-                                        <TextField
-                                            placeholder="Buscar producto..."
-                                            value={search}
-                                            onChange={(e) => setSearch(e.target.value)}
-                                            slotProps={{
-                                                input: {
-                                                    startAdornment: (
-                                                        <InputAdornment position="start">
-                                                            <SearchIcon sx={{ color: "#a78bfa" }} />
-                                                        </InputAdornment>
-                                                    )
-                                                }
-                                            }}
-                                            sx={{
-                                                width: { xs: "100%", sm: "60%", md: "50%" }
-                                            }}
-                                        />
-                                    </Box>
-
-                                    <Box
                                         sx={{
-                                            display: "flex",
-                                            flexWrap: "wrap",
-                                            gap: 2
+                                            width: { xs: "100%", sm: "60%", md: "50%" }
                                         }}
-                                    >
-                                        {productosFiltrados.length > 0 ? (
-                                            productosFiltrados.map((producto) => (
-                                                <Box key={producto.id}>
-                                                    <ProductCard
-                                                        nombre={producto.nombre}
-                                                        precio={producto.precio}
-                                                        stock={producto.stock}
-                                                        categoria={producto.categoria}
-                                                        imagen={producto.imagen}
-                                                        onAddToCart={() => agregarAlCarrito(producto)}
-                                                    />
-                                                </Box>
-                                            ))
-                                        ) : (
-                                            <Box sx={{ width: "100%", textAlign: "center", py: 5 }}>
-                                                <Typography color="text.secondary">
-                                                    No se encontraron productos
-                                                </Typography>
-                                            </Box>
-                                        )}
-                                    </Box>
-                                </CardContent>
-                            </Card>
-                        )}
-
-                        {/* ================= TAB CARRITO ================= */}
-                        {tab === 1 && (
-                            <Card
-                                sx={{
-                                    height: "100%",
-                                    borderRadius: 3,
-                                    boxShadow: 3,
-                                    backgroundColor: "#fff",
-                                    display: "flex",
-                                    overflow: "hidden"
-                                }}
-                            >
-                                <CardContent sx={{ flexGrow: 1, overflowY: "auto" }}>
-                                    <Box
-                                        sx={{
-                                            flex: 2,
-                                            p: 3,
-                                            overflowY: "auto",
-                                            borderRight: "1px solid #eee"
-                                        }}
-                                    >
-                                        <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
-                                            🛒 Shopping Cart
-                                        </Typography>
-
-                                        {carrito.length === 0 ? (
-                                            <Typography color="text.secondary">
-                                                No hay productos
-                                            </Typography>
-                                        ) : (
-                                            carrito.map((item) => (
-                                                <Box
-                                                    key={item.id}
-                                                    sx={{
-                                                        display: "flex",
-                                                        alignItems: "center",
-                                                        gap: 1,
-                                                        py: 2,
-                                                        borderBottom: "1px solid #f0f0f0"
-                                                    }}
-                                                >
-                                                    {/* 🏷 Nombre + precio */}
-                                                    <Box sx={{ flex: 1 }}>
-                                                        <Typography sx={{ fontWeight: "bold" }}>
-                                                            {item.nombre}
-                                                        </Typography>
-                                                        <Typography variant="body2" color="text.secondary">
-                                                            {item.precio} {moneda}
-                                                        </Typography>
-                                                    </Box>
-
-                                                    {/* 🔢 Cantidad */}
-                                                    <Box sx={{ textAlign: "center" }}>
-                                                        <Typography variant="caption" color="text.secondary">
-                                                            Cant
-                                                        </Typography>
-
-                                                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                                            <Button
-                                                                size="small"
-                                                                variant="outlined"
-                                                                onClick={() => disminuirCantidad(item.id)}
-                                                            >
-                                                                -
-                                                            </Button>
-
-                                                            <Typography sx={{ fontWeight: "bold" }}>
-                                                                {item.cantidad}
-                                                            </Typography>
-
-                                                            <Button
-                                                                size="small"
-                                                                variant="outlined"
-                                                                onClick={() => aumentarCantidad(item.id)}
-                                                            >
-                                                                +
-                                                            </Button>
-                                                        </Box>
-                                                    </Box>
-
-                                                    {/* 🎟 Descuento (%) */}
-                                                    <Box sx={{ textAlign: "center" }}>
-                                                        <Typography variant="caption" color="text.secondary">
-                                                            Desc %
-                                                        </Typography>
-
-                                                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                                            <Button
-                                                                size="small"
-                                                                variant="outlined"
-                                                                color="warning"
-                                                                onClick={() => disminuirDescuento(item.id)}
-                                                            >
-                                                                -
-                                                            </Button>
-
-                                                            <Typography sx={{ fontWeight: "bold" }}>
-                                                                {item.descuento}%
-                                                            </Typography>
-
-                                                            <Button
-                                                                size="small"
-                                                                variant="outlined"
-                                                                color="warning"
-                                                                onClick={() => aumentarDescuento(item.id)}
-                                                            >
-                                                                +
-                                                            </Button>
-                                                        </Box>
-                                                    </Box>
-
-                                                    {/* 💰 Total */}
-                                                    <Box sx={{ minWidth: 110, textAlign: "right" }}>
-                                                        <Typography variant="caption" color="text.secondary">
-                                                            Total
-                                                        </Typography>
-
-                                                        <Typography sx={{ fontWeight: "bold" }}>
-                                                            {(item.cantidad * item.precio - item.descuento).toFixed(2)} {moneda}
-                                                        </Typography>
-                                                    </Box>
-
-                                                    {/* ❌ Eliminar */}
-                                                    <IconButton
-                                                        color="error"
-                                                        onClick={() => quitarProducto(item.id)}
-                                                    >
-                                                        ❌
-                                                    </IconButton>
-                                                </Box>
-                                            ))
-                                        )}
-                                    </Box>
-                                </CardContent>
+                                    />
+                                </Box>
 
                                 <Box
                                     sx={{
-                                        flex: 1,
-                                        p: 3,
-                                        backgroundColor: "#fafafa"
+                                        display: "flex",
+                                        flexWrap: "wrap",
+                                        gap: 2
                                     }}
                                 >
-                                    {/* 🎟 Descuento */}
-                                    <TextField
-                                        fullWidth
-                                        label="Descuento (%)"
-                                        type="number"
-                                        value={descuento}
-                                        onChange={(e) => setDescuento(Number(e.target.value))}
-                                        sx={{ mt: 2 }}
-                                    />
+                                    {productosFiltrados.length > 0 ? (
+                                        productosFiltrados.map((producto) => (
+                                            <Box key={producto.id}>
+                                                <ProductCard
+                                                    nombre={producto.nombre}
+                                                    precio={producto.precio}
+                                                    stock={producto.stock}
+                                                    categoria={producto.categoria}
+                                                    imagen={producto.imagen}
+                                                    onAddToCart={() => agregarAlCarrito(producto)}
+                                                />
+                                            </Box>
+                                        ))
+                                    ) : (
+                                        <Box sx={{ width: "100%", textAlign: "center", py: 5 }}>
+                                            <Typography color="text.secondary">
+                                                No se encontraron productos
+                                            </Typography>
+                                        </Box>
+                                    )}
+                                </Box>
+                            </CardContent>
+                        </Card>
+                    )}
 
-                                    {/* 📊 Impuesto */}
-                                    <TextField
-                                        fullWidth
-                                        label="Impuesto (%)"
-                                        type="number"
-                                        value={impuesto}
-                                        onChange={(e) => setImpuesto(Number(e.target.value))}
-                                        sx={{ mt: 2 }}
-                                    />
+                    {/* ================= TAB CARRITO ================= */}
+                    {tab === 1 && (
+                        <Card
+                            sx={{
+                                height: "100%",
+                                minHeight: 600, // ✅ Altura mínima fija para mantener consistencia
+                                borderRadius: 1,
+                                boxShadow: 5,
+                                backgroundColor: "#fff",
+                                display: "flex",
+                                flexDirection: { xs: "column", md: "row" }, // ✅ Responsive: apilado en móvil, lado a lado en desktop
+                                overflow: "hidden",
+                                m: 1
+                            }}
+                        >
+                            {/* ========== LADO IZQUIERDO: CARRITO (50%) ========== */}
+                            <Box
+                                sx={{
+                                    flex: "1 1 75%", // ✅ 50% del ancho
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    p: 3,
+                                    borderRight: { xs: "none", md: "1px solid #eee" }, // ✅ Borde solo en desktop
+                                    borderBottom: { xs: "1px solid #eee", md: "none" }, // ✅ Borde inferior en móvil
+                                    minHeight: { xs: 300, md: "auto" }, // ✅ Altura mínima en móvil
+                                    overflow: "hidden", // ✅ Evita que crezca descontroladamente
+                                }}
+                            >
+                                <Typography variant="h6"
+                                    sx={{
+                                        fontWeight: "bold",
+                                        mb: 2, color: "primary.main",
+                                        borderRadius: 1,
+                                        boxShadow: 2,
+                                        p: 1,
+                                        px: 3
+                                    }}>
+                                    <ShoppingCartIcon sx={{ mr: 1, verticalAlign: "middle" }} />
+                                    Carrito de Compras
+                                </Typography>
 
-                                    {/* 💰 Totales */}
-                                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                                {/* ✅ Contenedor scrollable para los items */}
+                                <Box sx={{
+                                    flex: 1,
+                                    overflowY: "auto",
+                                    minHeight: 0 // ✅ Importante: permite que flex funcione correctamente
+                                }}>
+                                    {carrito.length === 0 ? (
+                                        <Box sx={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            height: "100%",
+                                            minHeight: 200
+                                        }}>
+                                            <Typography color="text.secondary">
+                                                No hay productos en el carrito
+                                            </Typography>
+                                        </Box>
+                                    ) : (
+                                        carrito.map((item) => (
+                                            <Box
+                                                key={item.id}
+                                                sx={{
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    gap: 1,
+                                                    py: 2,
+                                                    borderBottom: "1px solid #f0f0f0"
+                                                }}
+                                            >
+                                                {/* 🏷 Nombre + precio */}
+                                                <Box sx={{ flex: 1, minWidth: 0 }}>
+                                                    <Typography sx={{ fontWeight: "bold" }}>
+                                                        Producto: {item.nombre}
+                                                    </Typography>
+                                                    <Typography variant="body2" color="text.secondary">
+                                                        Precio: {item.precio} {moneda}
+                                                    </Typography>
+                                                </Box>
+
+                                                {/* 🔢 Cantidad */}
+                                                <Box sx={{ textAlign: "center" }}>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Cant
+                                                    </Typography>
+                                                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                                        <Button
+
+                                                            variant="outlined"
+                                                            onClick={() => disminuirCantidad(item.id)}
+                                                        >
+                                                            -
+                                                        </Button>
+                                                        <Typography sx={{ fontWeight: "bold", minWidth: 24, textAlign: "center" }}>
+                                                            {item.cantidad}
+                                                        </Typography>
+                                                        <Button
+                                                            size="small"
+                                                            variant="outlined"
+                                                            onClick={() => aumentarCantidad(item.id)}
+                                                        >
+                                                            +
+                                                        </Button>
+                                                    </Box>
+                                                </Box>
+
+                                                {/* 🎟 Descuento (%) */}
+                                                <Box sx={{ textAlign: "center", flexShrink: 0 }}>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Desc %
+                                                    </Typography>
+                                                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                                        <Button
+                                                            size="small"
+                                                            variant="outlined"
+                                                            color="warning"
+                                                            onClick={() => disminuirDescuento(item.id)}
+                                                        >
+                                                            -
+                                                        </Button>
+                                                        <Typography sx={{ fontWeight: "bold", minWidth: 30, textAlign: "center" }}>
+                                                            {item.descuento}%
+                                                        </Typography>
+                                                        <Button
+                                                            size="small"
+                                                            variant="outlined"
+                                                            color="warning"
+                                                            onClick={() => aumentarDescuento(item.id)}
+                                                        >
+                                                            +
+                                                        </Button>
+                                                    </Box>
+                                                </Box>
+
+                                                {/* 💰 Total */}
+                                                <Box sx={{ minWidth: 110, textAlign: "right", flexShrink: 0 }}>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        Total
+                                                    </Typography>
+                                                    <Typography sx={{ fontWeight: "bold" }}>
+                                                        {((item.cantidad * item.precio) * (1 - item.descuento / 100)).toFixed(2)} {moneda}
+                                                    </Typography>
+                                                </Box>
+
+                                                {/* ❌ Eliminar */}
+                                                <IconButton
+                                                    color="error"
+                                                    onClick={() => quitarProducto(item.id)}
+                                                    sx={{ flexShrink: 0 }}
+                                                >
+                                                    <DeleteIcon />
+                                                </IconButton>
+                                            </Box>
+                                        ))
+                                    )}
+                                </Box>
+                            </Box>
+
+                            {/* ========== LADO DERECHO: FACTURACIÓN (50%) ========== */}
+                            <Box
+                                sx={{
+                                    flex: "1 1 50%", // ✅ 50% del ancho
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    p: 3,
+                                    backgroundColor: "#fafafa",
+                                    overflowY: "auto", // ✅ Scroll si el contenido es muy largo
+                                    minHeight: { xs: 400, md: "auto" }, // ✅ Altura mínima en móvil
+                                }}
+                            >
+                                {/* 💰 Totales */}
+                                <Box sx={{ mb: 2 }}>
+                                    <Typography variant="h6"
+                                        sx={{
+                                            fontWeight: "bold",
+                                            mb: 2, color: "primary.main",
+                                            borderRadius: 1,
+                                            boxShadow: 2,
+                                            p: 1,
+                                            px: 3
+                                        }}>
+                                        <ReceiptLongIcon sx={{ mr: 1, verticalAlign: "middle" }} />
+                                        Factura
+                                    </Typography>
+                                    <Box sx={{ display: "flex", justifyContent: "space-between", py: 0.5 }}>
                                         <Typography color="text.secondary">Subtotal</Typography>
                                         <Typography>{subtotal.toFixed(2)} {moneda}</Typography>
                                     </Box>
 
-                                    <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
+                                    <Box sx={{ display: "flex", justifyContent: "space-between", py: 0.5 }}>
                                         <Typography color="text.secondary">Descuento</Typography>
                                         <Typography>-{montoDescuento.toFixed(2)} {moneda}</Typography>
                                     </Box>
 
-                                    <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
+                                    <Box sx={{ display: "flex", justifyContent: "space-between", py: 0.5 }}>
                                         <Typography color="text.secondary">Impuesto</Typography>
                                         <Typography>+{montoImpuesto.toFixed(2)} {moneda}</Typography>
                                     </Box>
 
-                                    <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
+                                    <Box sx={{
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        mt: 1,
+                                        pt: 1,
+                                        borderTop: "2px solid #e0e0e0"
+                                    }}>
                                         <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                                            Total
+                                            TOTAL
                                         </Typography>
-                                        <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+                                        <Typography variant="h6" sx={{ fontWeight: "bold", color: "primary.main" }}>
                                             {totalFinal.toFixed(2)} {moneda}
                                         </Typography>
                                     </Box>
-
-                                    {/* 💳 Pago */}
-                                    <TextField
-                                        fullWidth
-                                        label="Efectivo"
-                                        type="number"
-                                        value={efectivo}
-                                        onChange={(e) => setEfectivo(e.target.value)}
-                                        sx={{ mt: 3 }}
-                                    />
-
-                                    <TextField
-                                        fullWidth
-                                        label="Transferencia"
-                                        type="number"
-                                        value={transferencia}
-                                        onChange={(e) => setTransferencia(e.target.value)}
-                                        sx={{ mt: 2 }}
-                                    />
-
-                                    <Typography sx={{ mt: 1 }}>
-                                        Cambio: {cambio.toFixed(2)} {moneda}
-                                    </Typography>
-
-                                    {/* 🧾 Facturación */}
-                                    <TextField
-                                        fullWidth
-                                        label="Cliente"
-                                        value={cliente}
-                                        onChange={(e) => setCliente(e.target.value)}
-                                        sx={{ mt: 2 }}
-                                    />
-
-                                    <TextField
-                                        fullWidth
-                                        label="NIT / ID"
-                                        value={nit}
-                                        onChange={(e) => setNit(e.target.value)}
-                                        sx={{ mt: 2 }}
-                                    />
-
-                                    {/* 🔘 Botón */}
-                                    <Button
-                                        fullWidth
-                                        variant="contained"
-                                        color="primary"
-                                        sx={{
-                                            mt: 3,
-                                            py: 1.5,
-                                            borderRadius: 2,
-                                            fontWeight: "bold"
-                                        }}
-                                        disabled={totalPagado < totalFinal}
-                                        onClick={() => {
-                                            generarTicket();
-                                            finalizarVenta();
-                                        }}
-                                    >
-                                        Check Out
-                                    </Button>
                                 </Box>
-                            </Card>
-                        )}
-                    </Box>
+
+                                {/* 💳 Pago */}
+                                <TextField
+                                    fullWidth
+                                    label="Efectivo"
+                                    type="number"
+                                    value={efectivo}
+                                    onChange={(e) => setEfectivo(e.target.value)}
+                                    sx={{ mb: 2 }}
+                                />
+
+                                <TextField
+                                    fullWidth
+                                    label="Transferencia"
+                                    type="number"
+                                    value={transferencia}
+                                    onChange={(e) => setTransferencia(e.target.value)}
+                                    sx={{ mb: 1 }}
+                                />
+
+                                <Typography sx={{ mb: 2, color: cambio > 0 ? "success.main" : "text.secondary" }}>
+                                    Cambio: {cambio.toFixed(2)} {moneda}
+                                </Typography>
+
+                                {/* 🧾 Facturación */}
+                                <TextField
+                                    fullWidth
+                                    label="Cliente"
+                                    value={cliente}
+                                    onChange={(e) => setCliente(e.target.value)}
+                                    sx={{ mb: 2 }}
+                                />
+
+                                <TextField
+                                    fullWidth
+                                    label="NIT / ID"
+                                    value={nit}
+                                    onChange={(e) => setNit(e.target.value)}
+                                    sx={{ mb: 2 }}
+                                />
+
+                                {/* 🔘 Botón Checkout */}
+                                <Button
+                                    fullWidth
+                                    variant="contained"
+                                    color="primary"
+                                    size="large"
+                                    sx={{
+                                        mt: "auto", // ✅ Empuja el botón hacia abajo
+                                        py: 1.5,
+                                        borderRadius: 2,
+                                        fontWeight: "bold",
+                                        fontSize: "1.1rem"
+                                    }}
+                                    disabled={totalPagado < totalFinal || carrito.length === 0}
+                                    onClick={() => {
+                                        generarTicket();
+                                        finalizarVenta();
+                                    }}
+                                >
+                                    CHECK OUT
+                                </Button>
+                            </Box>
+                        </Card>
+                    )}
                 </Box>
             </Box>
+        </Box>
     );
 }
