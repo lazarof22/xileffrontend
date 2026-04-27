@@ -2,7 +2,6 @@
 import {
     Card,
     CardContent,
-    CardMedia,
     Typography,
     Button,
     CardActionArea,
@@ -32,7 +31,6 @@ export default function ProductCard({
     precio,
     stock,
     categoria,
-    imagen,
     onAddToCart,
 }: ProductCardProps) {
     const sinStock = stock <= 0;
@@ -42,61 +40,61 @@ export default function ProductCard({
             sx={{
                 maxWidth: 320,
                 borderRadius: 1,
-                background: "linear-gradient(145deg, #aeb6c9, #1e293b)",
-                color: "#fff",
+                background: "linear-gradient(145deg, #e2e5ec, #e0e7f1)",
+                color: "primary.main",
                 boxShadow: "0 15px 40px rgba(0,0,0,0.4)",
                 position: "relative",
                 overflow: "hidden",
                 transition: "all 0.3s ease",
                 "&:hover": {
                     transform: "translateY(-6px)",
-                    boxShadow: "0 20px 60px rgba(0,0,0,0.6)"
+                    boxShadow: "0 20px 60px rgba(150, 148, 148, 0.6)"
                 }
             }}
         >
             <CardActionArea sx={{ p: 2 }}>
-                {imagen && (
-                    <CardMedia
-                        component="img"
-                        height="160"
-                        image={imagen}
-                        alt={nombre}
-                        sx={{
-                            borderRadius: 3,
-                            mb: 2
-                        }}
-                    />
-                )}
 
                 <CardContent sx={{ p: 0 }}>
-                    
-                    <Typography variant="h6" fontWeight="bold">
+
+                    <Typography variant="h6"
+                        sx={{
+                            borderRadius: 1,
+                            boxShadow: 2,
+                            p: 1,
+                            textAlign: "center",
+                            background: "linear-gradient(135deg, rgba(0, 89, 255, 0.84), rgba(230, 21, 118, 0.9))",
+                            WebkitBackgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                        }}>
                         {nombre}
                     </Typography>
 
                     <Typography
-                        variant="h5"
+                        variant="h6"
                         sx={{
                             mt: 1,
                             background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
                             WebkitBackgroundClip: "text",
                             WebkitTextFillColor: "transparent",
-                            fontWeight: "bold"
                         }}
                     >
-                        {formatCurrency(precio)}
+                        Precio: {formatCurrency(precio)}
                     </Typography>
 
-                    <Box sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 1 }}>
-                        <Typography variant="body2" sx={{ opacity: 0.8 }}>
+                    <Box sx={{ mt: 1, display: "flex", flexDirection: "column", gap: 1 }}>
+                        <Typography
+                            variant="body1"
+                            sx={{
+                                opacity: 0.8,
+                                color: "black"
+                            }}>
                             Categoría: {categoria}
                         </Typography>
 
                         <Typography
-                            variant="body2"
+                            variant="body1"
                             sx={{
-                                color: sinStock ? "#ff4d4d" : "#4ade80",
-                                fontWeight: 500
+                                color: sinStock ? "#f31d1d" : "#09b817",
                             }}
                         >
                             {sinStock ? "Sin Stock" : `Stock disponible: ${stock}`}
@@ -111,14 +109,14 @@ export default function ProductCard({
                     disabled={sinStock}
                     onClick={onAddToCart}
                     sx={{
-                        borderRadius: 3,
+                        borderRadius: 1,
                         py: 1.2,
-                        fontWeight: "bold",
-                        background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
+                        background: "linear-gradient(150deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
                         color: "#fff",
                         transition: "0.3s",
                         "&:hover": {
-                            background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))"
+                            background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
+                            boxShadow: "0 6px 12px rgba(238, 10, 10, 0.77)",
                         },
                         "&:disabled": {
                             background: "#555",

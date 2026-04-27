@@ -17,6 +17,11 @@ import SearchIcon from "@mui/icons-material/Search";
 import jsPDF from "jspdf";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import MoneyIcon from '@mui/icons-material/Money';
+import PaymentIcon from '@mui/icons-material/Payment';
+import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
+import CurrencyExchangeIcon from '@mui/icons-material/CurrencyExchange';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
 
 export default function PuntoVentaPage() {
     const [search, setSearch] = React.useState("");
@@ -324,10 +329,10 @@ export default function PuntoVentaPage() {
                             color: "#fff",
                             textTransform: "none",
                             fontWeight: 600,
-                            boxShadow: "none",
+                            boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
                             "&:hover": {
                                 background: "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))",
-                                boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
+                                boxShadow: "0 4px 12px rgba(5, 118, 248, 0.93)"
                             }
                         }}
                     >
@@ -343,10 +348,10 @@ export default function PuntoVentaPage() {
                             color: "#fff",
                             textTransform: "none",
                             fontWeight: 600,
-                            boxShadow: "none",
+                            boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
                             "&:hover": {
                                 background: "linear-gradient(135deg, rgba(255,0,0,1), rgb(196, 45, 226))",
-                                boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
+                                boxShadow: "0 4px 12px rgb(158, 6, 6)"
                             }
                         }}
                     >
@@ -544,12 +549,13 @@ export default function PuntoVentaPage() {
                             >
                                 <Typography variant="h6"
                                     sx={{
-                                        fontWeight: "bold",
-                                        mb: 2, color: "primary.main",
                                         borderRadius: 1,
                                         boxShadow: 2,
                                         p: 1,
-                                        px: 3
+                                        textAlign: "center",
+                                        background: "linear-gradient(135deg, rgba(0, 89, 255, 0.84), rgba(230, 21, 118, 0.9))",
+                                        WebkitBackgroundClip: "text",
+                                        WebkitTextFillColor: "transparent",
                                     }}>
                                     <ShoppingCartIcon sx={{ mr: 1, verticalAlign: "middle" }} />
                                     Carrito de Compras
@@ -689,16 +695,62 @@ export default function PuntoVentaPage() {
                                 <Box sx={{ mb: 2 }}>
                                     <Typography variant="h6"
                                         sx={{
-                                            fontWeight: "bold",
-                                            mb: 2, color: "primary.main",
                                             borderRadius: 1,
                                             boxShadow: 2,
                                             p: 1,
-                                            px: 3
+                                            textAlign: "center",
+                                            background: "linear-gradient(135deg, rgba(0, 89, 255, 0.84), rgba(230, 21, 118, 0.9))",
+                                            WebkitBackgroundClip: "text",
+                                            WebkitTextFillColor: "transparent",
                                         }}>
-                                        <ReceiptLongIcon sx={{ mr: 1, verticalAlign: "middle" }} />
+                                        <ReceiptLongIcon
+                                            sx={{
+                                                mr: 1,
+                                                verticalAlign: "middle",
+                                            }} />
                                         Factura
                                     </Typography>
+
+                                    <Box
+                                        sx={{
+                                            display: "flex",
+                                            width: "100%",
+                                            mt: 1,
+                                            mb: 1,
+                                            gap: 1,
+                                            alignItems: "center",
+                                        }}>
+                                        <TextField
+                                            sx={{
+                                                width: "75%",
+                                            }}
+                                            label="Cliente"
+                                            size='small'
+                                            value={cliente}
+                                            onChange={(e) => setCliente(e.target.value)}
+                                        />
+                                        <Button
+                                            variant="contained"
+                                            size='small'
+                                            startIcon={<PersonAddIcon sx={{ fontSize: "medium" }} />}
+                                            sx={{
+                                                width: "40%",
+                                                ml: 1,
+                                                background: "linear-gradient(135deg, rgba(245, 6, 6, 0.9), rgba(10, 83, 218, 0.9))",
+                                                color: "#fff",
+                                                textTransform: "none",
+                                                fontWeight: 600,
+                                                boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
+                                                "&:hover": {
+                                                    background: "linear-gradient(135deg, rgba(245, 6, 6, 0.9), rgba(10, 83, 218, 0.9))",
+                                                    boxShadow: "0 4px 12px rgb(12, 83, 235)"
+                                                }
+                                            }}
+                                        >
+                                            Nuevo Cliente
+                                        </Button>
+                                    </Box>
+
                                     <Box sx={{ display: "flex", justifyContent: "space-between", py: 0.5 }}>
                                         <Typography color="text.secondary">Subtotal</Typography>
                                         <Typography>{subtotal.toFixed(2)} {moneda}</Typography>
@@ -712,6 +764,13 @@ export default function PuntoVentaPage() {
                                     <Box sx={{ display: "flex", justifyContent: "space-between", py: 0.5 }}>
                                         <Typography color="text.secondary">Impuesto</Typography>
                                         <Typography>+{montoImpuesto.toFixed(2)} {moneda}</Typography>
+                                    </Box>
+
+                                    <Box sx={{ display: "flex", justifyContent: "space-between", py: 0.5 }}>
+                                        <Typography color="text.secondary">Cambio:</Typography>
+                                        <Typography sx={{ color: cambio > 0 ? "success.main" : "text.secondary" }}>
+                                            {cambio.toFixed(2)} {moneda}
+                                        </Typography>
                                     </Box>
 
                                     <Box sx={{
@@ -731,44 +790,92 @@ export default function PuntoVentaPage() {
                                 </Box>
 
                                 {/* 💳 Pago */}
-                                <TextField
-                                    fullWidth
-                                    label="Efectivo"
-                                    type="number"
-                                    value={efectivo}
-                                    onChange={(e) => setEfectivo(e.target.value)}
-                                    sx={{ mb: 2 }}
-                                />
+                                <Box
+                                    sx={{
+                                        display: "grid",
+                                        gridTemplateColumns: "1fr 1fr", // 2 columnas iguales
+                                        gridTemplateRows: "1fr 1fr",    // 2 filas iguales
+                                        gap: 2,                          // Espacio entre botones
+                                        width: "100%"
+                                    }}>
+                                    <Button
+                                        variant="contained"
+                                        size="small"
+                                        startIcon={<MoneyIcon sx={{ fontSize: "medium" }} />}
+                                        sx={{
+                                            ml: 1,
+                                            background: "linear-gradient(135deg, rgb(36, 236, 9), rgba(202, 183, 14, 0.9))",
+                                            color: "#fff",
+                                            textTransform: "none",
+                                            fontWeight: 600,
+                                            boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
+                                            "&:hover": {
+                                                background: "linear-gradient(135deg, rgb(36, 236, 9), rgba(202, 183, 14, 0.9))",
+                                                boxShadow: "0 4px 12px rgb(24, 158, 6)"
+                                            }
+                                        }}
+                                    >
+                                        Pago en Efectivo
+                                    </Button>
 
-                                <TextField
-                                    fullWidth
-                                    label="Transferencia"
-                                    type="number"
-                                    value={transferencia}
-                                    onChange={(e) => setTransferencia(e.target.value)}
-                                    sx={{ mb: 1 }}
-                                />
-
-                                <Typography sx={{ mb: 2, color: cambio > 0 ? "success.main" : "text.secondary" }}>
-                                    Cambio: {cambio.toFixed(2)} {moneda}
-                                </Typography>
-
-                                {/* 🧾 Facturación */}
-                                <TextField
-                                    fullWidth
-                                    label="Cliente"
-                                    value={cliente}
-                                    onChange={(e) => setCliente(e.target.value)}
-                                    sx={{ mb: 2 }}
-                                />
-
-                                <TextField
-                                    fullWidth
-                                    label="NIT / ID"
-                                    value={nit}
-                                    onChange={(e) => setNit(e.target.value)}
-                                    sx={{ mb: 2 }}
-                                />
+                                    <Button
+                                        variant="contained"
+                                        size="small"
+                                        startIcon={<PaymentIcon sx={{ fontSize: "medium" }} />}
+                                        sx={{
+                                            ml: 1,
+                                            background: "linear-gradient(135deg, rgb(255, 238, 0), rgba(226, 64, 14, 0.9))",
+                                            color: "#fff",
+                                            textTransform: "none",
+                                            fontWeight: 600,
+                                            boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
+                                            "&:hover": {
+                                                background: "linear-gradient(135deg, rgb(255, 238, 0), rgba(226, 64, 14, 0.9))",
+                                                boxShadow: "0 4px 12px rgb(238, 102, 12)"
+                                            }
+                                        }}
+                                    >
+                                        Pago por Tarjeta
+                                    </Button>
+                                    <Button
+                                        variant="contained"
+                                        size="small"
+                                        startIcon={<PhoneAndroidIcon sx={{ fontSize: "medium" }} />}
+                                        sx={{
+                                            ml: 1,
+                                            background: "linear-gradient(135deg, rgba(245, 6, 6, 0.9), rgba(10, 83, 218, 0.9))",
+                                            color: "#fff",
+                                            textTransform: "none",
+                                            fontWeight: 600,
+                                            boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
+                                            "&:hover": {
+                                                background: "linear-gradient(135deg, rgba(245, 6, 6, 0.9), rgba(10, 83, 218, 0.9))",
+                                                boxShadow: "0 4px 12px rgb(12, 83, 235)"
+                                            }
+                                        }}
+                                    >
+                                        Pago por Transferencia
+                                    </Button>
+                                    <Button
+                                        variant="contained"
+                                        size="small"
+                                        startIcon={<CurrencyExchangeIcon sx={{ fontSize: "medium" }} />}
+                                        sx={{
+                                            ml: 1,
+                                            background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
+                                            color: "#fff",
+                                            textTransform: "none",
+                                            fontWeight: 600,
+                                            boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
+                                            "&:hover": {
+                                                background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
+                                                boxShadow: "0 4px 12px rgb(31, 235, 12)"
+                                            }
+                                        }}
+                                    >
+                                        Cambio
+                                    </Button>
+                                </Box>
 
                                 {/* 🔘 Botón Checkout */}
                                 <Button
@@ -777,7 +884,6 @@ export default function PuntoVentaPage() {
                                     color="primary"
                                     size="large"
                                     sx={{
-                                        mt: "auto", // ✅ Empuja el botón hacia abajo
                                         py: 1.5,
                                         borderRadius: 2,
                                         fontWeight: "bold",
