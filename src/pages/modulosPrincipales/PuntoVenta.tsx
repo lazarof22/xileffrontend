@@ -1,5 +1,5 @@
 // src/pages/PuntoVentaPage.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import {
     Card, CardContent, Typography, Box, IconButton, Button,
     TextField,
@@ -22,6 +22,7 @@ import PaymentIcon from '@mui/icons-material/Payment';
 import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
 import CurrencyExchangeIcon from '@mui/icons-material/CurrencyExchange';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import DialogCrearCliente, { type ClienteFormData } from '../../components/AddClientDialog';
 
 export default function PuntoVentaPage() {
     const [search, setSearch] = React.useState("");
@@ -97,6 +98,9 @@ export default function PuntoVentaPage() {
     const handleChangeTab = (_event: React.SyntheticEvent, newValue: number) => {
         setTab(newValue);
     };
+
+    const [openDialog, setOpenDialog] = useState<boolean>(false);
+    const [clienteSeleccionado, setClienteSeleccionado] = useState<ClienteFormData | null>(null);
 
     const [carrito, setCarrito] = React.useState<any[]>([]);
     const [animateId, setAnimateId] = React.useState<number | null>(null);
@@ -298,6 +302,11 @@ export default function PuntoVentaPage() {
                     : item
             )
         );
+    };
+
+    const handleClienteCreado = (cliente: ClienteFormData) => {
+        // El cliente recién creado ya está disponible para usar en la venta
+        setClienteSeleccionado(cliente);
     };
 
     return (
@@ -537,7 +546,7 @@ export default function PuntoVentaPage() {
                             {/* ========== LADO IZQUIERDO: CARRITO (50%) ========== */}
                             <Box
                                 sx={{
-                                    flex: "1 1 75%", // ✅ 50% del ancho
+                                    flex: "1 1 70%", // ✅ 50% del ancho
                                     display: "flex",
                                     flexDirection: "column",
                                     p: 3,
@@ -557,7 +566,23 @@ export default function PuntoVentaPage() {
                                         WebkitBackgroundClip: "text",
                                         WebkitTextFillColor: "transparent",
                                     }}>
-                                    <ShoppingCartIcon sx={{ mr: 1, verticalAlign: "middle" }} />
+                                    <span style={{ marginRight: '8px', display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}>
+                                        <ShoppingCartIcon
+                                            sx={{
+                                                fill: 'url(#iconGradient)',
+                                                width: 24,
+                                                height: 24
+                                            }}
+                                        />
+                                        <svg width="0" height="0">
+                                            <defs>
+                                                <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                    <stop offset="0%" stopColor="rgb(0, 174, 255)" />
+                                                    <stop offset="100%" stopColor="rgb(196, 45, 226)" />
+                                                </linearGradient>
+                                            </defs>
+                                        </svg>
+                                    </span>
                                     Carrito de Compras
                                 </Typography>
 
@@ -682,13 +707,13 @@ export default function PuntoVentaPage() {
                             {/* ========== LADO DERECHO: FACTURACIÓN (50%) ========== */}
                             <Box
                                 sx={{
-                                    flex: "1 1 50%", // ✅ 50% del ancho
+                                    flex: "1 1 55%", // 
                                     display: "flex",
                                     flexDirection: "column",
                                     p: 3,
                                     backgroundColor: "#fafafa",
-                                    overflowY: "auto", // ✅ Scroll si el contenido es muy largo
-                                    minHeight: { xs: 400, md: "auto" }, // ✅ Altura mínima en móvil
+                                    overflowY: "auto", //Scroll si el contenido es muy largo
+                                    minHeight: { xs: 400, md: "auto" }, //Altura mínima en móvil
                                 }}
                             >
                                 {/* 💰 Totales */}
@@ -703,11 +728,23 @@ export default function PuntoVentaPage() {
                                             WebkitBackgroundClip: "text",
                                             WebkitTextFillColor: "transparent",
                                         }}>
-                                        <ReceiptLongIcon
-                                            sx={{
-                                                mr: 1,
-                                                verticalAlign: "middle",
-                                            }} />
+                                        <span style={{ marginRight: '8px', display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}>
+                                            <ReceiptLongIcon
+                                                sx={{
+                                                    fill: 'url(#iconGradient)',
+                                                    width: 24,
+                                                    height: 24
+                                                }}
+                                            />
+                                            <svg width="0" height="0">
+                                                <defs>
+                                                    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                        <stop offset="0%" stopColor="rgb(0, 174, 255)" />
+                                                        <stop offset="100%" stopColor="rgb(196, 45, 226)" />
+                                                    </linearGradient>
+                                                </defs>
+                                            </svg>
+                                        </span>
                                         Factura
                                     </Typography>
 
@@ -733,6 +770,7 @@ export default function PuntoVentaPage() {
                                             variant="contained"
                                             size='small'
                                             startIcon={<PersonAddIcon sx={{ fontSize: "medium" }} />}
+                                            onClick={() => setOpenDialog(true)}
                                             sx={{
                                                 width: "40%",
                                                 ml: 1,
@@ -749,6 +787,11 @@ export default function PuntoVentaPage() {
                                         >
                                             Nuevo Cliente
                                         </Button>
+                                        <DialogCrearCliente
+                                            open={openDialog}
+                                            onClose={() => setOpenDialog(false)}
+                                            onClienteCreado={handleClienteCreado}
+                                        />
                                     </Box>
 
                                     <Box sx={{ display: "flex", justifyContent: "space-between", py: 0.5 }}>
