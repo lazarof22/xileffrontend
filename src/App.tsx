@@ -8,7 +8,7 @@ import Inventario from './pages/modulosPrincipales/Inventario';
 import Ventas from './pages/modulosPrincipales/Ventas';
 import Compras from './pages/modulosPrincipales/Compras';
 import PuntoVenta from './pages/modulosPrincipales/PuntoVenta';
-import activos from './pages/contabilidadFinanzas/activos';
+import Activos from './pages/contabilidadFinanzas/activos';
 function App() {
   return (
     <BrowserRouter>
@@ -20,7 +20,7 @@ function App() {
           <Route path="/ventas" element={<Ventas />} />
           <Route path="/compras" element={<Compras />} />
           <Route path="/punto_venta" element={<PuntoVenta />} />
-          <Route path="/activos_fijos" element={<activos />} />
+          <Route path="/activos_fijos" element={<Activos />} />
         </Route>
       </Routes>
     </BrowserRouter>

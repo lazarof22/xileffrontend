@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function activos() {
+export default function Activos() {
   return (
     <div>activos</div>
   )
