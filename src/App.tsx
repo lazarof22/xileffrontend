@@ -8,7 +8,7 @@ import Inventario from './pages/modulosPrincipales/Inventario';
 import Ventas from './pages/modulosPrincipales/Ventas';
 import Compras from './pages/modulosPrincipales/Compras';
 import PuntoVenta from './pages/modulosPrincipales/PuntoVenta';
-import Activos from './pages/modulosPrincipales/Activos';
+import Activos from './pages/contabilidadFinanzas/Activos/Activos';
 function App() {
   return (
     <BrowserRouter>
