@@ -9,9 +9,9 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
-import CustomDataGrid from "../../../components/CustomDataGridR";
+import CustomDataGrid from "../../components/CustomDataGridR";
 import { useState,useEffect } from 'react';
-import AddActivoDialog from '../../../components/AddActivoDialog';
+import AddActivoDialog from '../../components/AddActivoDialog';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -133,7 +133,7 @@ export default function Activos() {
                 ></AddActivoDialog>
 
                 {/* Tabla de activos */}
-                <Card sx={{ width: '100%' }}>
+                <Card sx={{ width: '100%',p:2  }}>
                     <CustomDataGrid
                         title="Activos"
                         rows={rows}
