@@ -1,8 +1,65 @@
-import { Box, Button, Typography } from "@mui/material";
+import { Alert, Box, Button, Card, CardContent, CircularProgress, Snackbar, Typography } from "@mui/material";
 import AddIcon from '@mui/icons-material/Add';
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import DialogCrearCliente, { type ClienteFormData } from "../../components/AddClientDialog";
+import { useEffect, useState } from "react";
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import CustomDataGrid from "../../components/CustomDataGridR";
 
 export default function ClientesPage() {
+
+    // API URL del backend NestJS
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+    const [openDialog, setOpenDialog] = useState<boolean>(false);
+    const [clienteSeleccionado, setClienteSeleccionado] = useState<ClienteFormData | null>(null);
+    const handleClienteCreado = (cliente: ClienteFormData) => {
+        // El cliente recién creado ya está disponible para usar en la venta
+        setClienteSeleccionado(cliente);
+    };
+
+    const [rows, setRows] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
+
+    // Snackbar
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">("success");
+
+    useEffect(() => {
+        fetchClientes();
+    }, []);
+
+    const fetchClientes = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch(`${API_URL}/cliente`);
+            if (!response.ok) throw new Error('Error al cargar productos');
+            const result = await response.json();
+
+            const data = Array.isArray(result) ? result : result.data || [];
+
+            const mappedData = data.map((c: any) => ({
+                id: c._id,
+                ci: c.id_cliente,
+                nombre_cliente: c.nombre_cliente,
+                telefono_cliente: c.telefono_cliente,
+                email_cliente: c.email_cliente,
+                direccion_cliente: c.direccion_cliente,
+                tipo_cliente: c.tipo_cliente,
+                _original: c
+            }));
+
+            setRows(mappedData);
+        } catch (err: any) {
+            setSnackbarMessage('Error al cargar los productos: ' + err.message);
+            setSnackbarSeverity('error');
+            setOpenSnackbar(true);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <Box>
             <Box
@@ -25,7 +82,8 @@ export default function ClientesPage() {
                 <Box>
                     <Button
                         variant="contained"
-                        startIcon={<AddIcon />}
+                        startIcon={<PersonAddIcon sx={{ fontSize: "medium" }} />}
+                        onClick={() => setOpenDialog(true)}
                         sx={{
                             ml: 1,
                             background: "linear-gradient(135deg, rgb(0, 174, 255), rgba(196, 45, 226, 0.9))",
@@ -41,6 +99,11 @@ export default function ClientesPage() {
                     >
                         Nuevo Cliente
                     </Button>
+                    <DialogCrearCliente
+                        open={openDialog}
+                        onClose={() => setOpenDialog(false)}
+                        onClienteCreado={handleClienteCreado}
+                    />
                     <Button
                         variant="contained"
                         size="small"
@@ -61,6 +124,45 @@ export default function ClientesPage() {
                         Exportar PDF
                     </Button>
                 </Box>
+            </Box>
+            <Box sx={{ m: 2 }}>
+                <Card sx={{ width: '100%' }}>
+                    <CardContent>
+                        {loading ? (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                                <CircularProgress />
+                            </Box>
+                        ) : (
+                            <CustomDataGrid
+                                title="Clientes"
+                                rows={rows}
+                                getRowId={(row) => row.id}
+                                columns={[
+                                    { field: "ci", headerName: "CI" },
+                                    { field: "nombre_cliente", headerName: "Nombre" },
+                                    { field: "telefono_cliente", headerName: "Telefono", numeric: true },
+                                    { field: "email_cliente", headerName: "Email" },
+                                    { field: "direccion_cliente", headerName: "Direccion" },
+                                    { field: "tipo_cliente", headerName: "Tipo de Cliente" },
+                                ]}
+                            />
+                        )}
+                    </CardContent>
+                </Card>
+                {/* Snackbar */}
+                <Snackbar
+                    open={openSnackbar}
+                    autoHideDuration={3000}
+                    onClose={() => setOpenSnackbar(false)}
+                >
+                    <Alert
+                        severity={snackbarSeverity}
+                        variant="filled"
+                        onClose={() => setOpenSnackbar(false)}
+                    >
+                        {snackbarMessage}
+                    </Alert>
+                </Snackbar>
             </Box>
         </Box>
     );
