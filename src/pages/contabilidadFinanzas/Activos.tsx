@@ -12,7 +12,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CustomDataGrid from "../../components/CustomDataGridR";
 import { useState,useEffect } from 'react';
 import AddActivoDialog from '../../components/AddActivoDialog';
-import AddDeleteDialog from '../../components/DeleteActivoDialog';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -21,7 +20,6 @@ export default function Activos() {
     const [loading, setLoading] = useState(false);
 
     const [openCreateActivo,setOpenCreateActivo]=useState<boolean>(false);
-    const [openDeleteActivo,setOpenDeleteActivo]=useState<boolean>(false);
 
     const [openSnackbar, setOpenSnackbar] = useState(false);
         const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -104,25 +102,6 @@ export default function Activos() {
                           >
                               Nuevo Activo
                           </Button>
-                          <Button
-                              variant="contained"
-                              startIcon={<DeleteIcon/>}
-                              sx={{
-                                  ml: 1,
-                                  background: "linear-gradient(135deg, rgb(0, 174, 255), rgba(196, 45, 226, 0.9))",
-                                  color: "#fff",
-                                  textTransform: "none",
-                                  fontWeight: 600,
-                                  boxShadow: "none",
-                                  "&:hover": {
-                                      background: "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))",
-                                      boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
-                                  }
-                              }}
-                              onClick={() => setOpenDeleteActivo(true)}
-                          >
-                              Eliminar Activo
-                          </Button>
                       </Box>
                   </Box>
                 <AddActivoDialog
@@ -133,15 +112,6 @@ export default function Activos() {
         setOpenCreateActivo(false);
     }}
                 ></AddActivoDialog>
-
-                <AddDeleteDialog
-                open={openDeleteActivo}
-    onClose={() => setOpenDeleteActivo(false)}
-    onActivoEliminado={(activo: ActivoFormData) => {
-        
-        setOpenCreateActivo(false);
-    }}
-                ></AddDeleteDialog>
 
                 {/* Tabla de activos */}
                 <Card sx={{ width: '100%',p:2  }}>
