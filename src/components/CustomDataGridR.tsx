@@ -182,6 +182,17 @@ export default function CustomDataGridR<T>({
                         color="error"
                         size="small"
                         startIcon={<PictureAsPdfIcon sx={{ fontSize: "medium" }} />}
+                        sx={{
+                            background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
+                            color: "#fff",
+                            textTransform: "none",
+                            fontWeight: 600,
+                            boxShadow: "none",
+                            "&:hover": {
+                                background: "linear-gradient(135deg, rgba(255,0,0,1), rgb(196, 45, 226))",
+                                boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
+                            }
+                        }}
                         onClick={handleExportPDF}
                     >
                         Exportar PDF
@@ -381,8 +392,25 @@ export default function CustomDataGridR<T>({
                         ))}
                     </Grid>
                 </DialogContent>
-                <DialogActions>
+                <DialogActions
+                    sx={{
+                        display: "flex",
+                        p: 2,
+                        ml: 0,
+                        gap: 2, // espacio entre botones
+                        width: "100%"
+                    }}>
                     <Button
+                        sx={{
+                            flex: 1, // ← 50% del ancho
+                            background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
+                            boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
+                            color: "white",
+                            "&:hover": {
+                                background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(226, 45, 187, 0.9))",
+                                boxShadow: "0 4px 12px rgb(158, 6, 6)"
+                            }
+                        }}
                         onClick={() => setOpenEditDialog(false)}
                         color="inherit"
                     >
@@ -390,6 +418,15 @@ export default function CustomDataGridR<T>({
                     </Button>
                     <Button
                         variant="contained"
+                        sx={{
+                            flex: 1, // ← 50% del ancho
+                            background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
+                            boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
+                            "&:hover": {
+                                background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
+                                boxShadow: "0 4px 12px rgba(13, 248, 5, 0.93)"
+                            }
+                        }}
                         onClick={() => {
                             if (rowToEdit) {
                                 const updatedRow = {
