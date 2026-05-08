@@ -13,9 +13,21 @@ export default function ClientesPage() {
 
     const [openDialog, setOpenDialog] = useState<boolean>(false);
     const [clienteSeleccionado, setClienteSeleccionado] = useState<ClienteFormData | null>(null);
-    const handleClienteCreado = (cliente: ClienteFormData) => {
-        // El cliente recién creado ya está disponible para usar en la venta
-        setClienteSeleccionado(cliente);
+
+    const handleClienteCreado = (cliente: any) => {
+        const nuevoCliente = {
+            id: cliente._id,                    // ← _id de MongoDB
+            ci: cliente.id_cliente,
+            nombre_cliente: cliente.nombre_cliente,
+            telefono_cliente: cliente.telefono_cliente,
+            email_cliente: cliente.email_cliente,
+            direccion_cliente: cliente.direccion_cliente,
+            tipo_cliente: cliente.tipo_cliente,
+            _original: cliente
+        };
+
+        setRows(prevRows => [nuevoCliente, ...prevRows]);
+
     };
 
     const [rows, setRows] = useState<any[]>([]);
