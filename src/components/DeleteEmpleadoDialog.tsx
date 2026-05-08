@@ -7,7 +7,6 @@ import {
     DialogActions,
     TextField,
     Button,
-    MenuItem,
 } from '@mui/material';
 
 // ==================== INTERFACES ====================
@@ -16,30 +15,19 @@ export interface EmpleadoFormData {
     nombre:string,
     primerApellido:string,
     segundoApellido:string,
-    departamento:string,
-    cargo:string,
-    salario:number,
-    estado:string
 }
 
 export interface AddEmpleadoDialogProps {
     open: boolean;
     onClose: () => void;
-    onEmpleadoCreado?: (activo: EmpleadoFormData) => void;
+    onEmpleadoEliminado?: (activo: EmpleadoFormData) => void;
 }
 
-// ==================== CONSTANTES ====================
-
-const ESTADOS_ACTIVO = [
-    { label: "Activo", value: "activo" },
-    { label: "Inactivo", value: "inactivo" },
-];
-
 // ==================== COMPONENTE ====================
-export default function AddEmpleadoDialog({
+export default function DeleteEmpleadoDialog({
     open,
     onClose,
-    onEmpleadoCreado,
+    onEmpleadoEliminado,
 }: AddEmpleadoDialogProps): React.JSX.Element {
     // Estados del formulario
     const [newEmpleado, setNewEmpleado] = useState<EmpleadoFormData>({
@@ -47,10 +35,6 @@ export default function AddEmpleadoDialog({
         nombre:'',
         primerApellido:'',
         segundoApellido:'',
-        departamento:'',
-        cargo:'',
-        salario:0,
-        estado:''
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -86,20 +70,7 @@ export default function AddEmpleadoDialog({
         if (!newEmpleado.segundoApellido) {
             tempErrors.segundoApellido = "El segundo apellido es obligatorio";
         }
-        if (!newEmpleado.departamento.trim()) {
-            tempErrors.departamento = "El nombre del departamento es obligatorio";
-        }
-        if (!newEmpleado.cargo) {
-            tempErrors.cargo = "El cargo es obligatoria";
-        }
-        if (!newEmpleado.salario) {
-            tempErrors.valor_adquisicion = "El salario es obligatorio";
-        } else if (Number(newEmpleado.salario) <= 0) {
-            tempErrors.valor_adquisicion = "El salario debe ser mayor a 0";
-        }
-        if(!newEmpleado.estado){
-            tempErrors.estado="El estado es obligatorio"
-        }
+        
 
         setErrors(tempErrors);
         return Object.keys(tempErrors).length === 0;
@@ -108,8 +79,8 @@ export default function AddEmpleadoDialog({
     const handleGuardar = () => {
         if (!validateForm()) return;
 
-        if (onEmpleadoCreado) {
-            onEmpleadoCreado(newEmpleado);
+        if (onEmpleadoEliminado) {
+            onEmpleadoEliminado(newEmpleado);
         }
 
         // Resetear formulario
@@ -118,10 +89,6 @@ export default function AddEmpleadoDialog({
             nombre: "",
             primerApellido: "",
             segundoApellido: "",
-            departamento: "",
-            cargo: "",
-            salario: 0,
-            estado: "",
         });
         setErrors({});
     };
@@ -133,10 +100,6 @@ export default function AddEmpleadoDialog({
             nombre: "",
             primerApellido: "",
             segundoApellido: "",
-            departamento: "",
-            cargo: "",
-            salario: 0,
-            estado: "",
         });
         setErrors({});
         onClose();
@@ -150,7 +113,7 @@ export default function AddEmpleadoDialog({
             maxWidth="sm"
             fullWidth
         >
-            <DialogTitle>Nuevo Empleado</DialogTitle>
+            <DialogTitle>Eliminar Empleado</DialogTitle>
             <DialogContent sx={{ mt: 1 }}>
                 <TextField
                     fullWidth
@@ -188,53 +151,6 @@ export default function AddEmpleadoDialog({
                     error={!!errors.segundoApellido}
                     helperText={errors.segundoApellido}
                 />
-                <TextField
-                    fullWidth
-                    label="Departamento"
-                    margin="normal"
-                    value={newEmpleado.departamento}
-                    onChange={(e) => handleChange("departamento", e.target.value)}
-                    error={!!errors.departamento}
-                    helperText={errors.departamento}
-                />
-                <TextField
-                    fullWidth
-                    label="Cargo"
-                    margin="normal"
-                    value={newEmpleado.departamento}
-                    onChange={(e) => handleChange("cargo", e.target.value)}
-                    error={!!errors.cargo}
-                    helperText={errors.cargo}
-                />
-
-                <TextField
-                    fullWidth
-                    label="Salario"
-                    margin="normal"
-                    value={newEmpleado.departamento}
-                    onChange={(e) => handleChange("salario", e.target.value)}
-                    error={!!errors.salario}
-                    helperText={errors.salario}
-                />
-
-                <TextField
-                                    select
-                                    fullWidth
-                                    label="Estado"
-                                    margin="normal"
-                                    value={newEmpleado.estado}
-                                    onChange={(e) => handleChange("estado", e.target.value)}
-                                    error={!!errors.estado_activo}
-                                    helperText={errors.estado_activo}
-                                >
-                                    {ESTADOS_ACTIVO.map((est) => (
-                                        <MenuItem key={est.value} value={est.value}>
-                                            {est.label}
-                                        </MenuItem>
-                                    ))}
-                                </TextField>
-
-                
             </DialogContent>
             <DialogActions sx={{ px: 3, pb: 2 }}>
                 <Button onClick={handleCancelar}>

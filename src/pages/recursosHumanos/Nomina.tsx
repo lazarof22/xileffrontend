@@ -12,13 +12,17 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CustomDataGrid from '../../components/CustomDataGridR';
 import AddEmpleadoDialog from '../../components/AddEmpleadoDialog';
 import { useState,useEffect } from 'react';
+import AssignmentAddIcon from '@mui/icons-material/AssignmentAdd';
+import DeleteEmpleadoDialog from '../../components/DeleteEmpleadoDialog';
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function Nomina() {
     const [rows, setRows] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
 
-    const [openCreateActivo,setOpenCreateActivo]=useState<boolean>(false);
+    const [openCreateEmpleado,setOpenCreateEmpleado]=useState<boolean>(false);
+    const [openDeleteEmpleado,setOpenDeleteEmpleado]=useState<boolean>(false);
 
     const [openSnackbar, setOpenSnackbar] = useState(false);
         const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -79,7 +83,7 @@ export default function Nomina() {
                           borderRadius:0
                       }}>
                       <Typography variant="h5" sx={{ ml: 2, color: 'white' }}>
-                          Gestión de Nomina
+                          Gestión de Nómina
                       </Typography>
                       <Box>
                           <Button
@@ -97,7 +101,7 @@ export default function Nomina() {
                                       boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
                                   }
                               }}
-                              onClick={() => setOpenCreateActivo(true)}
+                              onClick={() => setOpenCreateEmpleado(true)}
                           >
                               Nuevo Empleado
                           </Button>
@@ -116,25 +120,53 @@ export default function Nomina() {
                                       boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
                                   }
                               }}
-                              onClick={() => setOpenCreateActivo(true)}
+                              onClick={() => setOpenDeleteEmpleado(true)}
+                          >
+                              Eliminar Empleado
+                          </Button>
+                          <Button
+                              variant="contained"
+                              startIcon={<AssignmentAddIcon />}
+                              sx={{
+                                  ml: 1,
+                                  background: "linear-gradient(135deg, rgb(0, 174, 255), rgba(196, 45, 226, 0.9))",
+                                  color: "#fff",
+                                  textTransform: "none",
+                                  fontWeight: 600,
+                                  boxShadow: "none",
+                                  "&:hover": {
+                                      background: "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))",
+                                      boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
+                                  }
+                              }}
+                              onClick={() => setOpenCreateEmpleado(true)}
                           >
                               Generar Reporte
                           </Button>
                       </Box>
                   </Box>
                 <AddEmpleadoDialog
-                open={openCreateActivo}
-    onClose={() => setOpenCreateActivo(false)}
-    onActivoCreado={(activo: ActivoFormData) => {
+                open={openCreateEmpleado}
+    onClose={() => setOpenCreateEmpleado(false)}
+    onEmpleadoCreado={(activo: NominaFormData) => {
         
-        setOpenCreateActivo(false);
+        setOpenCreateEmpleado(false);
     }}
                 ></AddEmpleadoDialog>
+
+                <DeleteEmpleadoDialog
+                open={openDeleteEmpleado}
+    onClose={() => setOpenDeleteEmpleado(false)}
+    onEmpleadoEliminado={(activo: NominaFormData) => {
+        
+        setOpenDeleteEmpleado(false);
+    }}
+                ></DeleteEmpleadoDialog>
 
                 {/* Tabla de activos */}
                 <Card sx={{ width: '100%',p:2 }}>
                     <CustomDataGrid
-                        title="Activos"
+                        title="Nómina"
                         rows={rows}
                         getRowId={(row) => row.id}
                         columns={[
