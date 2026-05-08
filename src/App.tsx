@@ -10,6 +10,12 @@ import Compras from './pages/modulosPrincipales/Compras';
 import PuntoVenta from './pages/modulosPrincipales/PuntoVenta';
 import Activos from './pages/contabilidadFinanzas/Activos';
 import Nomina from './pages/recursosHumanos/Nomina';
+import NomencladoresPage from "./pages/configuracion/Nomencladores";
+import LicenciasPage from './pages/configuracion/Licencias';
+import ClientesPage from './pages/clientesProveedores/Clientes';
+import ContabilidadPage from './pages/contabilidadFinanzas/Contabilidad';
+import FinanzasPage from './pages/contabilidadFinanzas/Finanzas';
+
 function App() {
   return (
     <BrowserRouter>
@@ -21,8 +27,13 @@ function App() {
           <Route path="/ventas" element={<Ventas />} />
           <Route path="/compras" element={<Compras />} />
           <Route path="/punto_venta" element={<PuntoVenta />} />
-          <Route path="/activos_fijos" element={<Activos/>} />
-          <Route path="/nomina" element={<Nomina/>} />
+          <Route path="/contabilidad" element={<ContabilidadPage />} />
+          <Route path="/finanzas" element={<FinanzasPage />} />
+          <Route path="/activos_fijos" element={<Activos />} />
+          <Route path="/nomina" element={<Nomina />} />
+          <Route path="/clientes" element={<ClientesPage />} />
+          <Route path="/nomencladores" element={<NomencladoresPage />} />
+          <Route path="/licencias" element={<LicenciasPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

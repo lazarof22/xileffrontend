@@ -83,7 +83,7 @@ const reportesAuditoria = [
 ];
 
 const menuSections = [
-  { text: 'Configuración', icon: <SettingsIcon />, path: '/configuracion' },
+  { text: 'Nomencladores', icon: <SettingsIcon />, path: '/nomencladores' },
   { text: 'Licencias', icon: <VpnKeyIcon />, path: '/licencias' },
 ];
 
