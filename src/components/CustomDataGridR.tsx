@@ -30,6 +30,10 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
+import { useState } from "react";
+import { CircularProgress } from '@mui/material';
 
 type Order = "asc" | "desc";
 
@@ -62,6 +66,7 @@ export default function CustomDataGridR<T>({
     const [selected, setSelected] = React.useState<number[]>([]);
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(5);
+    const [loading, setLoading] = useState<boolean>(false);
 
     const [search, setSearch] = React.useState("");
     const [columnFilters, setColumnFilters] = React.useState<
@@ -338,17 +343,60 @@ export default function CustomDataGridR<T>({
                 open={openDeleteDialog}
                 onClose={() => setOpenDeleteDialog(false)}
             >
-                <DialogTitle>Confirmar eliminación</DialogTitle>
+                <DialogTitle>
+                    <Typography variant="h6"
+                        sx={{
+                            borderRadius: 1,
+                            boxShadow: 2,
+                            p: 1,
+                            textAlign: "center",
+                            background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
+                            WebkitBackgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                        }}>
+                        <span style={{ marginRight: '8px', display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}>
+                            <svg width="0" height="0">
+                                <defs>
+                                    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="rgb(0, 174, 255)" />
+                                        <stop offset="100%" stopColor="rgb(196, 45, 226)" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </span>
+                        Confirmar eliminación
+                    </Typography>
+                </DialogTitle>
                 <DialogContent>
                     <DialogContentText>
                         ¿Estás seguro que deseas eliminar este registro?
                         Esta acción no se puede deshacer.
                     </DialogContentText>
                 </DialogContent>
-                <DialogActions>
+                <DialogActions
+                    sx={{
+                        display: "flex",
+                        p: 2,
+                        ml: 0,
+                        gap: 2, // espacio entre botones
+                        width: "100%"
+                    }}
+                >
                     <Button
                         onClick={() => setOpenDeleteDialog(false)}
                         color="inherit"
+                        disabled={loading}
+                        startIcon={<CancelIcon />}
+                        sx={{
+                            flex: 1, // ← 50% del ancho
+                            background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
+                            boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
+                            color: "white",
+                            "&:hover": {
+                                background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(226, 45, 187, 0.9))",
+                                boxShadow: "0 4px 12px rgb(158, 6, 6)"
+                            }
+                        }}
                     >
                         Cancelar
                     </Button>
@@ -362,8 +410,20 @@ export default function CustomDataGridR<T>({
                         }}
                         color="error"
                         variant="contained"
+                        disabled={loading}
+                        fullWidth // ← ocupa todo el espacio disponible
+                        startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <CheckCircleIcon />}
+                        sx={{
+                            flex: 1, // ← 50% del ancho
+                            background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
+                            boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
+                            "&:hover": {
+                                background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
+                                boxShadow: "0 4px 12px rgba(13, 248, 5, 0.93)"
+                            }
+                        }}
                     >
-                        Eliminar
+                        {loading ? 'Eliminando...' : 'Eliminar'}
                     </Button>
                 </DialogActions>
             </Dialog>
@@ -375,7 +435,30 @@ export default function CustomDataGridR<T>({
                 maxWidth="sm"
                 fullWidth
             >
-                <DialogTitle>Editar Registro</DialogTitle>
+                <DialogTitle>
+                    <Typography variant="h6"
+                        sx={{
+                            borderRadius: 1,
+                            boxShadow: 2,
+                            p: 1,
+                            textAlign: "center",
+                            background: "linear-gradient(135deg, rgba(0, 89, 255, 0.84), rgba(230, 21, 118, 0.9))",
+                            WebkitBackgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                        }}>
+                        <span style={{ marginRight: '8px', display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}>
+                            <svg width="0" height="0">
+                                <defs>
+                                    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="rgb(0, 174, 255)" />
+                                        <stop offset="100%" stopColor="rgb(196, 45, 226)" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </span>
+                        Editar Registro
+                    </Typography>
+                </DialogTitle>
                 <DialogContent>
                     <Grid container spacing={2} sx={{ mt: 1 }}>
                         {columns.map((column) => (
@@ -401,6 +484,7 @@ export default function CustomDataGridR<T>({
                         width: "100%"
                     }}>
                     <Button
+                        disabled={loading}
                         sx={{
                             flex: 1, // ← 50% del ancho
                             background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
@@ -411,6 +495,7 @@ export default function CustomDataGridR<T>({
                                 boxShadow: "0 4px 12px rgb(158, 6, 6)"
                             }
                         }}
+                        startIcon={<CancelIcon />}
                         onClick={() => setOpenEditDialog(false)}
                         color="inherit"
                     >
@@ -418,6 +503,8 @@ export default function CustomDataGridR<T>({
                     </Button>
                     <Button
                         variant="contained"
+                        disabled={loading}
+                        startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <CheckCircleIcon />}
                         sx={{
                             flex: 1, // ← 50% del ancho
                             background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
@@ -439,7 +526,7 @@ export default function CustomDataGridR<T>({
                             setRowToEdit(null);
                         }}
                     >
-                        Guardar Cambios
+                        {loading ? 'Guardando...' : 'Guardar Cambios'}
                     </Button>
                 </DialogActions>
             </Dialog>

@@ -13,6 +13,8 @@ import {
     Typography
 } from '@mui/material';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 // ─── Configuración ───────────────────────────────────
 
@@ -320,6 +322,7 @@ export default function DialogCrearCliente({
                         onClick={handleClose}
                         disabled={loading}
                         fullWidth // ← ocupa todo el espacio disponible
+                        startIcon={<CancelIcon/>}
                         sx={{
                             flex: 1, // ← 50% del ancho
                             background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
@@ -338,7 +341,7 @@ export default function DialogCrearCliente({
                         onClick={handleCreateCliente}
                         disabled={loading}
                         fullWidth // ← ocupa todo el espacio disponible
-                        startIcon={loading ? <CircularProgress size={16} color="inherit" /> : undefined}
+                        startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <CheckCircleIcon/>}
                         sx={{
                             flex: 1, // ← 50% del ancho
                             background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
