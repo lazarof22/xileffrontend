@@ -8,7 +8,12 @@ import {
     TextField,
     Button,
     MenuItem,
+    Typography,
+    CircularProgress
 } from '@mui/material';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 // ==================== INTERFACES ====================
 export interface EmpleadoFormData {
@@ -42,6 +47,7 @@ export default function AddEmpleadoDialog({
     onEmpleadoCreado,
 }: AddEmpleadoDialogProps): React.JSX.Element {
     // Estados del formulario
+    const [loading,setLoading]=useState<boolean>(false);
     const [newEmpleado, setNewEmpleado] = useState<EmpleadoFormData>({
         CI:'',
         nombre:'',
@@ -105,6 +111,10 @@ export default function AddEmpleadoDialog({
         return Object.keys(tempErrors).length === 0;
     };
 
+    const handleCreateEmpleado=async ()=>{
+
+    }
+
     const handleGuardar = () => {
         if (!validateForm()) return;
 
@@ -150,7 +160,37 @@ export default function AddEmpleadoDialog({
             maxWidth="sm"
             fullWidth
         >
-            <DialogTitle>Nuevo Empleado</DialogTitle>
+            <DialogTitle>
+                                <Typography variant="h6"
+                                    sx={{
+                                        borderRadius: 1,
+                                        boxShadow: 2,
+                                        p: 1,
+                                        textAlign: "center",
+                                        background: "linear-gradient(135deg, rgba(0, 89, 255, 0.84), rgba(230, 21, 118, 0.9))",
+                                        WebkitBackgroundClip: "text",
+                                        WebkitTextFillColor: "transparent",
+                                    }}>
+                                    <span style={{ marginRight: '8px', display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}>
+                                        <PersonAddIcon
+                                            sx={{
+                                                fill: 'url(#iconGradient)',
+                                                width: 24,
+                                                height: 24
+                                            }}
+                                        />
+                                        <svg width="0" height="0">
+                                            <defs>
+                                                <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                    <stop offset="0%" stopColor="rgb(0, 174, 255)" />
+                                                    <stop offset="100%" stopColor="rgb(196, 45, 226)" />
+                                                </linearGradient>
+                                            </defs>
+                                        </svg>
+                                    </span>
+                                    Nuevo Empleado
+                                </Typography>
+                            </DialogTitle>
             <DialogContent sx={{ mt: 1 }}>
                 <TextField
                     fullWidth
@@ -236,18 +276,52 @@ export default function AddEmpleadoDialog({
 
                 
             </DialogContent>
-            <DialogActions sx={{ px: 3, pb: 2 }}>
-                <Button onClick={handleCancelar}>
-                    Cancelar
-                </Button>
-                <Button
-                    variant="contained"
-                    onClick={handleGuardar}
-                    disabled={Object.keys(errors).length > 0 && !validateForm()}
-                >
-                    Guardar
-                </Button>
-            </DialogActions>
+            <DialogActions
+                                            sx={{
+                                                display: "flex",
+                                                p: 2,
+                                                ml: 0,
+                                                gap: 2, // espacio entre botones
+                                                width: "100%"
+                                            }}
+                                        >
+                                            <Button
+                                                onClick={handleCancelar}
+                                                disabled={loading}
+                                                fullWidth // ← ocupa todo el espacio disponible
+                                                startIcon={<CancelIcon/>}
+                                                sx={{
+                                                    flex: 1, // ← 50% del ancho
+                                                    background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
+                                                    boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
+                                                    color: "white",
+                                                    "&:hover": {
+                                                        background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(226, 45, 187, 0.9))",
+                                                        boxShadow: "0 4px 12px rgb(158, 6, 6)"
+                                                    }
+                                                }}
+                                            >
+                                                Cancelar
+                                            </Button>
+                                            <Button
+                                                variant="contained"
+                                                onClick={handleCreateEmpleado}
+                                                disabled={loading}
+                                                fullWidth // ← ocupa todo el espacio disponible
+                                                startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <CheckCircleIcon/>}
+                                                sx={{
+                                                    flex: 1, // ← 50% del ancho
+                                                    background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
+                                                    boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
+                                                    "&:hover": {
+                                                        background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
+                                                        boxShadow: "0 4px 12px rgba(13, 248, 5, 0.93)"
+                                                    }
+                                                }}
+                                            >
+                                                {loading ? 'Guardando...' : 'Guardar'}
+                                            </Button>
+                                        </DialogActions>
         </Dialog>
     );
 }
