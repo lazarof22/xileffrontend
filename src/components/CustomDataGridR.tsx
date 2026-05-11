@@ -24,10 +24,18 @@ import {
     DialogContentText,
     DialogActions,
     Grid,
+    Chip,
+    Avatar,
+    Tooltip,
+    Menu,
+    MenuItem,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -42,6 +50,8 @@ export interface Column<T> {
     headerName: string;
     numeric?: boolean;
     filterable?: boolean;
+    // Nuevo: indica si esta columna es la de estado para aplicar badge styling
+    isStatusColumn?: boolean;
 }
 
 interface CustomDataGridProps<T> {
@@ -51,7 +61,68 @@ interface CustomDataGridProps<T> {
     title?: string;
     onEditRow?: (row: T) => void;
     onDeleteRow?: (row: T) => void;
+    // Nuevo: función opcional para obtener avatar/icono por fila
+    getRowAvatar?: (row: T) => string | React.ReactNode;
 }
+
+// 🎨 Función helper para obtener colores de estado basados en tus gradientes
+// Mantiene tus colores pero aplica el estilo visual de la referencia (badges suaves)
+const getStatusStyles = (status: string) => {
+    const lowerStatus = String(status).toLowerCase().trim();
+
+    switch (lowerStatus) {
+        case 'activo':
+        case 'activo':
+        case 'disponible':
+        case 'en stock':
+            return {
+                backgroundColor: 'rgba(10, 218, 20, 0.12)',
+                color: 'rgb(10, 218, 20)',
+                borderColor: 'rgba(10, 218, 20, 0.3)',
+            };
+        case 'inactivo':
+        case 'inactivo':
+        case 'no disponible':
+        case 'agotado':
+            return {
+                backgroundColor: 'rgba(255, 0, 0, 0.08)',
+                color: 'rgb(220, 20, 60)',
+                borderColor: 'rgba(255, 0, 0, 0.3)',
+            };
+        case 'pending':
+        case 'pendiente':
+        case 'espera':
+            return {
+                backgroundColor: 'rgba(255, 165, 0, 0.12)',
+                color: 'rgb(255, 140, 0)',
+                borderColor: 'rgba(255, 165, 0, 0.3)',
+            };
+        case 'on sale':
+        case 'en venta':
+        case 'oferta':
+        case 'promocion':
+            return {
+                backgroundColor: 'rgba(10, 83, 218, 0.12)',
+                color: 'rgb(10, 83, 218)',
+                borderColor: 'rgba(10, 83, 218, 0.3)',
+            };
+        case 'bouncing':
+        case 'rebotando':
+        case 'en revisión':
+        case 'revision':
+            return {
+                backgroundColor: 'rgba(196, 45, 226, 0.10)',
+                color: 'rgb(196, 45, 226)',
+                borderColor: 'rgba(196, 45, 226, 0.3)',
+            };
+        default:
+            return {
+                backgroundColor: 'rgba(128, 128, 128, 0.10)',
+                color: 'rgb(100, 100, 100)',
+                borderColor: 'rgba(128, 128, 128, 0.3)',
+            };
+    }
+};
 
 export default function CustomDataGridR<T>({
     rows,
@@ -60,18 +131,34 @@ export default function CustomDataGridR<T>({
     title = "Tabla",
     onEditRow,
     onDeleteRow,
+    getRowAvatar,
 }: CustomDataGridProps<T>) {
     const [order, setOrder] = React.useState<Order>("asc");
     const [orderBy, setOrderBy] = React.useState<keyof T>(columns[0].field);
     const [selected, setSelected] = React.useState<number[]>([]);
     const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(5);
+    const [rowsPerPage, setRowsPerPage] = React.useState(5); // Cambiado a 10 como en la referencia
     const [loading, setLoading] = useState<boolean>(false);
 
     const [search, setSearch] = React.useState("");
     const [columnFilters, setColumnFilters] = React.useState<
         Partial<Record<keyof T, string>>
     >({});
+
+    // Menu para acciones de fila (estilo "..." de la referencia)
+    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const [menuRow, setMenuRow] = React.useState<T | null>(null);
+
+    const handleOpenMenu = (event: React.MouseEvent<HTMLElement>, row: T) => {
+        event.stopPropagation();
+        setAnchorEl(event.currentTarget);
+        setMenuRow(row);
+    };
+
+    const handleCloseMenu = () => {
+        setAnchorEl(null);
+        setMenuRow(null);
+    };
 
     const handleRequestSort = (property: keyof T) => {
         const isAsc = orderBy === property && order === "asc";
@@ -81,7 +168,7 @@ export default function CustomDataGridR<T>({
 
     const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.checked) {
-            setSelected(rows.map((row) => getRowId(row)));
+            setSelected(filteredRows.map((row) => getRowId(row)));
         } else {
             setSelected([]);
         }
@@ -169,46 +256,182 @@ export default function CustomDataGridR<T>({
     };
 
     return (
-        <Box sx={{ width: "100%", overflowX: "auto" }}>
-            <Paper sx={{ width: "100%", mb: 2 }}>
-                <Toolbar sx={{ display: "flex", gap: 2 }}>
-                    <Typography sx={{ flex: "1 1 auto" }} variant="h6">
+        <Box sx={{ width: "100%", overflowX: "auto", p: 2 }}>
+            <Paper
+                sx={{
+                    width: "100%",
+                    mb: 2,
+                    borderRadius: 1,
+                    boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
+                    overflow: 'hidden',
+                    border: '1px solid rgba(0,0,0,0.04)',
+                }}
+            >
+                {/* Header estilo referencia - más limpio y moderno */}
+                <Toolbar
+                    sx={{
+                        display: "flex",
+                        gap: 2,
+                        px: 3,
+                        py: 2,
+                        borderBottom: '1px solid rgba(0,0,0,0.06)',
+                    }}
+                >
+                    <Typography
+                        sx={{
+                            flex: "1 1 auto",
+                            fontWeight: 600,
+                            fontSize: '1.35rem',
+                            background: "linear-gradient(135deg, rgba(0, 89, 255, 0.84), rgba(230, 21, 118, 0.9))",
+                            WebkitBackgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                            letterSpacing: '-0.02em',
+                        }}
+                        variant="h6"
+                    >
                         {title}
                     </Typography>
 
-                    <TextField
-                        size="small"
-                        placeholder="Buscar..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
-                    <Button
-                        variant="outlined"
-                        color="error"
-                        size="small"
-                        startIcon={<PictureAsPdfIcon sx={{ fontSize: "medium" }} />}
-                        sx={{
-                            background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
-                            color: "#fff",
-                            textTransform: "none",
-                            fontWeight: 600,
-                            boxShadow: "none",
-                            "&:hover": {
-                                background: "linear-gradient(135deg, rgba(255,0,0,1), rgb(196, 45, 226))",
-                                boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
-                            }
-                        }}
-                        onClick={handleExportPDF}
-                    >
-                        Exportar PDF
-                    </Button>
+                    {/* Controles estilo referencia */}
+                    <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+                        {/* Search bar estilo referencia */}
+                        <Box sx={{ px: 1 }}>
+                            <TextField
+                                fullWidth
+                                size="small"
+                                placeholder="Buscar..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                sx={{
+                                    '& .MuiOutlinedInput-root': {
+                                        borderRadius: 3,
+                                        backgroundColor: '#f1f1f1',
+                                        border: 'none',
+                                        '& fieldset': {
+                                            border: 'none',
+                                        },
+                                        '&:hover fieldset': {
+                                            border: 'none',
+                                        },
+                                        '&.Mui-focused fieldset': {
+                                            border: '1px solid rgba(10, 83, 218, 0.3)',
+                                        },
+                                        px: 1.5,
+                                        py: 0.5,
+                                    },
+                                    '& .MuiInputBase-input': {
+                                        fontSize: '0.9rem',
+                                        '&::placeholder': {
+                                            color: '#aaa',
+                                            opacity: 1,
+                                        }
+                                    }
+                                }}
+                            />
+                        </Box>
+                        {/* Showing dropdown */}
+                        <Box sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 0.5,
+                            color: '#666',
+                            fontSize: '0.875rem',
+                        }}>
+                            <TablePagination
+                                rowsPerPageOptions={[5, 10, 15]}  // ← Tus opciones
+                                sx={{
+                                    '& .MuiTablePagination-displayedRows': {
+                                        display: 'none',           // ← Oculta "1-10 of 50"
+                                    },
+                                    '& .MuiTablePagination-actions': {
+                                        display: 'none',           // ← Backup por si slots no funciona
+                                    },
+                                }}
+                                component="div"
+                                count={filteredRows.length}
+                                rowsPerPage={rowsPerPage}
+                                page={page}
+                                onPageChange={(_, newPage) => setPage(newPage)}
+                                onRowsPerPageChange={(e) => {
+                                    setRowsPerPage(parseInt(e.target.value, 10));
+                                    setPage(0);
+                                }}
+                                labelRowsPerPage="Paginación"  // ← Texto custom
+                            />
+                        </Box>
+
+                        {/* Filter button */}
+                        <Button
+                            variant="contained"
+                            size="small"
+                            startIcon={<FilterListIcon sx={{ fontSize: 16 }} />}
+                            sx={{
+                                textTransform: 'none',
+                                background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
+                                color: "#fff",
+                                boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
+                                borderRadius: 1,
+                                px: 2,
+                                py: 0.8,
+                                fontSize: '0.8rem',
+                                fontWeight: 500,
+                                "&:hover": {
+                                    background: "linear-gradient(135deg, rgba(10, 83, 218, 1), rgba(10, 218, 20, 1))",
+                                    boxShadow: "0 6px 16px rgba(9, 80, 212, 0.58)"
+                                }
+                            }}
+                        >
+                            Filtrar
+                        </Button>
+
+                        {/* Export button - manteniendo tu estilo */}
+                        <Button
+                            variant="contained"
+                            size="small"
+                            startIcon={<PictureAsPdfIcon sx={{ fontSize: 16 }} />}
+                            sx={{
+                                textTransform: 'none',
+                                background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
+                                boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
+                                color: '#ffffff',
+                                borderRadius: 1,
+                                px: 2,
+                                py: 0.8,
+                                fontSize: '0.8rem',
+                                fontWeight: 500,
+                                "&:hover": {
+                                    background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(226, 45, 187, 0.9))",
+                                    boxShadow: "0 4px 12px rgba(158, 6, 6, 0.62)"
+                                }
+                            }}
+                            onClick={handleExportPDF}
+                        >
+                            Exportar PDF
+                        </Button>
+                    </Stack>
                 </Toolbar>
 
-                <TableContainer>
-                    <Table size="small">
-                        <TableHead>
-                            <TableRow>
-                                <TableCell padding="checkbox">
+                <TableContainer sx={{ px: 2 }}>
+                    <Table size="small" sx={{ borderCollapse: 'separate', borderSpacing: '0 4px' }}>
+                        <TableHead sx={{ borderRadius: 3, overflow: 'hidden' }}>
+                            <TableRow sx={{
+                                '& th': {
+                                    borderBottom: '1px solid rgba(0,0,0,0.06)',
+                                    color: '#888',
+                                    fontWeight: 600,
+                                    fontSize: '0.75rem',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.05em',
+                                    py: 1.5,
+                                },
+                                '& th:first-of-type': {
+                                    borderTopLeftRadius: 12,
+                                },
+                                '& th:last-of-type': {
+                                    borderTopRightRadius: 12,
+                                },
+                            }}>
+                                <TableCell padding="checkbox" sx={{ pl: 2 }}>
                                     <Checkbox
                                         checked={
                                             filteredRows.length > 0 &&
@@ -219,6 +442,12 @@ export default function CustomDataGridR<T>({
                                             selected.length < filteredRows.length
                                         }
                                         onChange={handleSelectAll}
+                                        sx={{
+                                            color: '#ddd',
+                                            '&.Mui-checked': {
+                                                color: 'rgb(10, 83, 218)',
+                                            }
+                                        }}
                                     />
                                 </TableCell>
 
@@ -229,6 +458,7 @@ export default function CustomDataGridR<T>({
                                         sortDirection={
                                             orderBy === column.field ? order : false
                                         }
+                                        sx={{ fontWeight: 600 }}
                                     >
                                         <TableSortLabel
                                             active={orderBy === column.field}
@@ -238,6 +468,11 @@ export default function CustomDataGridR<T>({
                                             onClick={() =>
                                                 handleRequestSort(column.field)
                                             }
+                                            sx={{
+                                                '& .MuiTableSortLabel-icon': {
+                                                    color: '#bbb !important',
+                                                }
+                                            }}
                                         >
                                             {column.headerName}
                                         </TableSortLabel>
@@ -246,7 +481,7 @@ export default function CustomDataGridR<T>({
                                             <TextField
                                                 size="small"
                                                 variant="standard"
-                                                placeholder="Filtrar"
+                                                placeholder="Filter"
                                                 value={
                                                     columnFilters[column.field] || ""
                                                 }
@@ -256,17 +491,25 @@ export default function CustomDataGridR<T>({
                                                         [column.field]: e.target.value,
                                                     }))
                                                 }
+                                                sx={{
+                                                    mt: 0.5,
+                                                    '& .MuiInput-root': {
+                                                        fontSize: '0.7rem',
+                                                        '&:before': { borderBottom: '1px solid rgba(0,0,0,0.1)' },
+                                                        '&:hover:before': { borderBottom: '1px solid rgba(0,0,0,0.2)' },
+                                                    }
+                                                }}
                                             />
                                         )}
                                     </TableCell>
                                 ))}
 
-                                <TableCell align="center">Acciones</TableCell>
+                                <TableCell align="center" sx={{ width: 60 }}>Acciones</TableCell>
                             </TableRow>
                         </TableHead>
 
                         <TableBody>
-                            {visibleRows.map((row) => {
+                            {visibleRows.map((row, index) => {
                                 const id = getRowId(row);
                                 const isSelected = selected.includes(id);
 
@@ -276,46 +519,125 @@ export default function CustomDataGridR<T>({
                                         hover
                                         selected={isSelected}
                                         onClick={() => handleRowClick(id)}
-                                        sx={{ cursor: "pointer" }}
+                                        sx={{
+                                            cursor: "pointer",
+                                            backgroundColor: isSelected ? 'rgba(10, 83, 218, 0.04)' : '#fff',
+                                            transition: 'all 0.2s ease',
+                                            '&:hover': {
+                                                backgroundColor: isSelected ? 'rgba(10, 83, 218, 0.06)' : '#fafbfc',
+                                                transform: 'translateY(-1px)',
+                                                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                                            },
+                                            borderRadius: 2,
+                                            '& td': {
+                                                borderBottom: index === visibleRows.length - 1 ? 'none' : '1px solid rgba(0,0,0,0.04)',
+                                                py: 1.8,
+                                                fontSize: '0.85rem',
+                                                color: '#444',
+                                            },
+                                            '& td:first-of-type': {
+                                                borderTopLeftRadius: 12,
+                                                borderBottomLeftRadius: 12,
+                                                pl: 2,
+                                            },
+                                            '& td:last-of-type': {
+                                                borderTopRightRadius: 12,
+                                                borderBottomRightRadius: 12,
+                                                pr: 2,
+                                            },
+                                        }}
                                     >
                                         <TableCell padding="checkbox">
-                                            <Checkbox checked={isSelected} />
+                                            <Checkbox
+                                                checked={isSelected}
+                                                sx={{
+                                                    color: '#ddd',
+                                                    '&.Mui-checked': {
+                                                        color: 'rgb(10, 83, 218)',
+                                                    }
+                                                }}
+                                            />
                                         </TableCell>
 
-                                        {columns.map((column) => (
-                                            <TableCell
-                                                key={String(column.field)}
-                                                align={column.numeric ? "right" : "left"}
-                                            >
-                                                {String(row[column.field])}
+                                        {/* Avatar/Icono al inicio estilo referencia */}
+                                        {getRowAvatar && (
+                                            <TableCell sx={{ width: 50, pl: 1 }}>
+                                                <Avatar
+                                                    sx={{
+                                                        width: 36,
+                                                        height: 36,
+                                                        fontSize: '0.9rem',
+                                                        fontWeight: 600,
+                                                        background: "linear-gradient(135deg, rgba(10, 83, 218, 0.15), rgba(196, 45, 226, 0.15))",
+                                                        color: 'rgb(10, 83, 218)',
+                                                    }}
+                                                >
+                                                    {typeof getRowAvatar(row) === 'string'
+                                                        ? (getRowAvatar(row) as string).charAt(0).toUpperCase()
+                                                        : getRowAvatar(row)
+                                                    }
+                                                </Avatar>
                                             </TableCell>
-                                        ))}
+                                        )}
 
+                                        {columns.map((column) => {
+                                            const cellValue = row[column.field];
+                                            const isStatus = column.isStatusColumn;
+
+                                            return (
+                                                <TableCell
+                                                    key={String(column.field)}
+                                                    align={column.numeric ? "right" : "left"}
+                                                >
+                                                    {isStatus ? (
+                                                        // 🏷️ Badge de estado estilo referencia con TUS colores
+                                                        <Chip
+                                                            label={String(cellValue)}
+                                                            size="small"
+                                                            sx={{
+                                                                borderRadius: 2,
+                                                                fontWeight: 600,
+                                                                fontSize: '0.75rem',
+                                                                letterSpacing: '0.02em',
+                                                                height: 28,
+                                                                ...getStatusStyles(String(cellValue)),
+                                                                border: '1.5px solid',
+                                                                '& .MuiChip-label': {
+                                                                    px: 1.5,
+                                                                }
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        <Typography
+                                                            variant="body2"
+                                                            sx={{
+                                                                fontWeight: column.field === columns[0].field ? 600 : 400,
+                                                                color: column.field === columns[0].field ? '#1a1a2e' : '#666',
+                                                                fontSize: '0.85rem',
+                                                            }}
+                                                        >
+                                                            {String(cellValue)}
+                                                        </Typography>
+                                                    )}
+                                                </TableCell>
+                                            );
+                                        })}
+
+                                        {/* Botón de acción "..." estilo referencia */}
                                         <TableCell align="center">
-                                            <Stack direction="row" spacing={1} sx={{ justifyContent: "center" }}>
-                                                <IconButton
-                                                    color="primary"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setRowToEdit(row);
-                                                        setEditForm(row);
-                                                        setOpenEditDialog(true);
-                                                    }}
-                                                >
-                                                    <EditIcon />
-                                                </IconButton>
-
-                                                <IconButton
-                                                    color="error"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setRowToDelete(row);
-                                                        setOpenDeleteDialog(true);
-                                                    }}
-                                                >
-                                                    <DeleteIcon />
-                                                </IconButton>
-                                            </Stack>
+                                            <IconButton
+                                                size="small"
+                                                onClick={(e) => handleOpenMenu(e, row)}
+                                                sx={{
+                                                    color: '#bbb',
+                                                    '&:hover': {
+                                                        color: '#666',
+                                                        backgroundColor: 'rgba(0,0,0,0.04)',
+                                                    }
+                                                }}
+                                            >
+                                                <MoreVertIcon sx={{ fontSize: 18 }} />
+                                            </IconButton>
                                         </TableCell>
                                     </TableRow>
                                 );
@@ -324,24 +646,124 @@ export default function CustomDataGridR<T>({
                     </Table>
                 </TableContainer>
 
-                <TablePagination
-                    rowsPerPageOptions={[5, 10, 25]}
-                    component="div"
-                    count={filteredRows.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    onPageChange={(_, newPage) => setPage(newPage)}
-                    onRowsPerPageChange={(e) => {
-                        setRowsPerPage(parseInt(e.target.value, 10));
-                        setPage(0);
-                    }}
-                />
+                {/* Paginación estilo referencia */}
+                <Box sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    px: 3,
+                    py: 2,
+                    borderTop: '1px solid rgba(0,0,0,0.06)',
+                }}>
+                    <Button
+                        size="small"
+                        sx={{
+                            textTransform: 'none',
+                            color: '#646464',
+                            fontSize: '0.8rem',
+                            '&:hover': { color: '#414141' }
+                        }}
+                        disabled={page === 0}
+                        onClick={() => setPage(p => Math.max(0, p - 1))}
+                    >
+                        ‹ Anterior
+                    </Button>
+
+                    <Stack direction="row" spacing={0.5}>
+                        {Array.from({ length: Math.ceil(filteredRows.length / rowsPerPage) }, (_, i) => (
+                            <Button
+                                key={i}
+                                size="small"
+                                onClick={() => setPage(i)}
+                                sx={{
+                                    minWidth: 32,
+                                    height: 32,
+                                    borderRadius: 1.5,
+                                    fontSize: '0.8rem',
+                                    fontWeight: page === i ? 600 : 400,
+                                    backgroundColor: page === i ? 'rgb(10, 83, 218)' : 'transparent',
+                                    color: page === i ? '#fff' : '#888',
+                                    '&:hover': {
+                                        backgroundColor: page === i ? 'rgb(10, 83, 218)' : 'rgba(0,0,0,0.04)',
+                                    }
+                                }}
+                            >
+                                {String(i + 1).padStart(2, '0')}
+                            </Button>
+                        ))}
+                    </Stack>
+
+                    <Button
+                        size="small"
+                        sx={{
+                            textTransform: 'none',
+                            color: '#646464',
+                            fontSize: '0.8rem',
+                            '&:hover': { color: '#414141' }
+                        }}
+                        disabled={page >= Math.ceil(filteredRows.length / rowsPerPage) - 1}
+                        onClick={() => setPage(p => p + 1)}
+                    >
+                        Siguiente ›
+                    </Button>
+                </Box>
             </Paper>
 
-            {/* Diálogo Eliminar */}
+            {/* Menu de acciones estilo "..." */}
+            <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleCloseMenu}
+                onClick={handleCloseMenu}
+                slotProps={{
+                    paper: {
+                        sx: {
+                            borderRadius: 2,
+                            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                            minWidth: 140,
+                        }
+                    }
+                }}
+            >
+                <MenuItem
+                    onClick={() => {
+                        if (menuRow) {
+                            setRowToEdit(menuRow);
+                            setEditForm(menuRow);
+                            setOpenEditDialog(true);
+                        }
+                    }}
+                    sx={{ fontSize: '0.85rem', gap: 1.5 }}
+                >
+                    <EditIcon sx={{ fontSize: 18, color: 'rgb(10, 83, 218)' }} />
+                    Edit
+                </MenuItem>
+                <MenuItem
+                    onClick={() => {
+                        if (menuRow) {
+                            setRowToDelete(menuRow);
+                            setOpenDeleteDialog(true);
+                        }
+                    }}
+                    sx={{ fontSize: '0.85rem', gap: 1.5, color: 'rgb(220, 20, 60)' }}
+                >
+                    <DeleteIcon sx={{ fontSize: 18 }} />
+                    Delete
+                </MenuItem>
+            </Menu>
+
+            {/* Diálogo Eliminar - manteniendo TUS estilos */}
             <Dialog
                 open={openDeleteDialog}
                 onClose={() => setOpenDeleteDialog(false)}
+                slotProps={{
+                    paper: {
+                        sx: {
+                            borderRadius: 3,
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                        }
+                    }
+                }}
             >
                 <DialogTitle>
                     <Typography variant="h6"
@@ -368,7 +790,7 @@ export default function CustomDataGridR<T>({
                     </Typography>
                 </DialogTitle>
                 <DialogContent>
-                    <DialogContentText>
+                    <DialogContentText sx={{ textAlign: 'center', color: '#666' }}>
                         ¿Estás seguro que deseas eliminar este registro?
                         Esta acción no se puede deshacer.
                     </DialogContentText>
@@ -378,7 +800,7 @@ export default function CustomDataGridR<T>({
                         display: "flex",
                         p: 2,
                         ml: 0,
-                        gap: 2, // espacio entre botones
+                        gap: 2,
                         width: "100%"
                     }}
                 >
@@ -388,10 +810,13 @@ export default function CustomDataGridR<T>({
                         disabled={loading}
                         startIcon={<CancelIcon />}
                         sx={{
-                            flex: 1, // ← 50% del ancho
+                            flex: 1,
                             background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
                             boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
                             color: "white",
+                            borderRadius: 2,
+                            textTransform: 'none',
+                            fontWeight: 600,
                             "&:hover": {
                                 background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(226, 45, 187, 0.9))",
                                 boxShadow: "0 4px 12px rgb(158, 6, 6)"
@@ -411,12 +836,15 @@ export default function CustomDataGridR<T>({
                         color="error"
                         variant="contained"
                         disabled={loading}
-                        fullWidth // ← ocupa todo el espacio disponible
+                        fullWidth
                         startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <CheckCircleIcon />}
                         sx={{
-                            flex: 1, // ← 50% del ancho
+                            flex: 1,
                             background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
                             boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
+                            borderRadius: 2,
+                            textTransform: 'none',
+                            fontWeight: 600,
                             "&:hover": {
                                 background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
                                 boxShadow: "0 4px 12px rgba(13, 248, 5, 0.93)"
@@ -428,12 +856,20 @@ export default function CustomDataGridR<T>({
                 </DialogActions>
             </Dialog>
 
-            {/* Diálogo Editar */}
+            {/* Diálogo Editar - manteniendo TUS estilos */}
             <Dialog
                 open={openEditDialog}
                 onClose={() => setOpenEditDialog(false)}
                 maxWidth="sm"
                 fullWidth
+                slotProps={{
+                    paper: {
+                        sx: {
+                            borderRadius: 3,
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                        }
+                    }
+                }}
             >
                 <DialogTitle>
                     <Typography variant="h6"
@@ -470,6 +906,11 @@ export default function CustomDataGridR<T>({
                                     onChange={(e) =>
                                         handleEditChange(column.field, e.target.value)
                                     }
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 2,
+                                        }
+                                    }}
                                 />
                             </Grid>
                         ))}
@@ -480,16 +921,19 @@ export default function CustomDataGridR<T>({
                         display: "flex",
                         p: 2,
                         ml: 0,
-                        gap: 2, // espacio entre botones
+                        gap: 2,
                         width: "100%"
                     }}>
                     <Button
                         disabled={loading}
                         sx={{
-                            flex: 1, // ← 50% del ancho
+                            flex: 1,
                             background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
                             boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
                             color: "white",
+                            borderRadius: 2,
+                            textTransform: 'none',
+                            fontWeight: 600,
                             "&:hover": {
                                 background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(226, 45, 187, 0.9))",
                                 boxShadow: "0 4px 12px rgb(158, 6, 6)"
@@ -506,9 +950,12 @@ export default function CustomDataGridR<T>({
                         disabled={loading}
                         startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <CheckCircleIcon />}
                         sx={{
-                            flex: 1, // ← 50% del ancho
+                            flex: 1,
                             background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
                             boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
+                            borderRadius: 2,
+                            textTransform: 'none',
+                            fontWeight: 600,
                             "&:hover": {
                                 background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
                                 boxShadow: "0 4px 12px rgba(13, 248, 5, 0.93)"
