@@ -263,7 +263,6 @@ export default function CustomDataGridR<T>({
                     mb: 2,
                     borderRadius: 1,
                     boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
-                    overflow: 'hidden',
                     border: '1px solid rgba(0,0,0,0.04)',
                 }}
             >
@@ -411,8 +410,38 @@ export default function CustomDataGridR<T>({
                     </Stack>
                 </Toolbar>
 
-                <TableContainer sx={{ px: 2 }}>
-                    <Table size="small" sx={{ borderCollapse: 'separate', borderSpacing: '0 4px' }}>
+                <TableContainer 
+                    sx={{ 
+                        px: 2,
+                        overflowX: 'auto',
+                        overflowY: 'hidden',
+                        display: 'block',
+                        width: '100%',
+                        '&::-webkit-scrollbar': {
+                            height: 8,
+                        },
+                        '&::-webkit-scrollbar-track': {
+                            backgroundColor: 'rgba(0,0,0,0.04)',
+                            borderRadius: 4,
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                            backgroundColor: 'rgba(10, 83, 218, 0.3)',
+                            borderRadius: 4,
+                            '&:hover': {
+                                backgroundColor: 'rgba(10, 83, 218, 0.5)',
+                            }
+                        },
+                    }}
+                >
+                    <Table 
+                        size="small" 
+                        sx={{ 
+                            borderCollapse: 'separate', 
+                            borderSpacing: '0 4px',
+                            minWidth: 900,               // ← Ancho mínimo FIJO para forzar scroll
+                            width: '100%',
+                        }}
+                    >
                         <TableHead sx={{ borderRadius: 3, overflow: 'hidden' }}>
                             <TableRow sx={{
                                 '& th': {
@@ -431,7 +460,7 @@ export default function CustomDataGridR<T>({
                                     borderTopRightRadius: 12,
                                 },
                             }}>
-                                <TableCell padding="checkbox" sx={{ pl: 2 }}>
+                                <TableCell padding="checkbox" sx={{ pl: 2, width: 48, minWidth: 48 }}>
                                     <Checkbox
                                         checked={
                                             filteredRows.length > 0 &&
@@ -458,7 +487,11 @@ export default function CustomDataGridR<T>({
                                         sortDirection={
                                             orderBy === column.field ? order : false
                                         }
-                                        sx={{ fontWeight: 600 }}
+                                        sx={{ 
+                                            fontWeight: 600,
+                                            whiteSpace: 'nowrap',
+                                            px: 2,
+                                        }}
                                     >
                                         <TableSortLabel
                                             active={orderBy === column.field}
@@ -504,7 +537,7 @@ export default function CustomDataGridR<T>({
                                     </TableCell>
                                 ))}
 
-                                <TableCell align="center" sx={{ width: 60 }}>Acciones</TableCell>
+                                <TableCell align="center" sx={{ width: 80, minWidth: 80, whiteSpace: 'nowrap' }}>Acciones</TableCell>
                             </TableRow>
                         </TableHead>
 
@@ -547,7 +580,7 @@ export default function CustomDataGridR<T>({
                                             },
                                         }}
                                     >
-                                        <TableCell padding="checkbox">
+                                        <TableCell padding="checkbox" sx={{ width: 48, minWidth: 48 }}>
                                             <Checkbox
                                                 checked={isSelected}
                                                 sx={{
@@ -588,6 +621,10 @@ export default function CustomDataGridR<T>({
                                                 <TableCell
                                                     key={String(column.field)}
                                                     align={column.numeric ? "right" : "left"}
+                                                    sx={{
+                                                        whiteSpace: 'nowrap',
+                                                        px: 2,
+                                                    }}
                                                 >
                                                     {isStatus ? (
                                                         // 🏷️ Badge de estado estilo referencia con TUS colores
@@ -624,7 +661,7 @@ export default function CustomDataGridR<T>({
                                         })}
 
                                         {/* Botón de acción "..." estilo referencia */}
-                                        <TableCell align="center">
+                                        <TableCell align="center" sx={{ width: 80, minWidth: 80 }}>
                                             <IconButton
                                                 size="small"
                                                 onClick={(e) => handleOpenMenu(e, row)}
