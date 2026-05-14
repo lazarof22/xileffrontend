@@ -8,7 +8,13 @@ import {
     TextField,
     Button,
     MenuItem,
+    Typography,
+    CircularProgress
 } from '@mui/material';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import CancelIcon from '@mui/icons-material/Cancel';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+
 
 // ==================== INTERFACES ====================
 export interface ActivoFormData {
@@ -52,6 +58,7 @@ export default function AddActivoDialog({
     onActivoCreado,
 }: AddActivoDialogProps): React.JSX.Element {
     // Estados del formulario
+    const [loading,setLoading]=useState<boolean>(false);
     const [newActivo, setNewActivo] = useState<ActivoFormData>({
         codigo_activo: "",
         nombre_activo: "",
@@ -81,39 +88,11 @@ export default function AddActivoDialog({
         });
     };
 
-    const validateForm = (): boolean => {
-        const tempErrors: Record<string, string> = {};
-
-        if (!newActivo.codigo_activo.trim()) {
-            tempErrors.codigo_activo = "El código es obligatorio";
-        }
-        if (!newActivo.nombre_activo.trim()) {
-            tempErrors.nombre_activo = "El nombre es obligatorio";
-        }
-        if (!newActivo.categoria_activo) {
-            tempErrors.categoria_activo = "Seleccione una categoría";
-        }
-        if (!newActivo.estado_activo) {
-            tempErrors.estado_activo = "Seleccione un estado";
-        }
-        if (!newActivo.ubicacion_activo.trim()) {
-            tempErrors.ubicacion_activo = "La ubicación es obligatoria";
-        }
-        if (!newActivo.fecha_adquisicion) {
-            tempErrors.fecha_adquisicion = "La fecha de adquisición es obligatoria";
-        }
-        if (!newActivo.valor_adquisicion) {
-            tempErrors.valor_adquisicion = "El valor de adquisición es obligatorio";
-        } else if (Number(newActivo.valor_adquisicion) <= 0) {
-            tempErrors.valor_adquisicion = "El valor debe ser mayor a 0";
-        }
-
-        setErrors(tempErrors);
-        return Object.keys(tempErrors).length === 0;
-    };
+    const handleCreateActivo= async ()=>{
+        //aqui va la acccion del boton al hacer click
+    }
 
     const handleGuardar = () => {
-        if (!validateForm()) return;
 
         if (onActivoCreado) {
             onActivoCreado(newActivo);
@@ -157,7 +136,37 @@ export default function AddActivoDialog({
             maxWidth="sm"
             fullWidth
         >
-            <DialogTitle>Nuevo Activo</DialogTitle>
+            <DialogTitle>
+                                <Typography variant="h6"
+                                    sx={{
+                                        borderRadius: 1,
+                                        boxShadow: 2,
+                                        p: 1,
+                                        textAlign: "center",
+                                        background: "linear-gradient(135deg, rgba(0, 89, 255, 0.84), rgba(230, 21, 118, 0.9))",
+                                        WebkitBackgroundClip: "text",
+                                        WebkitTextFillColor: "transparent",
+                                    }}>
+                                    <span style={{ marginRight: '8px', display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}>
+                                        <PersonAddIcon
+                                            sx={{
+                                                fill: 'url(#iconGradient)',
+                                                width: 24,
+                                                height: 24
+                                            }}
+                                        />
+                                        <svg width="0" height="0">
+                                            <defs>
+                                                <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                    <stop offset="0%" stopColor="rgb(0, 174, 255)" />
+                                                    <stop offset="100%" stopColor="rgb(196, 45, 226)" />
+                                                </linearGradient>
+                                            </defs>
+                                        </svg>
+                                    </span>
+                                    Nuevo Activo
+                                </Typography>
+                            </DialogTitle>
             <DialogContent sx={{ mt: 1 }}>
                 <TextField
                     fullWidth
@@ -250,18 +259,52 @@ export default function AddActivoDialog({
                     helperText={errors.valor_adquisicion}
                 />
             </DialogContent>
-            <DialogActions sx={{ px: 3, pb: 2 }}>
-                <Button onClick={handleCancelar}>
-                    Cancelar
-                </Button>
-                <Button
-                    variant="contained"
-                    onClick={handleGuardar}
-                    disabled={Object.keys(errors).length > 0 && !validateForm()}
-                >
-                    Guardar
-                </Button>
-            </DialogActions>
+            <DialogActions
+                                sx={{
+                                    display: "flex",
+                                    p: 2,
+                                    ml: 0,
+                                    gap: 2, // espacio entre botones
+                                    width: "100%"
+                                }}
+                            >
+                                <Button
+                                    onClick={handleCancelar}
+                                    disabled={loading}
+                                    fullWidth // ← ocupa todo el espacio disponible
+                                    startIcon={<CancelIcon/>}
+                                    sx={{
+                                        flex: 1, // ← 50% del ancho
+                                        background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
+                                        boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
+                                        color: "white",
+                                        "&:hover": {
+                                            background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(226, 45, 187, 0.9))",
+                                            boxShadow: "0 4px 12px rgb(158, 6, 6)"
+                                        }
+                                    }}
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button
+                                    variant="contained"
+                                    onClick={handleCreateActivo}
+                                    disabled={loading}
+                                    fullWidth // ← ocupa todo el espacio disponible
+                                    startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <CheckCircleIcon/>}
+                                    sx={{
+                                        flex: 1, // ← 50% del ancho
+                                        background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
+                                        boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
+                                        "&:hover": {
+                                            background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
+                                            boxShadow: "0 4px 12px rgba(13, 248, 5, 0.93)"
+                                        }
+                                    }}
+                                >
+                                    {loading ? 'Guardando...' : 'Guardar'}
+                                </Button>
+                            </DialogActions>
         </Dialog>
     );
 }
