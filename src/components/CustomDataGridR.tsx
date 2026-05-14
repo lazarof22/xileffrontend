@@ -40,6 +40,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import SearchOffIcon from '@mui/icons-material/SearchOff';
 import { useState } from "react";
 import { CircularProgress } from '@mui/material';
 
@@ -50,7 +51,6 @@ export interface Column<T> {
     headerName: string;
     numeric?: boolean;
     filterable?: boolean;
-    // Nuevo: indica si esta columna es la de estado para aplicar badge styling
     isStatusColumn?: boolean;
 }
 
@@ -61,17 +61,13 @@ interface CustomDataGridProps<T> {
     title?: string;
     onEditRow?: (row: T) => void;
     onDeleteRow?: (row: T) => void;
-    // Nuevo: función opcional para obtener avatar/icono por fila
     getRowAvatar?: (row: T) => string | React.ReactNode;
 }
 
-// 🎨 Función helper para obtener colores de estado basados en tus gradientes
-// Mantiene tus colores pero aplica el estilo visual de la referencia (badges suaves)
 const getStatusStyles = (status: string) => {
     const lowerStatus = String(status).toLowerCase().trim();
 
     switch (lowerStatus) {
-        case 'activo':
         case 'activo':
         case 'disponible':
         case 'en stock':
@@ -80,7 +76,6 @@ const getStatusStyles = (status: string) => {
                 color: 'rgb(10, 218, 20)',
                 borderColor: 'rgba(10, 218, 20, 0.3)',
             };
-        case 'inactivo':
         case 'inactivo':
         case 'no disponible':
         case 'agotado':
@@ -137,7 +132,7 @@ export default function CustomDataGridR<T>({
     const [orderBy, setOrderBy] = React.useState<keyof T>(columns[0].field);
     const [selected, setSelected] = React.useState<number[]>([]);
     const [page, setPage] = React.useState(0);
-    const [rowsPerPage, setRowsPerPage] = React.useState(5); // Cambiado a 10 como en la referencia
+    const [rowsPerPage, setRowsPerPage] = React.useState(5);
     const [loading, setLoading] = useState<boolean>(false);
 
     const [search, setSearch] = React.useState("");
@@ -145,7 +140,6 @@ export default function CustomDataGridR<T>({
         Partial<Record<keyof T, string>>
     >({});
 
-    // Menu para acciones de fila (estilo "..." de la referencia)
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const [menuRow, setMenuRow] = React.useState<T | null>(null);
 
@@ -182,7 +176,6 @@ export default function CustomDataGridR<T>({
         );
     };
 
-    // 🔎 FILTROS + BÚSQUEDA
     const filteredRows = React.useMemo(() => {
         return rows.filter((row) => {
             const matchesSearch =
@@ -204,7 +197,6 @@ export default function CustomDataGridR<T>({
         });
     }, [rows, search, columnFilters, columns]);
 
-    // 🔃 SORT
     const sortedRows = React.useMemo(() => {
         return [...filteredRows].sort((a, b) => {
             const aValue = a[orderBy];
@@ -256,18 +248,20 @@ export default function CustomDataGridR<T>({
     };
 
     return (
-        <Box sx={{ width: "100%", overflowX: "auto", p: 2 }}>
+        <Box sx={{ width: "100%", p: 2, overflow: 'hidden' }}>
             <Paper
                 sx={{
                     width: "100%",
                     mb: 2,
                     borderRadius: 1,
                     boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
-                    overflow: 'hidden',
                     border: '1px solid rgba(0,0,0,0.04)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    maxHeight: 'calc(100vh - 250px)',
+                    overflow: 'hidden',
                 }}
             >
-                {/* Header estilo referencia - más limpio y moderno */}
                 <Toolbar
                     sx={{
                         display: "flex",
@@ -275,6 +269,7 @@ export default function CustomDataGridR<T>({
                         px: 3,
                         py: 2,
                         borderBottom: '1px solid rgba(0,0,0,0.06)',
+                        flexWrap: 'wrap',
                     }}
                 >
                     <Typography
@@ -292,9 +287,7 @@ export default function CustomDataGridR<T>({
                         {title}
                     </Typography>
 
-                    {/* Controles estilo referencia */}
-                    <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
-                        {/* Search bar estilo referencia */}
+                    <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", flexWrap: 'wrap' }}>
                         <Box sx={{ px: 1 }}>
                             <TextField
                                 fullWidth
@@ -329,7 +322,6 @@ export default function CustomDataGridR<T>({
                                 }}
                             />
                         </Box>
-                        {/* Showing dropdown */}
                         <Box sx={{
                             display: 'flex',
                             alignItems: 'center',
@@ -338,13 +330,13 @@ export default function CustomDataGridR<T>({
                             fontSize: '0.875rem',
                         }}>
                             <TablePagination
-                                rowsPerPageOptions={[5, 10, 15]}  // ← Tus opciones
+                                rowsPerPageOptions={[5, 10, 15]}
                                 sx={{
                                     '& .MuiTablePagination-displayedRows': {
-                                        display: 'none',           // ← Oculta "1-10 of 50"
+                                        display: 'none',
                                     },
                                     '& .MuiTablePagination-actions': {
-                                        display: 'none',           // ← Backup por si slots no funciona
+                                        display: 'none',
                                     },
                                 }}
                                 component="div"
@@ -356,11 +348,10 @@ export default function CustomDataGridR<T>({
                                     setRowsPerPage(parseInt(e.target.value, 10));
                                     setPage(0);
                                 }}
-                                labelRowsPerPage="Paginación"  // ← Texto custom
+                                labelRowsPerPage="Paginación"
                             />
                         </Box>
 
-                        {/* Filter button */}
                         <Button
                             variant="contained"
                             size="small"
@@ -384,7 +375,6 @@ export default function CustomDataGridR<T>({
                             Filtrar
                         </Button>
 
-                        {/* Export button - manteniendo tu estilo */}
                         <Button
                             variant="contained"
                             size="small"
@@ -411,242 +401,291 @@ export default function CustomDataGridR<T>({
                     </Stack>
                 </Toolbar>
 
-                <TableContainer sx={{ px: 2 }}>
-                    <Table size="small" sx={{ borderCollapse: 'separate', borderSpacing: '0 4px' }}>
-                        <TableHead sx={{ borderRadius: 3, overflow: 'hidden' }}>
-                            <TableRow sx={{
-                                '& th': {
-                                    borderBottom: '1px solid rgba(0,0,0,0.06)',
-                                    color: '#888',
-                                    fontWeight: 600,
-                                    fontSize: '0.75rem',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.05em',
-                                    py: 1.5,
-                                },
-                                '& th:first-of-type': {
-                                    borderTopLeftRadius: 12,
-                                },
-                                '& th:last-of-type': {
-                                    borderTopRightRadius: 12,
-                                },
-                            }}>
-                                <TableCell padding="checkbox" sx={{ pl: 2 }}>
-                                    <Checkbox
-                                        checked={
-                                            filteredRows.length > 0 &&
-                                            selected.length === filteredRows.length
-                                        }
-                                        indeterminate={
-                                            selected.length > 0 &&
-                                            selected.length < filteredRows.length
-                                        }
-                                        onChange={handleSelectAll}
-                                        sx={{
-                                            color: '#ddd',
-                                            '&.Mui-checked': {
-                                                color: 'rgb(10, 83, 218)',
+                {/* CONTENEDOR CON SCROLL HORIZONTAL CONTROLADO */}
+                <Box
+                    sx={{
+                        flex: 1,
+                        overflow: 'auto',
+                        px: 2,
+                        minHeight: 200,
+                        width: '100%',
+                        '&::-webkit-scrollbar': {
+                            width: 8,
+                            height: 8,
+                        },
+                        '&::-webkit-scrollbar-track': {
+                            backgroundColor: 'rgba(0,0,0,0.04)',
+                            borderRadius: 4,
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                            backgroundColor: 'rgba(10, 83, 218, 0.3)',
+                            borderRadius: 4,
+                            '&:hover': {
+                                backgroundColor: 'rgba(10, 83, 218, 0.5)',
+                            }
+                        },
+                    }}
+                >
+                    <TableContainer sx={{ overflow: 'visible', minWidth: '100%' }}>
+                        <Table size="small" sx={{ borderCollapse: 'separate', borderSpacing: '0 4px', width: 'max-content', minWidth: '100%' }}>
+                            <TableHead sx={{ borderRadius: 3, overflow: 'hidden' }}>
+                                <TableRow sx={{
+                                    '& th': {
+                                        borderBottom: '1px solid rgba(0,0,0,0.06)',
+                                        color: '#888',
+                                        fontWeight: 600,
+                                        fontSize: '0.75rem',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.05em',
+                                        py: 1.5,
+                                    },
+                                    '& th:first-of-type': {
+                                        borderTopLeftRadius: 12,
+                                    },
+                                    '& th:last-of-type': {
+                                        borderTopRightRadius: 12,
+                                    },
+                                }}>
+                                    <TableCell padding="checkbox" sx={{ pl: 2, width: 48, minWidth: 48 }}>
+                                        <Checkbox
+                                            checked={
+                                                filteredRows.length > 0 &&
+                                                selected.length === filteredRows.length
                                             }
-                                        }}
-                                    />
-                                </TableCell>
-
-                                {columns.map((column) => (
-                                    <TableCell
-                                        key={String(column.field)}
-                                        align={column.numeric ? "right" : "left"}
-                                        sortDirection={
-                                            orderBy === column.field ? order : false
-                                        }
-                                        sx={{ fontWeight: 600 }}
-                                    >
-                                        <TableSortLabel
-                                            active={orderBy === column.field}
-                                            direction={
-                                                orderBy === column.field ? order : "asc"
+                                            indeterminate={
+                                                selected.length > 0 &&
+                                                selected.length < filteredRows.length
                                             }
-                                            onClick={() =>
-                                                handleRequestSort(column.field)
-                                            }
+                                            onChange={handleSelectAll}
                                             sx={{
-                                                '& .MuiTableSortLabel-icon': {
-                                                    color: '#bbb !important',
+                                                color: '#ddd',
+                                                '&.Mui-checked': {
+                                                    color: 'rgb(10, 83, 218)',
                                                 }
                                             }}
-                                        >
-                                            {column.headerName}
-                                        </TableSortLabel>
-
-                                        {column.filterable && (
-                                            <TextField
-                                                size="small"
-                                                variant="standard"
-                                                placeholder="Filter"
-                                                value={
-                                                    columnFilters[column.field] || ""
-                                                }
-                                                onChange={(e) =>
-                                                    setColumnFilters((prev) => ({
-                                                        ...prev,
-                                                        [column.field]: e.target.value,
-                                                    }))
-                                                }
-                                                sx={{
-                                                    mt: 0.5,
-                                                    '& .MuiInput-root': {
-                                                        fontSize: '0.7rem',
-                                                        '&:before': { borderBottom: '1px solid rgba(0,0,0,0.1)' },
-                                                        '&:hover:before': { borderBottom: '1px solid rgba(0,0,0,0.2)' },
-                                                    }
-                                                }}
-                                            />
-                                        )}
+                                        />
                                     </TableCell>
-                                ))}
 
-                                <TableCell align="center" sx={{ width: 60 }}>Acciones</TableCell>
-                            </TableRow>
-                        </TableHead>
+                                    {getRowAvatar && (
+                                        <TableCell sx={{ width: 50, minWidth: 50, pl: 1 }}>Avatar</TableCell>
+                                    )}
 
-                        <TableBody>
-                            {visibleRows.map((row, index) => {
-                                const id = getRowId(row);
-                                const isSelected = selected.includes(id);
-
-                                return (
-                                    <TableRow
-                                        key={id}
-                                        hover
-                                        selected={isSelected}
-                                        onClick={() => handleRowClick(id)}
-                                        sx={{
-                                            cursor: "pointer",
-                                            backgroundColor: isSelected ? 'rgba(10, 83, 218, 0.04)' : '#fff',
-                                            transition: 'all 0.2s ease',
-                                            '&:hover': {
-                                                backgroundColor: isSelected ? 'rgba(10, 83, 218, 0.06)' : '#fafbfc',
-                                                transform: 'translateY(-1px)',
-                                                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                                            },
-                                            borderRadius: 2,
-                                            '& td': {
-                                                borderBottom: index === visibleRows.length - 1 ? 'none' : '1px solid rgba(0,0,0,0.04)',
-                                                py: 1.8,
-                                                fontSize: '0.85rem',
-                                                color: '#444',
-                                            },
-                                            '& td:first-of-type': {
-                                                borderTopLeftRadius: 12,
-                                                borderBottomLeftRadius: 12,
-                                                pl: 2,
-                                            },
-                                            '& td:last-of-type': {
-                                                borderTopRightRadius: 12,
-                                                borderBottomRightRadius: 12,
-                                                pr: 2,
-                                            },
-                                        }}
-                                    >
-                                        <TableCell padding="checkbox">
-                                            <Checkbox
-                                                checked={isSelected}
+                                    {columns.map((column) => (
+                                        <TableCell
+                                            key={String(column.field)}
+                                            align={column.numeric ? "right" : "left"}
+                                            sortDirection={
+                                                orderBy === column.field ? order : false
+                                            }
+                                            sx={{ fontWeight: 600, whiteSpace: 'nowrap', px: 2, minWidth: 120 }}
+                                        >
+                                            <TableSortLabel
+                                                active={orderBy === column.field}
+                                                direction={
+                                                    orderBy === column.field ? order : "asc"
+                                                }
+                                                onClick={() =>
+                                                    handleRequestSort(column.field)
+                                                }
                                                 sx={{
-                                                    color: '#ddd',
-                                                    '&.Mui-checked': {
-                                                        color: 'rgb(10, 83, 218)',
-                                                    }
-                                                }}
-                                            />
-                                        </TableCell>
-
-                                        {/* Avatar/Icono al inicio estilo referencia */}
-                                        {getRowAvatar && (
-                                            <TableCell sx={{ width: 50, pl: 1 }}>
-                                                <Avatar
-                                                    sx={{
-                                                        width: 36,
-                                                        height: 36,
-                                                        fontSize: '0.9rem',
-                                                        fontWeight: 600,
-                                                        background: "linear-gradient(135deg, rgba(10, 83, 218, 0.15), rgba(196, 45, 226, 0.15))",
-                                                        color: 'rgb(10, 83, 218)',
-                                                    }}
-                                                >
-                                                    {typeof getRowAvatar(row) === 'string'
-                                                        ? (getRowAvatar(row) as string).charAt(0).toUpperCase()
-                                                        : getRowAvatar(row)
-                                                    }
-                                                </Avatar>
-                                            </TableCell>
-                                        )}
-
-                                        {columns.map((column) => {
-                                            const cellValue = row[column.field];
-                                            const isStatus = column.isStatusColumn;
-
-                                            return (
-                                                <TableCell
-                                                    key={String(column.field)}
-                                                    align={column.numeric ? "right" : "left"}
-                                                >
-                                                    {isStatus ? (
-                                                        // 🏷️ Badge de estado estilo referencia con TUS colores
-                                                        <Chip
-                                                            label={String(cellValue)}
-                                                            size="small"
-                                                            sx={{
-                                                                borderRadius: 2,
-                                                                fontWeight: 600,
-                                                                fontSize: '0.75rem',
-                                                                letterSpacing: '0.02em',
-                                                                height: 28,
-                                                                ...getStatusStyles(String(cellValue)),
-                                                                border: '1.5px solid',
-                                                                '& .MuiChip-label': {
-                                                                    px: 1.5,
-                                                                }
-                                                            }}
-                                                        />
-                                                    ) : (
-                                                        <Typography
-                                                            variant="body2"
-                                                            sx={{
-                                                                fontWeight: column.field === columns[0].field ? 600 : 400,
-                                                                color: column.field === columns[0].field ? '#1a1a2e' : '#666',
-                                                                fontSize: '0.85rem',
-                                                            }}
-                                                        >
-                                                            {String(cellValue)}
-                                                        </Typography>
-                                                    )}
-                                                </TableCell>
-                                            );
-                                        })}
-
-                                        {/* Botón de acción "..." estilo referencia */}
-                                        <TableCell align="center">
-                                            <IconButton
-                                                size="small"
-                                                onClick={(e) => handleOpenMenu(e, row)}
-                                                sx={{
-                                                    color: '#bbb',
-                                                    '&:hover': {
-                                                        color: '#666',
-                                                        backgroundColor: 'rgba(0,0,0,0.04)',
+                                                    '& .MuiTableSortLabel-icon': {
+                                                        color: '#bbb !important',
                                                     }
                                                 }}
                                             >
-                                                <MoreVertIcon sx={{ fontSize: 18 }} />
-                                            </IconButton>
+                                                {column.headerName}
+                                            </TableSortLabel>
+
+                                            {column.filterable && (
+                                                <TextField
+                                                    size="small"
+                                                    variant="standard"
+                                                    placeholder="Filter"
+                                                    value={
+                                                        columnFilters[column.field] || ""
+                                                    }
+                                                    onChange={(e) =>
+                                                        setColumnFilters((prev) => ({
+                                                            ...prev,
+                                                            [column.field]: e.target.value,
+                                                        }))
+                                                    }
+                                                    sx={{
+                                                        mt: 0.5,
+                                                        '& .MuiInput-root': {
+                                                            fontSize: '0.7rem',
+                                                            '&:before': { borderBottom: '1px solid rgba(0,0,0,0.1)' },
+                                                            '&:hover:before': { borderBottom: '1px solid rgba(0,0,0,0.2)' },
+                                                        }
+                                                    }}
+                                                />
+                                            )}
+                                        </TableCell>
+                                    ))}
+
+                                    <TableCell align="center" sx={{ width: 80, minWidth: 80, whiteSpace: 'nowrap' }}>Acciones</TableCell>
+                                </TableRow>
+                            </TableHead>
+
+                            <TableBody>
+                                {visibleRows.map((row, index) => {
+                                    const id = getRowId(row);
+                                    const isSelected = selected.includes(id);
+
+                                    return (
+                                        <TableRow
+                                            key={id}
+                                            hover
+                                            selected={isSelected}
+                                            onClick={() => handleRowClick(id)}
+                                            sx={{
+                                                cursor: "pointer",
+                                                backgroundColor: isSelected ? 'rgba(10, 83, 218, 0.04)' : '#fff',
+                                                transition: 'all 0.2s ease',
+                                                '&:hover': {
+                                                    backgroundColor: isSelected ? 'rgba(10, 83, 218, 0.06)' : '#fafbfc',
+                                                    transform: 'translateY(-1px)',
+                                                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                                                },
+                                                borderRadius: 2,
+                                                '& td': {
+                                                    borderBottom: index === visibleRows.length - 1 ? 'none' : '1px solid rgba(0,0,0,0.04)',
+                                                    py: 1.8,
+                                                    fontSize: '0.85rem',
+                                                    color: '#444',
+                                                },
+                                                '& td:first-of-type': {
+                                                    borderTopLeftRadius: 12,
+                                                    borderBottomLeftRadius: 12,
+                                                    pl: 2,
+                                                },
+                                                '& td:last-of-type': {
+                                                    borderTopRightRadius: 12,
+                                                    borderBottomRightRadius: 12,
+                                                    pr: 2,
+                                                },
+                                            }}
+                                        >
+                                            <TableCell padding="checkbox" sx={{ width: 48, minWidth: 48 }}>
+                                                <Checkbox
+                                                    checked={isSelected}
+                                                    sx={{
+                                                        color: '#ddd',
+                                                        '&.Mui-checked': {
+                                                            color: 'rgb(10, 83, 218)',
+                                                        }
+                                                    }}
+                                                />
+                                            </TableCell>
+
+                                            {getRowAvatar && (
+                                                <TableCell sx={{ width: 50, pl: 1 }}>
+                                                    <Avatar
+                                                        sx={{
+                                                            width: 36,
+                                                            height: 36,
+                                                            fontSize: '0.9rem',
+                                                            fontWeight: 600,
+                                                            background: "linear-gradient(135deg, rgba(10, 83, 218, 0.15), rgba(196, 45, 226, 0.15))",
+                                                            color: 'rgb(10, 83, 218)',
+                                                        }}
+                                                    >
+                                                        {typeof getRowAvatar(row) === 'string'
+                                                            ? (getRowAvatar(row) as string).charAt(0).toUpperCase()
+                                                            : getRowAvatar(row)
+                                                        }
+                                                    </Avatar>
+                                                </TableCell>
+                                            )}
+
+                                            {columns.map((column) => {
+                                                const cellValue = row[column.field];
+                                                const isStatus = column.isStatusColumn;
+
+                                                return (
+                                                    <TableCell
+                                                        key={String(column.field)}
+                                                        align={column.numeric ? "right" : "left"}
+                                                        sx={{ whiteSpace: 'nowrap', px: 2, minWidth: 120 }}
+                                                    >
+                                                        {isStatus ? (
+                                                            <Chip
+                                                                label={String(cellValue)}
+                                                                size="small"
+                                                                sx={{
+                                                                    borderRadius: 2,
+                                                                    fontWeight: 600,
+                                                                    fontSize: '0.75rem',
+                                                                    letterSpacing: '0.02em',
+                                                                    height: 28,
+                                                                    ...getStatusStyles(String(cellValue)),
+                                                                    border: '1.5px solid',
+                                                                    '& .MuiChip-label': {
+                                                                        px: 1.5,
+                                                                    }
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            <Typography
+                                                                variant="body2"
+                                                                sx={{
+                                                                    fontWeight: column.field === columns[0].field ? 600 : 400,
+                                                                    color: column.field === columns[0].field ? '#1a1a2e' : '#666',
+                                                                    fontSize: '0.85rem',
+                                                                }}
+                                                            >
+                                                                {String(cellValue)}
+                                                            </Typography>
+                                                        )}
+                                                    </TableCell>
+                                                );
+                                            })}
+
+                                            <TableCell align="center" sx={{ width: 80, minWidth: 80 }}>
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={(e) => handleOpenMenu(e, row)}
+                                                    sx={{
+                                                        color: '#bbb',
+                                                        '&:hover': {
+                                                            color: '#666',
+                                                            backgroundColor: 'rgba(0,0,0,0.04)',
+                                                        }
+                                                    }}
+                                                >
+                                                    <MoreVertIcon sx={{ fontSize: 18 }} />
+                                                </IconButton>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })}
+                            </TableBody>
+                            
+                            {visibleRows.length === 0 && (
+                                <TableBody>
+                                    <TableRow>
+                                        <TableCell 
+                                            colSpan={columns.length + 2 + (getRowAvatar ? 1 : 0)} 
+                                            align="center"
+                                            sx={{ py: 8, borderBottom: 'none' }}
+                                        >
+                                            <Box sx={{ textAlign: 'center' }}>
+                                                <SearchOffIcon sx={{ fontSize: 48, color: '#ddd', mb: 2 }} />
+                                                <Typography variant="h6" sx={{ color: '#aaa', fontWeight: 500, mb: 1 }}>
+                                                    No hay datos por el momento
+                                                </Typography>
+                                                <Typography variant="body2" sx={{ color: '#ccc', fontSize: '0.85rem' }}>
+                                                    Agrega un nuevo registro para comenzar
+                                                </Typography>
+                                            </Box>
                                         </TableCell>
                                     </TableRow>
-                                );
-                            })}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
+                                </TableBody>
+                            )}
+                        </Table>
+                    </TableContainer>
+                </Box>
 
-                {/* Paginación estilo referencia */}
                 <Box sx={{
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -709,7 +748,6 @@ export default function CustomDataGridR<T>({
                 </Box>
             </Paper>
 
-            {/* Menu de acciones estilo "..." */}
             <Menu
                 anchorEl={anchorEl}
                 open={Boolean(anchorEl)}
@@ -752,7 +790,6 @@ export default function CustomDataGridR<T>({
                 </MenuItem>
             </Menu>
 
-            {/* Diálogo Eliminar - manteniendo TUS estilos */}
             <Dialog
                 open={openDeleteDialog}
                 onClose={() => setOpenDeleteDialog(false)}
@@ -856,7 +893,6 @@ export default function CustomDataGridR<T>({
                 </DialogActions>
             </Dialog>
 
-            {/* Diálogo Editar - manteniendo TUS estilos */}
             <Dialog
                 open={openEditDialog}
                 onClose={() => setOpenEditDialog(false)}

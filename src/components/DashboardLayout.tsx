@@ -325,6 +325,7 @@ export default function DashboardLayout() {
           flexGrow: 1,
           pl: 9, // Ajuste dinámico del padding
           minHeight: '100vh',
+          minWidth: 0,
           background: "white",
         }}
       >
