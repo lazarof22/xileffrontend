@@ -24,7 +24,6 @@ import AddIcon from '@mui/icons-material/Add';
 import AssignmentAddIcon from '@mui/icons-material/AssignmentAdd';
 import { useEffect, useState } from 'react';
 import { TabContext, TabList, TabPanel } from "@mui/lab";
-import DashboardLayout from "../../components/DashboardLayout";
 
 // API URL del backend NestJS
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
