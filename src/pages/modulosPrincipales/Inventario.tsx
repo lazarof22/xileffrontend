@@ -24,6 +24,13 @@ import AddIcon from '@mui/icons-material/Add';
 import AssignmentAddIcon from '@mui/icons-material/AssignmentAdd';
 import { useEffect, useState } from 'react';
 import { TabContext, TabList, TabPanel } from "@mui/lab";
+import CancelIcon from '@mui/icons-material/Cancel';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+
+interface EstadoBackend {
+    _id: string;
+    estado: string;
+}
 
 // API URL del backend NestJS
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -36,15 +43,11 @@ const CATEGORIAS = [
     { label: "Oficina", value: "oficina" },
 ];
 
-const ESTADOS = [
-    { label: "Activo", value: "activo" },
-    { label: "Inactivo", value: "inactivo" },
-];
-
 export default function InventoryPage() {
     // ==================== ESTADOS ====================
     const [rows, setRows] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
+    const [estadosBackend, setEstadosBackend] = useState<EstadoBackend[]>([]);
 
     // Dialog Crear Producto
     const [openCreateDialog, setOpenCreateDialog] = useState(false);
@@ -56,7 +59,8 @@ export default function InventoryPage() {
         precio_venta: "",
         stock_inicial: "",
         stock_minimo: "",
-        estado: "activo",
+        estadoId: "",      // ← _id para el backend
+        estadoNombre: "",  // ← nombre para mostrar
     });
     const [errors, setErrors] = useState<any>({});
 
@@ -162,6 +166,13 @@ export default function InventoryPage() {
     const handleChange = (field: string, value: any) => {
         setNewProduct((prev) => {
             const updated = { ...prev, [field]: value };
+
+            // Si cambia el estadoId, actualizamos también el estadoNombre
+            if (field === "estadoId") {
+                const selectedEstado = estadosBackend.find(est => est._id === value);
+                updated.estadoNombre = selectedEstado?.estado || "";
+            }
+
             setTimeout(() => validateForm(updated), 0);
             return updated;
         });
@@ -182,6 +193,7 @@ export default function InventoryPage() {
         if (!product.precio_venta) tempErrors.precio_venta = "Precio requerido";
         if (!product.stock_inicial) tempErrors.stock_inicial = "Stock requerido";
         if (!product.stock_minimo) tempErrors.stock_minimo = "Stock mínimo requerido";
+        if (!product.estadoId) tempErrors.estadoId = "Seleccione un estado";
 
         if (precioVenta <= precioCompra) {
             tempErrors.precio_venta = "El precio de venta debe ser mayor que el precio de compra";
@@ -199,6 +211,10 @@ export default function InventoryPage() {
         if (!validateForm()) return;
 
         try {
+
+            console.log('estadoId seleccionado:', newProduct.estadoId);  // ← DEBUG
+            console.log('estados disponibles:', estadosBackend);  // ← DEBUG
+
             const productData = {
                 codigo_producto: newProduct.codigo_producto,
                 nombre_producto: newProduct.nombre_producto,
@@ -207,8 +223,10 @@ export default function InventoryPage() {
                 precio_venta: Number(newProduct.precio_venta),
                 stock_inicial: Number(newProduct.stock_inicial),
                 stock_minimo: Number(newProduct.stock_minimo),
-                estado: newProduct.estado,
+                estado: newProduct.estadoId,  // ← enviamos el ObjectId
             };
+
+            console.log('Enviando al backend:', productData);  // ← DEBUG
 
             const response = await fetch(`${API_URL}/producto`, {
                 method: 'POST',
@@ -249,7 +267,8 @@ export default function InventoryPage() {
                 precio_venta: "",
                 stock_inicial: "",
                 stock_minimo: "",
-                estado: "activo",
+                estadoId: "",
+                estadoNombre: "",
             });
             setErrors({});
         } catch (err: any) {
@@ -362,6 +381,26 @@ export default function InventoryPage() {
         setTabValue(newValue);
         if (newValue === "2") {
             fetchKardex();
+        }
+    };
+
+    useEffect(() => {
+        fetchProductos();
+        fetchEstados(); // ← NUEVO
+    }, []);
+
+    // ← NUEVO: Fetch estados del nomenclador
+    const fetchEstados = async () => {
+        try {
+            const response = await fetch(`${API_URL}/estado`);
+            if (!response.ok) throw new Error('Error al cargar estados');
+            const result = await response.json();
+            const data = Array.isArray(result) ? result : result.data || [];
+            setEstadosBackend(data);
+        } catch (err: any) {
+            setSnackbarMessage('Error al cargar estados: ' + err.message);
+            setSnackbarSeverity('error');
+            setOpenSnackbar(true);
         }
     };
 
@@ -495,7 +534,37 @@ export default function InventoryPage() {
                     maxWidth="sm"
                     fullWidth
                 >
-                    <DialogTitle>Nuevo Producto</DialogTitle>
+                    <DialogTitle>
+                        <Typography variant="h6"
+                            sx={{
+                                borderRadius: 1,
+                                boxShadow: 2,
+                                p: 1,
+                                textAlign: "center",
+                                background: "linear-gradient(135deg, rgba(0, 89, 255, 0.84), rgba(230, 21, 118, 0.9))",
+                                WebkitBackgroundClip: "text",
+                                WebkitTextFillColor: "transparent",
+                            }}>
+                            <span style={{ marginRight: '8px', display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}>
+                                <AddIcon
+                                    sx={{
+                                        fill: 'url(#iconGradient)',
+                                        width: 24,
+                                        height: 24
+                                    }}
+                                />
+                                <svg width="0" height="0">
+                                    <defs>
+                                        <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" stopColor="rgb(0, 174, 255)" />
+                                            <stop offset="100%" stopColor="rgb(196, 45, 226)" />
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                            </span>
+                            Nuevo Producto
+                        </Typography>
+                    </DialogTitle>
                     <DialogContent sx={{ mt: 2 }}>
                         <TextField
                             fullWidth
@@ -576,26 +645,61 @@ export default function InventoryPage() {
                             fullWidth
                             label="Estado"
                             margin="normal"
-                            value={newProduct.estado}
-                            onChange={(e) => handleChange("estado", e.target.value)}
+                            value={newProduct.estadoId}
+                            onChange={(e) => handleChange("estadoId", e.target.value)}  // ← Usa handleChange para disparar validación
+                            error={!!errors.estadoId}
+                            helperText={errors.estadoId}
                         >
-                            {ESTADOS.map((est) => (
-                                <MenuItem key={est.value} value={est.value}>
-                                    {est.label}
+                            {estadosBackend.map((est) => (
+                                <MenuItem key={est._id} value={est._id}>
+                                    {est.estado}
                                 </MenuItem>
                             ))}
                         </TextField>
                     </DialogContent>
-                    <DialogActions>
-                        <Button onClick={() => setOpenCreateDialog(false)}>
+                    <DialogActions
+                        sx={{
+                            display: "flex",
+                            p: 2,
+                            ml: 0,
+                            gap: 2, // espacio entre botones
+                            width: "100%"
+                        }}>
+                        <Button
+                            onClick={() => setOpenCreateDialog(false)}
+                            disabled={loading}
+                            fullWidth // ← ocupa todo el espacio disponible
+                            startIcon={<CancelIcon />}
+                            sx={{
+                                flex: 1, // ← 50% del ancho
+                                background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
+                                boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
+                                color: "white",
+                                "&:hover": {
+                                    background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(226, 45, 187, 0.9))",
+                                    boxShadow: "0 4px 12px rgb(158, 6, 6)"
+                                }
+                            }}
+                        >
                             Cancelar
                         </Button>
                         <Button
                             variant="contained"
                             onClick={handleCreateProduct}
                             disabled={Object.keys(errors).length > 0}
+                            fullWidth
+                            startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <CheckCircleIcon />}
+                            sx={{
+                                flex: 1, // ← 50% del ancho
+                                background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
+                                boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
+                                "&:hover": {
+                                    background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
+                                    boxShadow: "0 4px 12px rgba(13, 248, 5, 0.93)"
+                                }
+                            }}
                         >
-                            Guardar
+                            {loading ? 'Guardando...' : 'Guardar'}
                         </Button>
                     </DialogActions>
                 </Dialog>
@@ -607,7 +711,37 @@ export default function InventoryPage() {
                     maxWidth="sm"
                     fullWidth
                 >
-                    <DialogTitle>Ajuste de Inventario</DialogTitle>
+                    <DialogTitle>
+                        <Typography variant="h6"
+                            sx={{
+                                borderRadius: 1,
+                                boxShadow: 2,
+                                p: 1,
+                                textAlign: "center",
+                                background: "linear-gradient(135deg, rgba(0, 89, 255, 0.84), rgba(230, 21, 118, 0.9))",
+                                WebkitBackgroundClip: "text",
+                                WebkitTextFillColor: "transparent",
+                            }}>
+                            <span style={{ marginRight: '8px', display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}>
+                                <AssignmentAddIcon
+                                    sx={{
+                                        fill: 'url(#iconGradient)',
+                                        width: 24,
+                                        height: 24
+                                    }}
+                                />
+                                <svg width="0" height="0">
+                                    <defs>
+                                        <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" stopColor="rgb(0, 174, 255)" />
+                                            <stop offset="100%" stopColor="rgb(196, 45, 226)" />
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                            </span>
+                            Ajuste de Inventario
+                        </Typography>
+                    </DialogTitle>
                     <DialogContent sx={{ mt: 2 }}>
                         <TextField
                             select
@@ -684,8 +818,30 @@ export default function InventoryPage() {
                             </>
                         )}
                     </DialogContent>
-                    <DialogActions>
-                        <Button onClick={() => setOpenAdjustDialog(false)}>
+                    <DialogActions
+                        sx={{
+                            display: "flex",
+                            p: 2,
+                            ml: 0,
+                            gap: 2, // espacio entre botones
+                            width: "100%"
+                        }}>
+                        <Button
+                            onClick={() => setOpenAdjustDialog(false)}
+                            disabled={loading}
+                            fullWidth // ← ocupa todo el espacio disponible
+                            startIcon={<CancelIcon />}
+                            sx={{
+                                flex: 1, // ← 50% del ancho
+                                background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
+                                boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
+                                color: "white",
+                                "&:hover": {
+                                    background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(226, 45, 187, 0.9))",
+                                    boxShadow: "0 4px 12px rgb(158, 6, 6)"
+                                }
+                            }}
+                        >
                             Cancelar
                         </Button>
                         <Button
@@ -697,8 +853,19 @@ export default function InventoryPage() {
                                 (increaseChecked && !increaseAmount) ||
                                 (decreaseChecked && (!decreaseAmount || !decreaseReason))
                             }
+                            fullWidth
+                            startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <CheckCircleIcon />}
+                            sx={{
+                                flex: 1, // ← 50% del ancho
+                                background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
+                                boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
+                                "&:hover": {
+                                    background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
+                                    boxShadow: "0 4px 12px rgba(13, 248, 5, 0.93)"
+                                }
+                            }}
                         >
-                            Confirmar
+                            {loading ? 'Guardando...' : 'Confirmar'}
                         </Button>
                     </DialogActions>
                 </Dialog>

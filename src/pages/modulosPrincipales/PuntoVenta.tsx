@@ -23,6 +23,7 @@ import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
 import CurrencyExchangeIcon from '@mui/icons-material/CurrencyExchange';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import DialogCrearCliente, { type ClienteFormData } from '../../components/AddClientDialog';
+import DialogPagoEfectivo, { type PagoEfectivoData } from '../../components/PagoEfectivoDialog';
 
 export default function PuntoVentaPage() {
     const [search, setSearch] = React.useState("");
@@ -307,6 +308,21 @@ export default function PuntoVentaPage() {
     const handleClienteCreado = (cliente: ClienteFormData) => {
         // El cliente recién creado ya está disponible para usar en la venta
         setClienteSeleccionado(cliente);
+    };
+
+    //ESTADOS DEL PUNTO DE VENTA
+    const [openPago, setOpenPago] = useState(false);
+
+    const handleOpenPago = (): void => {
+        setOpenPago(true);
+    };
+
+    const handleClosePago = (): void => {
+        setOpenPago(false);
+    };
+
+    const handlePagoCompletado = (data: PagoEfectivoData): void => {
+        console.log('Pago procesado:', data);
     };
 
     return (
@@ -809,13 +825,6 @@ export default function PuntoVentaPage() {
                                         <Typography>+{montoImpuesto.toFixed(2)} {moneda}</Typography>
                                     </Box>
 
-                                    <Box sx={{ display: "flex", justifyContent: "space-between", py: 0.5 }}>
-                                        <Typography color="text.secondary">Cambio:</Typography>
-                                        <Typography sx={{ color: cambio > 0 ? "success.main" : "text.secondary" }}>
-                                            {cambio.toFixed(2)} {moneda}
-                                        </Typography>
-                                    </Box>
-
                                     <Box sx={{
                                         display: "flex",
                                         justifyContent: "space-between",
@@ -845,6 +854,7 @@ export default function PuntoVentaPage() {
                                         variant="contained"
                                         size="small"
                                         startIcon={<MoneyIcon sx={{ fontSize: "medium" }} />}
+                                        onClick={handleOpenPago}
                                         sx={{
                                             ml: 1,
                                             background: "linear-gradient(135deg, rgb(36, 236, 9), rgba(202, 183, 14, 0.9))",
@@ -860,6 +870,12 @@ export default function PuntoVentaPage() {
                                     >
                                         Pago en Efectivo
                                     </Button>
+                                    <DialogPagoEfectivo
+                                        open={openPago}
+                                        onClose={handleClosePago}
+                                        montoTotal={totalFinal} 
+                                        onPagoCompletado={handlePagoCompletado}
+                                    />
 
                                     <Button
                                         variant="contained"
@@ -878,7 +894,7 @@ export default function PuntoVentaPage() {
                                             }
                                         }}
                                     >
-                                        Pago por Tarjeta
+                                        Pago por Credito
                                     </Button>
                                     <Button
                                         variant="contained"

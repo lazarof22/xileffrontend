@@ -76,7 +76,7 @@ export default function ContabilidadPage() {
                     </Button>
                 </Box>
             </Box>
-            <Box sx={{ width: '100%', px: 2 }}>
+            <Box sx={{ width: '100%', px: 1 }}>
                 <TabContext value={tabValue}>
                     <Box sx={{ borderBottom: 1, borderColor: 'divider', mt: 2 }}>
                         <TabList onChange={handleTabChange}>
@@ -92,7 +92,7 @@ export default function ContabilidadPage() {
                     <TabPanel value="1">
                         <Card sx={{ width: '100%' }}>
                             <CardActions>
-                                <Box>
+                                <Box sx={{ mt: 1, mb: -2 }}>
                                     <Button
                                         variant="contained"
                                         size="small"
@@ -184,7 +184,7 @@ export default function ContabilidadPage() {
                     <TabPanel value="5">
                         <Card sx={{ width: '100%' }}>
                             <CardActions>
-                                <Box>
+                                <Box sx={{ mt: 1, mb: -2 }}>
                                     <Button
                                         variant="contained"
                                         size="small"

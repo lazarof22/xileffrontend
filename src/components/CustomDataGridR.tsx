@@ -248,7 +248,7 @@ export default function CustomDataGridR<T>({
     };
 
     return (
-        <Box sx={{ width: "100%", p: 2, overflow: 'hidden' }}>
+        <Box sx={{ width: "100%", p: 1, overflow: 'hidden' }}>
             <Paper
                 sx={{
                     width: "100%",
@@ -407,6 +407,7 @@ export default function CustomDataGridR<T>({
                         flex: 1,
                         overflow: 'auto',
                         px: 2,
+                        pt:1,
                         minHeight: 200,
                         width: '100%',
                         '&::-webkit-scrollbar': {
