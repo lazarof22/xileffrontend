@@ -231,12 +231,29 @@ export default function DialogCrearCliente({
                         label="Carnet de Identidad"
                         margin="normal"
                         value={newCliente.id_cliente}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                            handleChange("id_cliente", e.target.value)
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            // Solo permite números y máximo 11 dígitos
+                            const input = e.target.value;
+                            const soloNumeros = input.replace(/\D/g, '').slice(0, 11);
+                            handleChange("id_cliente", soloNumeros);
+                        }}
+                        error={!!errors.id_cliente || (newCliente.id_cliente.length > 0 && newCliente.id_cliente.length !== 11)}
+                        helperText={
+                            errors.id_cliente ||
+                            (newCliente.id_cliente.length > 0 && newCliente.id_cliente.length !== 11
+                                ? `Debe tener exactamente 11 dígitos (${newCliente.id_cliente.length}/11)`
+                                : "Ingrese los 11 dígitos del carnet")
                         }
-                        error={!!errors.id_cliente}
-                        helperText={errors.id_cliente}
                         disabled={loading}
+                        slotProps={{
+                            input: {           // ← Slot del InputBase
+                                inputProps: {  // ← Props del <input> nativo HTML
+                                    maxLength: 11,
+                                    inputMode: 'numeric',
+                                    pattern: '[0-9]*',
+                                }
+                            }
+                        }}
                     />
                     <TextField
                         fullWidth
@@ -322,7 +339,7 @@ export default function DialogCrearCliente({
                         onClick={handleClose}
                         disabled={loading}
                         fullWidth // ← ocupa todo el espacio disponible
-                        startIcon={<CancelIcon/>}
+                        startIcon={<CancelIcon />}
                         sx={{
                             flex: 1, // ← 50% del ancho
                             background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
@@ -341,7 +358,7 @@ export default function DialogCrearCliente({
                         onClick={handleCreateCliente}
                         disabled={loading}
                         fullWidth // ← ocupa todo el espacio disponible
-                        startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <CheckCircleIcon/>}
+                        startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <CheckCircleIcon />}
                         sx={{
                             flex: 1, // ← 50% del ancho
                             background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
