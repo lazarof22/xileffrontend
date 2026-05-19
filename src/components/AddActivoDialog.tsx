@@ -58,7 +58,7 @@ export default function AddActivoDialog({
     onActivoCreado,
 }: AddActivoDialogProps): React.JSX.Element {
     // Estados del formulario
-    const [loading,setLoading]=useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(false);
     const [newActivo, setNewActivo] = useState<ActivoFormData>({
         codigo_activo: "",
         nombre_activo: "",
@@ -88,7 +88,7 @@ export default function AddActivoDialog({
         });
     };
 
-    const handleCreateActivo= async ()=>{
+    const handleCreateActivo = async () => {
         //aqui va la acccion del boton al hacer click
     }
 
@@ -137,36 +137,36 @@ export default function AddActivoDialog({
             fullWidth
         >
             <DialogTitle>
-                                <Typography variant="h6"
-                                    sx={{
-                                        borderRadius: 1,
-                                        boxShadow: 2,
-                                        p: 1,
-                                        textAlign: "center",
-                                        background: "linear-gradient(135deg, rgba(0, 89, 255, 0.84), rgba(230, 21, 118, 0.9))",
-                                        WebkitBackgroundClip: "text",
-                                        WebkitTextFillColor: "transparent",
-                                    }}>
-                                    <span style={{ marginRight: '8px', display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}>
-                                        <PersonAddIcon
-                                            sx={{
-                                                fill: 'url(#iconGradient)',
-                                                width: 24,
-                                                height: 24
-                                            }}
-                                        />
-                                        <svg width="0" height="0">
-                                            <defs>
-                                                <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                                    <stop offset="0%" stopColor="rgb(0, 174, 255)" />
-                                                    <stop offset="100%" stopColor="rgb(196, 45, 226)" />
-                                                </linearGradient>
-                                            </defs>
-                                        </svg>
-                                    </span>
-                                    Nuevo Activo
-                                </Typography>
-                            </DialogTitle>
+                <Typography variant="h6"
+                    sx={{
+                        borderRadius: 1,
+                        boxShadow: 2,
+                        p: 1,
+                        textAlign: "center",
+                        background: "linear-gradient(135deg, rgba(0, 89, 255, 0.84), rgba(230, 21, 118, 0.9))",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                    }}>
+                    <span style={{ marginRight: '8px', display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}>
+                        <PersonAddIcon
+                            sx={{
+                                fill: 'url(#iconGradient)',
+                                width: 24,
+                                height: 24
+                            }}
+                        />
+                        <svg width="0" height="0">
+                            <defs>
+                                <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stopColor="rgb(0, 174, 255)" />
+                                    <stop offset="100%" stopColor="rgb(196, 45, 226)" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </span>
+                    Nuevo Activo
+                </Typography>
+            </DialogTitle>
             <DialogContent sx={{ mt: 1 }}>
                 <TextField
                     fullWidth
@@ -242,7 +242,7 @@ export default function AddActivoDialog({
                     type="date"
                     label=""
                     margin="normal"
-                    InputLabelProps={{ shrink: true }}
+                    slotProps={{ inputLabel: { shrink: true } }}
                     value={newActivo.fecha_adquisicion}
                     onChange={(e) => handleChange("fecha_adquisicion", e.target.value)}
                     error={!!errors.fecha_adquisicion}
@@ -260,51 +260,51 @@ export default function AddActivoDialog({
                 />
             </DialogContent>
             <DialogActions
-                                sx={{
-                                    display: "flex",
-                                    p: 2,
-                                    ml: 0,
-                                    gap: 2, // espacio entre botones
-                                    width: "100%"
-                                }}
-                            >
-                                <Button
-                                    onClick={handleCancelar}
-                                    disabled={loading}
-                                    fullWidth // ← ocupa todo el espacio disponible
-                                    startIcon={<CancelIcon/>}
-                                    sx={{
-                                        flex: 1, // ← 50% del ancho
-                                        background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
-                                        boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
-                                        color: "white",
-                                        "&:hover": {
-                                            background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(226, 45, 187, 0.9))",
-                                            boxShadow: "0 4px 12px rgb(158, 6, 6)"
-                                        }
-                                    }}
-                                >
-                                    Cancelar
-                                </Button>
-                                <Button
-                                    variant="contained"
-                                    onClick={handleCreateActivo}
-                                    disabled={loading}
-                                    fullWidth // ← ocupa todo el espacio disponible
-                                    startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <CheckCircleIcon/>}
-                                    sx={{
-                                        flex: 1, // ← 50% del ancho
-                                        background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
-                                        boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
-                                        "&:hover": {
-                                            background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
-                                            boxShadow: "0 4px 12px rgba(13, 248, 5, 0.93)"
-                                        }
-                                    }}
-                                >
-                                    {loading ? 'Guardando...' : 'Guardar'}
-                                </Button>
-                            </DialogActions>
+                sx={{
+                    display: "flex",
+                    p: 2,
+                    ml: 0,
+                    gap: 2, // espacio entre botones
+                    width: "100%"
+                }}
+            >
+                <Button
+                    onClick={handleCancelar}
+                    disabled={loading}
+                    fullWidth // ← ocupa todo el espacio disponible
+                    startIcon={<CancelIcon />}
+                    sx={{
+                        flex: 1, // ← 50% del ancho
+                        background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
+                        boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
+                        color: "white",
+                        "&:hover": {
+                            background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(226, 45, 187, 0.9))",
+                            boxShadow: "0 4px 12px rgb(158, 6, 6)"
+                        }
+                    }}
+                >
+                    Cancelar
+                </Button>
+                <Button
+                    variant="contained"
+                    onClick={handleCreateActivo}
+                    disabled={loading}
+                    fullWidth // ← ocupa todo el espacio disponible
+                    startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <CheckCircleIcon />}
+                    sx={{
+                        flex: 1, // ← 50% del ancho
+                        background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
+                        boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
+                        "&:hover": {
+                            background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
+                            boxShadow: "0 4px 12px rgba(13, 248, 5, 0.93)"
+                        }
+                    }}
+                >
+                    {loading ? 'Guardando...' : 'Guardar'}
+                </Button>
+            </DialogActions>
         </Dialog>
     );
 }
