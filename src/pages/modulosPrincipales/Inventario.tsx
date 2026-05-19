@@ -32,29 +32,29 @@ interface EstadoBackend {
     estado: string;
 }
 
+// ← CAMBIO: Nueva interfaz para categorías del backend
+interface CategoriaBackend {
+    _id: string;
+    nombre_categoria: string;
+}
+
 // API URL del backend NestJS
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-// Enums del backend (en minúsculas)
-const CATEGORIAS = [
-    { label: "Tecnologías", value: "tecnologías" },
-    { label: "Electrodomésticos", value: "electrodomésticos" },
-    { label: "Accesorios", value: "accesorios" },
-    { label: "Oficina", value: "oficina" },
-];
 
 export default function InventoryPage() {
     // ==================== ESTADOS ====================
     const [rows, setRows] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [estadosBackend, setEstadosBackend] = useState<EstadoBackend[]>([]);
+    const [categoriasBackend, setCategoriasBackend] = useState<CategoriaBackend[]>([]);
 
     // Dialog Crear Producto
     const [openCreateDialog, setOpenCreateDialog] = useState(false);
     const [newProduct, setNewProduct] = useState({
         codigo_producto: "",
         nombre_producto: "",
-        categoria_producto: "",
+        categoria_producto: "",   // ← ahora guarda el _id de la categoría
         precio_compra: "",
         precio_venta: "",
         stock_inicial: "",
@@ -88,6 +88,8 @@ export default function InventoryPage() {
     // ==================== EFECTOS ====================
     useEffect(() => {
         fetchProductos();
+        fetchEstados();
+        fetchCategorias();
     }, []);
 
     const fetchProductos = async () => {
@@ -132,11 +134,7 @@ export default function InventoryPage() {
             const data = Array.isArray(result) ? result : result.data || [];
 
             const mappedData = data.map((k: any) => {
-                // ✅ productoId puede ser un objeto anidado o un string
                 const productoObj = k.productoId;
-
-                // Si es objeto anidado (populated), extraer directamente
-                // Si es string (solo ID), mostrar "Producto desconocido"
                 const nombreProducto = typeof productoObj === 'object' && productoObj !== null
                     ? productoObj.nombre_producto || 'Sin nombre'
                     : 'Producto desconocido';
@@ -148,7 +146,7 @@ export default function InventoryPage() {
                     tipo: k.tipo,
                     cantidad: k.cantidad,
                     motivo: k.motivo,
-                    stockFinal: k.stock, // ✅ Ahora muestra el stock real
+                    stockFinal: k.stock,
                 };
             });
 
@@ -167,7 +165,6 @@ export default function InventoryPage() {
         setNewProduct((prev) => {
             const updated = { ...prev, [field]: value };
 
-            // Si cambia el estadoId, actualizamos también el estadoNombre
             if (field === "estadoId") {
                 const selectedEstado = estadosBackend.find(est => est._id === value);
                 updated.estadoNombre = selectedEstado?.estado || "";
@@ -188,7 +185,7 @@ export default function InventoryPage() {
 
         if (!product.codigo_producto) tempErrors.codigo_producto = "El código es obligatorio";
         if (!product.nombre_producto) tempErrors.nombre_producto = "El producto es obligatorio";
-        if (!product.categoria_producto) tempErrors.categoria_producto = "Seleccione una categoría";
+        if (!product.categoria_producto) tempErrors.categoria_producto = "Seleccione una categoría"; // ← CAMBIO: valida el _id
         if (!product.precio_compra) tempErrors.precio_compra = "Precio requerido";
         if (!product.precio_venta) tempErrors.precio_venta = "Precio requerido";
         if (!product.stock_inicial) tempErrors.stock_inicial = "Stock requerido";
@@ -211,22 +208,23 @@ export default function InventoryPage() {
         if (!validateForm()) return;
 
         try {
-
-            console.log('estadoId seleccionado:', newProduct.estadoId);  // ← DEBUG
-            console.log('estados disponibles:', estadosBackend);  // ← DEBUG
+            console.log('estadoId seleccionado:', newProduct.estadoId);
+            console.log('categoria seleccionada:', newProduct.categoria_producto); // ← CAMBIO: debug
+            console.log('estados disponibles:', estadosBackend);
+            console.log('categorias disponibles:', categoriasBackend); // ← CAMBIO: debug
 
             const productData = {
                 codigo_producto: newProduct.codigo_producto,
                 nombre_producto: newProduct.nombre_producto,
-                categoria_producto: newProduct.categoria_producto,
+                categoria_producto: newProduct.categoria_producto,  // ← CAMBIO: ahora envía el _id
                 precio_compra: Number(newProduct.precio_compra),
                 precio_venta: Number(newProduct.precio_venta),
                 stock_inicial: Number(newProduct.stock_inicial),
                 stock_minimo: Number(newProduct.stock_minimo),
-                estado: newProduct.estadoId,  // ← enviamos el ObjectId
+                estado: newProduct.estadoId,
             };
 
-            console.log('Enviando al backend:', productData);  // ← DEBUG
+            console.log('Enviando al backend:', productData);
 
             const response = await fetch(`${API_URL}/producto`, {
                 method: 'POST',
@@ -384,12 +382,21 @@ export default function InventoryPage() {
         }
     };
 
-    useEffect(() => {
-        fetchProductos();
-        fetchEstados(); // ← NUEVO
-    }, []);
+    // ← NUEVO: Fetch categorías del nomenclador
+    const fetchCategorias = async () => {
+        try {
+            const response = await fetch(`${API_URL}/categoria`);
+            if (!response.ok) throw new Error('Error al cargar categorías');
+            const result = await response.json();
+            const data = Array.isArray(result) ? result : result.data || [];
+            setCategoriasBackend(data);
+        } catch (err: any) {
+            setSnackbarMessage('Error al cargar categorías: ' + err.message);
+            setSnackbarSeverity('error');
+            setOpenSnackbar(true);
+        }
+    };
 
-    // ← NUEVO: Fetch estados del nomenclador
     const fetchEstados = async () => {
         try {
             const response = await fetch(`${API_URL}/estado`);
@@ -497,8 +504,26 @@ export default function InventoryPage() {
                                             { field: "precioVenta", headerName: "Precio Venta", numeric: true },
                                             { field: "stock", headerName: "Stock", numeric: true },
                                             { field: "stockMinimo", headerName: "Stock Mínimo", numeric: true },
-                                            { field: "estado", headerName: "Estado" },
+                                            { field: "estado", headerName: "Estado", isStatusColumn: true },
                                         ]}
+                                        // CONFIGURACIÓN DE ELIMINACIÓN - Se adapta a cualquier endpoint
+                                        deleteConfig={{
+                                            baseUrl: `${API_URL}/producto`,  // ← Tu endpoint DELETE
+                                            // getId es opcional, por defecto usa getRowId
+                                            // getId: (row) => row.id,
+                                            onSuccess: () => {
+                                                // Recargar la lista después de eliminar
+                                                fetchProductos();
+                                                setSnackbarMessage('Producto eliminado exitosamente');
+                                                setSnackbarSeverity('success');
+                                                setOpenSnackbar(true);
+                                            },
+                                            onError: (error) => {
+                                                setSnackbarMessage('Error al eliminar: ' + error.message);
+                                                setSnackbarSeverity('error');
+                                                setOpenSnackbar(true);
+                                            },
+                                        }}
                                     />
                                 )}
                             </CardContent>
@@ -594,9 +619,9 @@ export default function InventoryPage() {
                             error={!!errors.categoria_producto}
                             helperText={errors.categoria_producto}
                         >
-                            {CATEGORIAS.map((cat) => (
-                                <MenuItem key={cat.value} value={cat.value}>
-                                    {cat.label}
+                            {categoriasBackend.map((cat) => (
+                                <MenuItem key={cat._id} value={cat._id}>
+                                    {cat.nombre_categoria}
                                 </MenuItem>
                             ))}
                         </TextField>
@@ -646,7 +671,7 @@ export default function InventoryPage() {
                             label="Estado"
                             margin="normal"
                             value={newProduct.estadoId}
-                            onChange={(e) => handleChange("estadoId", e.target.value)}  // ← Usa handleChange para disparar validación
+                            onChange={(e) => handleChange("estadoId", e.target.value)}
                             error={!!errors.estadoId}
                             helperText={errors.estadoId}
                         >
@@ -662,16 +687,16 @@ export default function InventoryPage() {
                             display: "flex",
                             p: 2,
                             ml: 0,
-                            gap: 2, // espacio entre botones
+                            gap: 2,
                             width: "100%"
                         }}>
                         <Button
                             onClick={() => setOpenCreateDialog(false)}
                             disabled={loading}
-                            fullWidth // ← ocupa todo el espacio disponible
+                            fullWidth
                             startIcon={<CancelIcon />}
                             sx={{
-                                flex: 1, // ← 50% del ancho
+                                flex: 1,
                                 background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
                                 boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
                                 color: "white",
@@ -690,7 +715,7 @@ export default function InventoryPage() {
                             fullWidth
                             startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <CheckCircleIcon />}
                             sx={{
-                                flex: 1, // ← 50% del ancho
+                                flex: 1,
                                 background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
                                 boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
                                 "&:hover": {
@@ -823,16 +848,16 @@ export default function InventoryPage() {
                             display: "flex",
                             p: 2,
                             ml: 0,
-                            gap: 2, // espacio entre botones
+                            gap: 2,
                             width: "100%"
                         }}>
                         <Button
                             onClick={() => setOpenAdjustDialog(false)}
                             disabled={loading}
-                            fullWidth // ← ocupa todo el espacio disponible
+                            fullWidth
                             startIcon={<CancelIcon />}
                             sx={{
-                                flex: 1, // ← 50% del ancho
+                                flex: 1,
                                 background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
                                 boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
                                 color: "white",
@@ -856,7 +881,7 @@ export default function InventoryPage() {
                             fullWidth
                             startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <CheckCircleIcon />}
                             sx={{
-                                flex: 1, // ← 50% del ancho
+                                flex: 1,
                                 background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
                                 boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
                                 "&:hover": {

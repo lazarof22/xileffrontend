@@ -29,20 +29,20 @@ import {
     Tooltip,
     Menu,
     MenuItem,
+    CircularProgress,
+    Alert,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import FilterListIcon from "@mui/icons-material/FilterList";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import SearchOffIcon from '@mui/icons-material/SearchOff';
 import { useState } from "react";
-import { CircularProgress } from '@mui/material';
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 type Order = "asc" | "desc";
 
@@ -54,13 +54,30 @@ export interface Column<T> {
     isStatusColumn?: boolean;
 }
 
+// ═══════════════════════════════════════════════════════════════
+// ✅ CORREGIDO: DeleteConfig ahora es genérico <T>
+// ═══════════════════════════════════════════════════════════════
+export interface DeleteConfig<T = any> {
+    /** URL base del endpoint DELETE, ej: 'http://localhost:3000/producto' */
+    baseUrl: string;
+    /** Función para extraer el ID del row. Por defecto usa getRowId */
+    getId?: (row: T) => string;
+    /** Callback opcional después de eliminar exitosamente */
+    onSuccess?: () => void;
+    /** Callback opcional en caso de error */
+    onError?: (error: Error) => void;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ✅ CORREGIDO: DeleteConfig<T> recibe el tipo de la fila
+// ═══════════════════════════════════════════════════════════════
 interface CustomDataGridProps<T> {
     rows: T[];
     columns: Column<T>[];
-    getRowId: (row: T) => number;
+    getRowId: (row: T) => number | string;
     title?: string;
     onEditRow?: (row: T) => void;
-    onDeleteRow?: (row: T) => void;
+    deleteConfig?: DeleteConfig<T>;
     getRowAvatar?: (row: T) => string | React.ReactNode;
 }
 
@@ -125,12 +142,12 @@ export default function CustomDataGridR<T>({
     getRowId,
     title = "Tabla",
     onEditRow,
-    onDeleteRow,
+    deleteConfig,
     getRowAvatar,
 }: CustomDataGridProps<T>) {
     const [order, setOrder] = React.useState<Order>("asc");
     const [orderBy, setOrderBy] = React.useState<keyof T>(columns[0].field);
-    const [selected, setSelected] = React.useState<number[]>([]);
+    const [selected, setSelected] = React.useState<(number | string)[]>([]);
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(5);
     const [loading, setLoading] = useState<boolean>(false);
@@ -168,7 +185,7 @@ export default function CustomDataGridR<T>({
         }
     };
 
-    const handleRowClick = (id: number) => {
+    const handleRowClick = (id: number | string) => {
         setSelected((prev) =>
             prev.includes(id)
                 ? prev.filter((item) => item !== id)
@@ -240,11 +257,65 @@ export default function CustomDataGridR<T>({
     const [rowToEdit, setRowToEdit] = React.useState<T | null>(null);
     const [editForm, setEditForm] = React.useState<Partial<T>>({});
 
+    // ═══════════════════════════════════════════════════════════════
+    // NUEVO: Estado para manejar errores del diálogo de eliminación
+    // ═══════════════════════════════════════════════════════════════
+    const [deleteError, setDeleteError] = React.useState<string | null>(null);
+
     const handleEditChange = (field: keyof T, value: any) => {
         setEditForm((prev) => ({
             ...prev,
             [field]: value,
         }));
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    // NUEVO: Handler para realizar la petición DELETE al backend
+    // ═══════════════════════════════════════════════════════════════
+    const handleConfirmDelete = async () => {
+        if (!rowToDelete || !deleteConfig) {
+            setOpenDeleteDialog(false);
+            setRowToDelete(null);
+            return;
+        }
+
+        setLoading(true);
+        setDeleteError(null);
+
+        try {
+            // Extraer el ID del registro a eliminar
+            const idToDelete = deleteConfig.getId
+                ? deleteConfig.getId(rowToDelete)
+                : String(getRowId(rowToDelete));
+
+            // Construir la URL: baseUrl + /:id
+            // Ejemplo: http://localhost:3000/producto/507f1f77bcf86cd799439011
+            const deleteUrl = `${deleteConfig.baseUrl}/${idToDelete}`;
+
+            const response = await fetch(deleteUrl, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(
+                    errorData.message || `Error ${response.status}: No se pudo eliminar el registro`
+                );
+            }
+
+            // Éxito: cerrar diálogo y notificar
+            setOpenDeleteDialog(false);
+            setRowToDelete(null);
+            deleteConfig.onSuccess?.();
+        } catch (err: any) {
+            setDeleteError(err.message || 'Error al eliminar el registro');
+            deleteConfig.onError?.(err);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -407,7 +478,7 @@ export default function CustomDataGridR<T>({
                         flex: 1,
                         overflow: 'auto',
                         px: 2,
-                        pt:1,
+                        pt: 1,
                         minHeight: 200,
                         width: '100%',
                         '&::-webkit-scrollbar': {
@@ -661,12 +732,12 @@ export default function CustomDataGridR<T>({
                                     );
                                 })}
                             </TableBody>
-                            
+
                             {visibleRows.length === 0 && (
                                 <TableBody>
                                     <TableRow>
-                                        <TableCell 
-                                            colSpan={columns.length + 2 + (getRowAvatar ? 1 : 0)} 
+                                        <TableCell
+                                            colSpan={columns.length + 2 + (getRowAvatar ? 1 : 0)}
                                             align="center"
                                             sx={{ py: 8, borderBottom: 'none' }}
                                         >
@@ -777,23 +848,38 @@ export default function CustomDataGridR<T>({
                     <EditIcon sx={{ fontSize: 18, color: 'rgb(10, 83, 218)' }} />
                     Edit
                 </MenuItem>
-                <MenuItem
-                    onClick={() => {
-                        if (menuRow) {
-                            setRowToDelete(menuRow);
-                            setOpenDeleteDialog(true);
-                        }
-                    }}
-                    sx={{ fontSize: '0.85rem', gap: 1.5, color: 'rgb(220, 20, 60)' }}
-                >
-                    <DeleteIcon sx={{ fontSize: 18 }} />
-                    Delete
-                </MenuItem>
+                {/* ═══════════════════════════════════════════════════════
+                    Solo muestra Delete si hay deleteConfig configurado
+                    ═══════════════════════════════════════════════════════ */}
+                {deleteConfig && (
+                    <MenuItem
+                        onClick={() => {
+                            if (menuRow) {
+                                setRowToDelete(menuRow);
+                                setDeleteError(null);
+                                setOpenDeleteDialog(true);
+                            }
+                        }}
+                        sx={{ fontSize: '0.85rem', gap: 1.5, color: 'rgb(220, 20, 60)' }}
+                    >
+                        <DeleteIcon sx={{ fontSize: 18 }} />
+                        Delete
+                    </MenuItem>
+                )}
             </Menu>
 
+            {/* ═══════════════════════════════════════════════════════════════
+                DIÁLOGO DE ELIMINACIÓN CON PETICIÓN HTTP DELETE
+                ═══════════════════════════════════════════════════════════════ */}
             <Dialog
                 open={openDeleteDialog}
-                onClose={() => setOpenDeleteDialog(false)}
+                onClose={() => {
+                    if (!loading) {
+                        setOpenDeleteDialog(false);
+                        setRowToDelete(null);
+                        setDeleteError(null);
+                    }
+                }}
                 slotProps={{
                     paper: {
                         sx: {
@@ -814,24 +900,22 @@ export default function CustomDataGridR<T>({
                             WebkitBackgroundClip: "text",
                             WebkitTextFillColor: "transparent",
                         }}>
-                        <span style={{ marginRight: '8px', display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}>
-                            <svg width="0" height="0">
-                                <defs>
-                                    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stopColor="rgb(0, 174, 255)" />
-                                        <stop offset="100%" stopColor="rgb(196, 45, 226)" />
-                                    </linearGradient>
-                                </defs>
-                            </svg>
-                        </span>
                         Confirmar eliminación
                     </Typography>
                 </DialogTitle>
                 <DialogContent>
                     <DialogContentText sx={{ textAlign: 'center', color: '#666' }}>
                         ¿Estás seguro que deseas eliminar este registro?
+                        <br />
                         Esta acción no se puede deshacer.
                     </DialogContentText>
+
+                    {/* Mensaje de error si falla la petición */}
+                    {deleteError && (
+                        <Alert severity="error" sx={{ mt: 2, borderRadius: 2 }}>
+                            {deleteError}
+                        </Alert>
+                    )}
                 </DialogContent>
                 <DialogActions
                     sx={{
@@ -843,7 +927,11 @@ export default function CustomDataGridR<T>({
                     }}
                 >
                     <Button
-                        onClick={() => setOpenDeleteDialog(false)}
+                        onClick={() => {
+                            setOpenDeleteDialog(false);
+                            setRowToDelete(null);
+                            setDeleteError(null);
+                        }}
                         color="inherit"
                         disabled={loading}
                         startIcon={<CancelIcon />}
@@ -864,13 +952,7 @@ export default function CustomDataGridR<T>({
                         Cancelar
                     </Button>
                     <Button
-                        onClick={() => {
-                            if (rowToDelete) {
-                                onDeleteRow?.(rowToDelete);
-                            }
-                            setOpenDeleteDialog(false);
-                            setRowToDelete(null);
-                        }}
+                        onClick={handleConfirmDelete}
                         color="error"
                         variant="contained"
                         disabled={loading}
@@ -902,7 +984,7 @@ export default function CustomDataGridR<T>({
                 slotProps={{
                     paper: {
                         sx: {
-                            borderRadius: 3,
+                            borderRadius: 1,
                             boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
                         }
                     }
@@ -919,16 +1001,6 @@ export default function CustomDataGridR<T>({
                             WebkitBackgroundClip: "text",
                             WebkitTextFillColor: "transparent",
                         }}>
-                        <span style={{ marginRight: '8px', display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}>
-                            <svg width="0" height="0">
-                                <defs>
-                                    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stopColor="rgb(0, 174, 255)" />
-                                        <stop offset="100%" stopColor="rgb(196, 45, 226)" />
-                                    </linearGradient>
-                                </defs>
-                            </svg>
-                        </span>
                         Editar Registro
                     </Typography>
                 </DialogTitle>
@@ -945,7 +1017,7 @@ export default function CustomDataGridR<T>({
                                     }
                                     sx={{
                                         '& .MuiOutlinedInput-root': {
-                                            borderRadius: 2,
+                                            borderRadius: 1,
                                         }
                                     }}
                                 />
@@ -968,7 +1040,7 @@ export default function CustomDataGridR<T>({
                             background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
                             boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
                             color: "white",
-                            borderRadius: 2,
+                            borderRadius: 1,
                             textTransform: 'none',
                             fontWeight: 600,
                             "&:hover": {
@@ -990,7 +1062,7 @@ export default function CustomDataGridR<T>({
                             flex: 1,
                             background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
                             boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
-                            borderRadius: 2,
+                            borderRadius: 1,
                             textTransform: 'none',
                             fontWeight: 600,
                             "&:hover": {
