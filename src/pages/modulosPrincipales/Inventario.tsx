@@ -105,12 +105,16 @@ export default function InventoryPage() {
                 id: p._id,
                 codigo: p.codigo_producto,
                 producto: p.nombre_producto,
-                categoria: p.categoria_producto,
+                categoria: typeof p.categoria_producto === 'object'
+                    ? p.categoria_producto?.nombre_categoria
+                    : p.categoria_producto,
                 precioCompra: p.precio_compra,
                 precioVenta: p.precio_venta,
                 stock: p.stock_inicial,
                 stockMinimo: p.stock_minimo,
-                estado: p.estado,
+                estado: typeof p.estado === 'object'
+                    ? p.estado?.estado
+                    : p.estado,
                 _original: p
             }));
 

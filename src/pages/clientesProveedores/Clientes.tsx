@@ -157,6 +157,23 @@ export default function ClientesPage() {
                                     { field: "direccion_cliente", headerName: "Direccion" },
                                     { field: "tipo_cliente", headerName: "Tipo de Cliente" },
                                 ]}
+                                deleteConfig={{
+                                    baseUrl: `${API_URL}/cliente`,  // ← Tu endpoint DELETE
+                                    // getId es opcional, por defecto usa getRowId
+                                    // getId: (row) => row.id,
+                                    onSuccess: () => {
+                                        // Recargar la lista después de eliminar
+                                        fetchClientes();
+                                        setSnackbarMessage('Producto eliminado exitosamente');
+                                        setSnackbarSeverity('success');
+                                        setOpenSnackbar(true);
+                                    },
+                                    onError: (error) => {
+                                        setSnackbarMessage('Error al eliminar: ' + error.message);
+                                        setSnackbarSeverity('error');
+                                        setOpenSnackbar(true);
+                                    },
+                                }}
                             />
                         )}
                     </CardContent>
