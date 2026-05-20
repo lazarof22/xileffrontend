@@ -212,23 +212,16 @@ export default function InventoryPage() {
         if (!validateForm()) return;
 
         try {
-            console.log('estadoId seleccionado:', newProduct.estadoId);
-            console.log('categoria seleccionada:', newProduct.categoria_producto); // ← CAMBIO: debug
-            console.log('estados disponibles:', estadosBackend);
-            console.log('categorias disponibles:', categoriasBackend); // ← CAMBIO: debug
-
             const productData = {
                 codigo_producto: newProduct.codigo_producto,
                 nombre_producto: newProduct.nombre_producto,
-                categoria_producto: newProduct.categoria_producto,  // ← CAMBIO: ahora envía el _id
+                categoria_producto: newProduct.categoria_producto,
                 precio_compra: Number(newProduct.precio_compra),
                 precio_venta: Number(newProduct.precio_venta),
                 stock_inicial: Number(newProduct.stock_inicial),
                 stock_minimo: Number(newProduct.stock_minimo),
                 estado: newProduct.estadoId,
             };
-
-            console.log('Enviando al backend:', productData);
 
             const response = await fetch(`${API_URL}/producto`, {
                 method: 'POST',
@@ -241,26 +234,16 @@ export default function InventoryPage() {
                 throw new Error(errorData.message || 'Error al crear producto');
             }
 
-            const created = await response.json();
-
-            setRows((prev) => [...prev, {
-                id: created._id,
-                codigo: created.codigo_producto,
-                producto: created.nombre_producto,
-                categoria: created.categoria_producto,
-                precioCompra: created.precio_compra,
-                precioVenta: created.precio_venta,
-                stock: created.stock_inicial,
-                stockMinimo: created.stock_minimo,
-                estado: created.estado,
-                _original: created
-            }]);
+            // ✅ SOLUCIÓN: En lugar de agregar manualmente, recargar la lista completa
+            // Esto garantiza que las referencias vengan pobladas
+            await fetchProductos();
 
             setOpenCreateDialog(false);
             setSnackbarMessage('Producto creado exitosamente');
             setSnackbarSeverity('success');
             setOpenSnackbar(true);
 
+            // Limpiar formulario
             setNewProduct({
                 codigo_producto: "",
                 nombre_producto: "",
@@ -550,6 +533,24 @@ export default function InventoryPage() {
                                         { field: "motivo", headerName: "Motivo" },
                                         { field: "stockFinal", headerName: "Stock Final", numeric: true },
                                     ]}
+                                    // CONFIGURACIÓN DE ELIMINACIÓN - Se adapta a cualquier endpoint
+                                    deleteConfig={{
+                                        baseUrl: `${API_URL}/kardex`,  // ← Tu endpoint DELETE
+                                        // getId es opcional, por defecto usa getRowId
+                                        // getId: (row) => row.id,
+                                        onSuccess: () => {
+                                            // Recargar la lista después de eliminar
+                                            fetchKardex();
+                                            setSnackbarMessage('Registro kardex eliminado exitosamente');
+                                            setSnackbarSeverity('success');
+                                            setOpenSnackbar(true);
+                                        },
+                                        onError: (error) => {
+                                            setSnackbarMessage('Error al eliminar: ' + error.message);
+                                            setSnackbarSeverity('error');
+                                            setOpenSnackbar(true);
+                                        },
+                                    }}
                                 />
                             </CardContent>
                         </Card>
@@ -904,11 +905,13 @@ export default function InventoryPage() {
                     open={openSnackbar}
                     autoHideDuration={3000}
                     onClose={() => setOpenSnackbar(false)}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
                 >
                     <Alert
                         severity={snackbarSeverity}
-                        variant="filled"
+                        variant="outlined"
                         onClose={() => setOpenSnackbar(false)}
+                        sx={{ width: '100%' }}
                     >
                         {snackbarMessage}
                     </Alert>
