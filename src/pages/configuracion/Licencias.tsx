@@ -1,4 +1,4 @@
-import { Box, Typography, Card, Snackbar, Alert, TextField, Button, CardContent, CircularProgress } from '@mui/material';
+import { Box, Typography, Card, Snackbar, Alert, TextField, Button, CardContent, CircularProgress, MenuItem } from '@mui/material';
 import CustomDataGrid from "../../components/CustomDataGrid";
 import { useState } from 'react'
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
@@ -14,6 +14,16 @@ interface Licencia {
     clave_activacion: string,
     accion: string,
 }
+
+interface AccionesOption {
+    value: string;
+    label: string;
+}
+
+const ACCIONES: AccionesOption[] = [
+    { value: 'Activar Licencia', label: 'Activar Licencia' },
+    { value: 'Renovar Licencia', label: 'Renovar Licencia' }
+];
 
 export default function LicenciasPage() {
     const [rows, setRows] = useState<any[]>([]);
@@ -93,7 +103,12 @@ export default function LicenciasPage() {
                     ═══════════════════════════════════════════════════════ */}
                 <Box sx={{ m: 2 }}>
                     <Card sx={{ width: '100%', p: 2 }}>
-                        <Typography variant="h6" sx={{ m: 1, fontWeight: 600 }}>
+                        <Typography variant="h6"
+                            sx={{
+                                m: 1, fontWeight: 600, background: "linear-gradient(135deg, rgba(0, 89, 255, 0.84), rgba(230, 21, 118, 0.9))",
+                                WebkitBackgroundClip: "text",
+                                WebkitTextFillColor: "transparent"
+                            }}>
                             Gestión de Licencia
                         </Typography>
 
@@ -182,7 +197,7 @@ export default function LicenciasPage() {
                                     helperText={errors.claveActivacion}
                                     sx={{
                                         '& .MuiOutlinedInput-root': {
-                                            borderRadius: 2,
+                                            borderRadius: 1,
                                             backgroundColor: '#f8f9fa',
                                         }
                                     }}
@@ -202,7 +217,7 @@ export default function LicenciasPage() {
                                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAccion(e.target.value)}
                                     sx={{
                                         '& .MuiOutlinedInput-root': {
-                                            borderRadius: 2,
+                                            borderRadius: 1,
                                             backgroundColor: '#f8f9fa',
                                         }
                                     }}
@@ -210,6 +225,11 @@ export default function LicenciasPage() {
                                     helperText={errors.accion}
                                     disabled={loading}
                                 >
+                                    {ACCIONES.map((tipo: AccionesOption) => (
+                                        <MenuItem key={tipo.value} value={tipo.value}>
+                                            {tipo.label}
+                                        </MenuItem>
+                                    ))}
                                 </TextField>
                             </Box>
                         </Box>
