@@ -38,7 +38,7 @@ export default function DashboardPage() {
                 sx={{
                     width: '100%',
                     height: 70,
-                    background: "linear-gradient(135deg, rgba(0,114,255,0.95), rgba(142,45,226,0.95))",
+                    background: "linear-gradient(135deg, rgba(0,114,255,0.9), rgba(142,45,226,0.9)), url('/images/login-bg.jpg')",
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                     display: 'flex',
@@ -59,7 +59,7 @@ export default function DashboardPage() {
                     variant="contained"
                     startIcon={<RestartAltIcon sx={{ transition: 'transform 0.3s ease' }} />}
                     sx={{
-                        background: 'linear-gradient(135deg, rgba(0,114,255,0.95), rgba(142,45,226,0.95))',
+                        background: "linear-gradient(135deg, rgb(0, 174, 255), rgba(196, 45, 226, 0.9))",
                         backdropFilter: 'blur(10px)',
                         color: 'white',
                         textTransform: 'none',
@@ -69,7 +69,7 @@ export default function DashboardPage() {
                         fontWeight: 500,
                         border: '1px solid rgba(255,255,255,0.2)',
                         '&:hover': {
-                            background: 'linear-gradient(135deg, rgba(0,114,255,0.95), rgba(142,45,226,0.95))',
+                            background: "linear-gradient(135deg, rgb(0, 174, 255), rgba(196, 45, 226, 0.9))",
                             '& .MuiSvgIcon-root': {
                                 transform: 'rotate(180deg)',
                             }
@@ -465,7 +465,7 @@ export default function DashboardPage() {
                             rows={rows}
                             getRowId={(row) => row.id}
                             columns={[
-                                { field: "factura", headerName: "Factura", filterable: true },
+                                { field: "factura", headerName: "Factura" },
                                 { field: "cliente", headerName: "Cliente" },
                                 { field: "total", headerName: "Total", numeric: true },
                                 { field: "fecha", headerName: "Fecha" },

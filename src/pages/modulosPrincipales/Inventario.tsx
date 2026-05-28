@@ -434,12 +434,10 @@ export default function InventoryPage() {
                             color: "#fff",
                             textTransform: "none",
                             fontWeight: 600,
-                            boxShadow: "none",
                             border: '1px solid rgba(255,255,255,0.2)',
                             borderRadius: 2,
                             "&:hover": {
                                 background: "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))",
-                                boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
                             }
                         }}
                         onClick={() => setOpenCreateDialog(true)}
@@ -461,7 +459,6 @@ export default function InventoryPage() {
                             borderRadius: 2,
                             "&:hover": {
                                 background: "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))",
-                                boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
                             }
                         }}
                         onClick={() => setOpenAdjustDialog(true)}
@@ -483,7 +480,7 @@ export default function InventoryPage() {
 
                     {/* TAB PRODUCTOS */}
                     <TabPanel value="1">
-                        <Card sx={{ width: '100%' }}>
+                        <Card sx={{ width: '100%', borderRadius: 3 }}>
                             <CardContent>
                                 {loading ? (
                                     <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
@@ -530,7 +527,7 @@ export default function InventoryPage() {
 
                     {/* TAB KARDEX */}
                     <TabPanel value="2">
-                        <Card sx={{ width: '100%' }}>
+                        <Card sx={{ width: '100%', borderRadius: 3 }}>
                             <CardContent>
                                 <CustomDataGrid
                                     title="Registro Kardex"

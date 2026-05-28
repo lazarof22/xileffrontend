@@ -87,6 +87,7 @@ const getStatusStyles = (status: string) => {
         case 'activo':
         case 'disponible':
         case 'en stock':
+        case 'completada':
             return {
                 backgroundColor: 'rgba(10, 218, 20, 0.12)',
                 color: 'rgb(10, 218, 20)',
@@ -323,7 +324,7 @@ export default function CustomDataGridR<T>({
                 sx={{
                     width: "100%",
                     mb: 2,
-                    borderRadius: 1,
+                    borderRadius: 3,
                     boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
                     border: '1px solid rgba(0,0,0,0.04)',
                     display: 'flex',

@@ -7,6 +7,10 @@ import {
     Tab,
     InputAdornment,
     Badge,
+    Divider,
+    Avatar,
+    Chip,
+    Stack,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
@@ -22,6 +26,8 @@ import PaymentIcon from '@mui/icons-material/Payment';
 import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
 import CurrencyExchangeIcon from '@mui/icons-material/CurrencyExchange';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import ImageIcon from '@mui/icons-material/Image';
+import RemoveIcon from '@mui/icons-material/Remove';
 import DialogCrearCliente, { type ClienteFormData } from '../../components/AddClientDialog';
 import DialogPagoEfectivo, { type PagoEfectivoData } from '../../components/PagoEfectivoDialog';
 
@@ -484,62 +490,189 @@ export default function PuntoVentaPage() {
 
                     {/* ================= TAB PRODUCTOS ================= */}
                     {tab === 0 && (
-                        <Card>
-                            <CardContent>
+                        <Card
+                            elevation={0}
+                            sx={{
+                                borderRadius: 3,
+                                border: "1px solid rgba(0,0,0,0.04)",
+                                bgcolor: "#f8f9fa",
+                                boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+                                overflow: "hidden",
+                            }}
+                        >
+                            <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+                                {/* ═══════════════════════════════════════════════════════════
+                                    HEADER: Título + Buscador (estilo referencia)
+                                    ═══════════════════════════════════════════════════════════ */}
                                 <Box
                                     sx={{
                                         display: "flex",
-                                        justifyContent: "center",
-                                        mb: 3
+                                        flexDirection: { xs: "column", sm: "row" },
+                                        justifyContent: "space-between",
+                                        alignItems: { xs: "stretch", sm: "center" },
+                                        mb: 3,
+                                        gap: 2,
                                     }}
                                 >
+                                    <Typography
+                                        variant="h6"
+                                        sx={{
+                                            fontWeight: 700,
+                                            fontSize: "1.25rem",
+                                            color: "#1a1a2e",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 1,
+                                        }}
+                                    >
+                                        <ShoppingCartIcon
+                                            sx={{
+                                                color: "transparent",
+                                                background: "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))",
+                                                backgroundClip: "text",
+                                                WebkitBackgroundClip: "text",
+                                                fontSize: 26,
+                                            }}
+                                        />
+                                        Catálogo de Productos
+                                    </Typography>
+
                                     <TextField
                                         placeholder="Buscar producto..."
                                         value={search}
                                         onChange={(e) => setSearch(e.target.value)}
+                                        size="small"
                                         slotProps={{
                                             input: {
                                                 startAdornment: (
                                                     <InputAdornment position="start">
-                                                        <SearchIcon sx={{ color: "#a78bfa" }} />
+                                                        <SearchIcon sx={{ color: "#a78bfa", fontSize: 20 }} />
                                                     </InputAdornment>
-                                                )
-                                            }
+                                                ),
+                                            },
                                         }}
                                         sx={{
-                                            width: { xs: "100%", sm: "60%", md: "50%" }
+                                            width: { xs: "100%", sm: 280 },
+                                            "& .MuiOutlinedInput-root": {
+                                                borderRadius: 2.5,
+                                                bgcolor: "white",
+                                                boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                                                "& fieldset": {
+                                                    borderColor: "rgba(0,0,0,0.06)",
+                                                },
+                                                "&:hover fieldset": {
+                                                    borderColor: "rgba(10, 83, 218, 0.3)",
+                                                },
+                                                "&.Mui-focused fieldset": {
+                                                    borderColor: "rgb(10, 83, 218)",
+                                                },
+                                            },
                                         }}
                                     />
                                 </Box>
 
+                                {/* ═══════════════════════════════════════════════════════════
+                                    HEADER DE COLUMNAS (estilo referencia - solo desktop)
+                                    ═══════════════════════════════════════════════════════════ */}
                                 <Box
                                     sx={{
-                                        display: "flex",
-                                        flexWrap: "wrap",
-                                        gap: 2
+                                        display: { xs: "none", md: "flex" },
+                                        px: 2,
+                                        py: 1,
+                                        mb: 1,
                                     }}
                                 >
+                                    <Typography
+                                        variant="caption"
+                                        sx={{
+                                            flex: 2,
+                                            fontWeight: 600,
+                                            color: "#888",
+                                            textTransform: "uppercase",
+                                            letterSpacing: "0.05em",
+                                            fontSize: "0.7rem",
+                                            pl: 11, // Alineado con la imagen
+                                        }}
+                                    >
+                                        Producto
+                                    </Typography>
+                                    <Typography
+                                        variant="caption"
+                                        sx={{
+                                            flex: 1,
+                                            textAlign: "center",
+                                            fontWeight: 600,
+                                            color: "#888",
+                                            textTransform: "uppercase",
+                                            letterSpacing: "0.05em",
+                                            fontSize: "0.7rem",
+                                        }}
+                                    >
+                                        Categoría
+                                    </Typography>
+                                    <Typography
+                                        variant="caption"
+                                        sx={{
+                                            flex: 1,
+                                            textAlign: "right",
+                                            fontWeight: 600,
+                                            color: "#888",
+                                            textTransform: "uppercase",
+                                            letterSpacing: "0.05em",
+                                            fontSize: "0.7rem",
+                                        }}
+                                    >
+                                        Precio / Acción
+                                    </Typography>
+                                </Box>
+
+                                {/* ═══════════════════════════════════════════════════════════
+                                    LISTA DE PRODUCTOS (tarjetas estilo referencia)
+                                    ═══════════════════════════════════════════════════════════ */}
+                                <Stack spacing={1.5}>
                                     {productosFiltrados.length > 0 ? (
                                         productosFiltrados.map((producto) => (
-                                            <Box key={producto.id}>
-                                                <ProductCard
-                                                    nombre={producto.nombre}
-                                                    precio={producto.precio}
-                                                    stock={producto.stock}
-                                                    categoria={producto.categoria}
-                                                    imagen={producto.imagen}
-                                                    onAddToCart={() => agregarAlCarrito(producto)}
-                                                />
-                                            </Box>
+                                            <ProductCard
+                                                key={producto.id}
+                                                nombre={producto.nombre}
+                                                precio={producto.precio}
+                                                stock={producto.stock}
+                                                categoria={producto.categoria}
+                                                imagen={producto.imagen}
+                                                onAddToCart={() => agregarAlCarrito(producto)}
+                                            />
                                         ))
                                     ) : (
-                                        <Box sx={{ width: "100%", textAlign: "center", py: 5 }}>
-                                            <Typography color="text.secondary">
+                                        <Box
+                                            sx={{
+                                                width: "100%",
+                                                textAlign: "center",
+                                                py: 6,
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                alignItems: "center",
+                                                gap: 2,
+                                            }}
+                                        >
+                                            <Avatar
+                                                sx={{
+                                                    width: 64,
+                                                    height: 64,
+                                                    bgcolor: "rgba(10, 83, 218, 0.08)",
+                                                    color: "rgb(10, 83, 218)",
+                                                }}
+                                            >
+                                                <SearchIcon sx={{ fontSize: 32 }} />
+                                            </Avatar>
+                                            <Typography color="text.secondary" sx={{ fontWeight: 500 }}>
                                                 No se encontraron productos
+                                            </Typography>
+                                            <Typography variant="caption" color="text.disabled">
+                                                Intenta con otro término de búsqueda
                                             </Typography>
                                         </Box>
                                     )}
-                                </Box>
+                                </Stack>
                             </CardContent>
                         </Card>
                     )}
@@ -559,163 +692,377 @@ export default function PuntoVentaPage() {
                                 m: 1
                             }}
                         >
-                            {/* ========== LADO IZQUIERDO: CARRITO (50%) ========== */}
                             <Box
                                 sx={{
-                                    flex: "1 1 70%", // ✅ 50% del ancho
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    p: 3,
-                                    borderRight: { xs: "none", md: "1px solid #eee" }, // ✅ Borde solo en desktop
-                                    borderBottom: { xs: "1px solid #eee", md: "none" }, // ✅ Borde inferior en móvil
-                                    minHeight: { xs: 300, md: "auto" }, // ✅ Altura mínima en móvil
-                                    overflow: "hidden", // ✅ Evita que crezca descontroladamente
+                                    flex: '1 1 70%',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    p: { xs: 2, md: 3 },
+                                    borderRight: { xs: 'none', md: '1px solid #eee' },
+                                    borderBottom: { xs: '1px solid #eee', md: 'none' },
+                                    minHeight: { xs: 300, md: 'auto' },
+                                    overflow: 'hidden',
+                                    bgcolor: '#f8f9fa',
                                 }}
                             >
-                                <Typography variant="h6"
+                                {/* ═══════════════════════════════════════════════════════════
+                                        HEADER: Shopping Cart (estilo gradiente de tu app)
+                                    ═══════════════════════════════════════════════════════════ */}
+                                <Box
                                     sx={{
-                                        borderRadius: 1,
-                                        boxShadow: 2,
-                                        p: 1,
-                                        textAlign: "center",
-                                        background: "linear-gradient(135deg, rgba(0, 89, 255, 0.84), rgba(230, 21, 118, 0.9))",
-                                        WebkitBackgroundClip: "text",
-                                        WebkitTextFillColor: "transparent",
-                                    }}>
-                                    <span style={{ marginRight: '8px', display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}>
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        mb: 3,
+                                    }}
+                                >
+                                    <Typography
+                                        variant="h6"
+                                        sx={{
+                                            fontWeight: 700,
+                                            fontSize: '1.25rem',
+                                            color: '#1a1a2e',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 1,
+                                        }}
+                                    >
                                         <ShoppingCartIcon
                                             sx={{
-                                                fill: 'url(#iconGradient)',
-                                                width: 24,
-                                                height: 24
+                                                color: 'transparent',
+                                                background: 'linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))',
+                                                backgroundClip: 'text',
+                                                WebkitBackgroundClip: 'text',
+                                                fontSize: 28,
                                             }}
                                         />
-                                        <svg width="0" height="0">
-                                            <defs>
-                                                <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                                    <stop offset="0%" stopColor="rgb(0, 174, 255)" />
-                                                    <stop offset="100%" stopColor="rgb(196, 45, 226)" />
-                                                </linearGradient>
-                                            </defs>
-                                        </svg>
-                                    </span>
-                                    Carrito de Compras
-                                </Typography>
+                                        Carrito de Compras
+                                    </Typography>
 
-                                {/* ✅ Contenedor scrollable para los items */}
-                                <Box sx={{
-                                    flex: 1,
-                                    overflowY: "auto",
-                                    minHeight: 0 // ✅ Importante: permite que flex funcione correctamente
-                                }}>
+                                    <Chip
+                                        label={`${carrito.length} items`}
+                                        size="small"
+                                        sx={{
+                                            bgcolor: 'rgba(10, 83, 218, 0.1)',
+                                            color: 'rgb(10, 83, 218)',
+                                            fontWeight: 600,
+                                            borderRadius: 2,
+                                        }}
+                                    />
+                                </Box>
+
+                                {/* ═══════════════════════════════════════════════════════════
+                                        TABLA HEADER (Item | Quantity | Price | Amount |  )
+                                    ═══════════════════════════════════════════════════════════ */}
+                                <Divider />
+                                <Box
+                                    sx={{
+                                        display: { xs: 'none', md: 'flex' },
+                                        px: 2,
+                                        py: 1,
+                                        mb: 1,
+                                    }}
+                                >
+                                    <Typography
+                                        variant="caption"
+                                        sx={{
+                                            flex: 2,
+                                            fontWeight: 600,
+                                            color: '#888',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.05em',
+                                            fontSize: '0.7rem',
+                                        }}
+                                    >
+                                        Producto
+                                    </Typography>
+                                    <Typography
+                                        variant="caption"
+                                        sx={{
+                                            flex: 1,
+                                            textAlign: 'center',
+                                            fontWeight: 600,
+                                            color: '#888',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.05em',
+                                            fontSize: '0.7rem',
+                                        }}
+                                    >
+                                        Cantidad
+                                    </Typography>
+                                    <Typography
+                                        variant="caption"
+                                        sx={{
+                                            flex: 1,
+                                            textAlign: 'center',
+                                            fontWeight: 600,
+                                            color: '#888',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.05em',
+                                            fontSize: '0.7rem',
+                                        }}
+                                    >
+                                        Precio
+                                    </Typography>
+                                    <Typography
+                                        variant="caption"
+                                        sx={{
+                                            flex: 1,
+                                            textAlign: 'right',
+                                            fontWeight: 600,
+                                            color: '#888',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.05em',
+                                            fontSize: '0.7rem',
+                                        }}
+                                    >
+                                        Total
+                                    </Typography>
+                                    <Box sx={{ width: 48 }} /> {/* Espacio para botón eliminar */}
+                                </Box>
+
+                                {/* ═══════════════════════════════════════════════════════════
+                                    LISTA DE PRODUCTOS (tarjetas estilo referencia)
+                                    ═══════════════════════════════════════════════════════════ */}
+                                <Box
+                                    sx={{
+                                        flex: 1,
+                                        overflowY: 'auto',
+                                        minHeight: 0,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: 1.5,
+                                    }}
+                                >
                                     {carrito.length === 0 ? (
-                                        <Box sx={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            height: "100%",
-                                            minHeight: 200
-                                        }}>
-                                            <Typography color="text.secondary">
+                                        <Box
+                                            sx={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                height: '100%',
+                                                minHeight: 250,
+                                                gap: 2,
+                                            }}
+                                        >
+                                            <Avatar
+                                                sx={{
+                                                    width: 80,
+                                                    height: 80,
+                                                    bgcolor: 'rgba(10, 83, 218, 0.08)',
+                                                    color: 'rgb(10, 83, 218)',
+                                                }}
+                                            >
+                                                <ShoppingCartIcon sx={{ fontSize: 40 }} />
+                                            </Avatar>
+                                            <Typography color="text.secondary" sx={{ fontWeight: 500 }}>
                                                 No hay productos en el carrito
+                                            </Typography>
+                                            <Typography variant="caption" color="text.disabled">
+                                                Agrega productos para comenzar
                                             </Typography>
                                         </Box>
                                     ) : (
-                                        carrito.map((item) => (
-                                            <Box
-                                                key={item.id}
-                                                sx={{
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    gap: 1,
-                                                    py: 2,
-                                                    borderBottom: "1px solid #f0f0f0"
-                                                }}
-                                            >
-                                                {/* 🏷 Nombre + precio */}
-                                                <Box sx={{ flex: 1, minWidth: 0 }}>
-                                                    <Typography sx={{ fontWeight: "bold" }}>
-                                                        Producto: {item.nombre}
-                                                    </Typography>
-                                                    <Typography variant="body2" color="text.secondary">
-                                                        Precio: {item.precio} {moneda}
-                                                    </Typography>
-                                                </Box>
+                                        carrito.map((item) => {
+                                            const totalItem = (
+                                                item.cantidad *
+                                                item.precio *
+                                                (1 - item.descuento / 100)
+                                            ).toFixed(2);
 
-                                                {/* 🔢 Cantidad */}
-                                                <Box sx={{ textAlign: "center" }}>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Cant
-                                                    </Typography>
-                                                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                                        <Button
+                                            return (
+                                                <Card
+                                                    key={item.id}
+                                                    elevation={0}
+                                                    sx={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        p: 2,
+                                                        borderRadius: 3,
+                                                        border: '1px solid rgba(0,0,0,0.04)',
+                                                        bgcolor: 'white',
+                                                        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                                                        transition: 'all 0.2s ease',
+                                                        '&:hover': {
+                                                            boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+                                                            transform: 'translateY(-1px)',
+                                                        },
+                                                    }}
+                                                >
+                                                    {/* ─── IMAGEN PLACEHOLDER ─── */}
+                                                    <Avatar
+                                                        variant="rounded"
+                                                        sx={{
+                                                            width: 64,
+                                                            height: 64,
+                                                            bgcolor: '#e8ecf1',
+                                                            color: '#b0b8c4',
+                                                            mr: 2,
+                                                            flexShrink: 0,
+                                                            borderRadius: 2,
+                                                        }}
+                                                    >
+                                                        <ImageIcon sx={{ fontSize: 28 }} />
+                                                    </Avatar>
 
-                                                            variant="outlined"
-                                                            onClick={() => disminuirCantidad(item.id)}
+                                                    {/* ─── INFO PRODUCTO ─── */}
+                                                    <Box sx={{ flex: 2, minWidth: 0, mr: 2 }}>
+                                                        <Typography
+                                                            sx={{
+                                                                fontWeight: 700,
+                                                                fontSize: '0.95rem',
+                                                                color: '#1a1a2e',
+                                                                mb: 0.5,
+                                                                whiteSpace: 'nowrap',
+                                                                overflow: 'hidden',
+                                                                textOverflow: 'ellipsis',
+                                                            }}
                                                         >
-                                                            -
+                                                            {item.nombre}
+                                                        </Typography>
+                                                        <Typography
+                                                            variant="caption"
+                                                            sx={{
+                                                                color: '#888',
+                                                                display: 'block',
+                                                                mb: 0.5,
+                                                            }}
+                                                        >
+                                                            {item.descripcion || 'Producto del inventario'}
+                                                        </Typography>
+                                                        {item.descuento > 0 && (
+                                                            <Chip
+                                                                label={`-${item.descuento}% desc.`}
+                                                                size="small"
+                                                                sx={{
+                                                                    height: 20,
+                                                                    fontSize: '0.65rem',
+                                                                    bgcolor: 'rgba(255, 140, 0, 0.1)',
+                                                                    color: 'rgb(255, 140, 0)',
+                                                                    fontWeight: 600,
+                                                                }}
+                                                            />
+                                                        )}
+                                                    </Box>
+
+                                                    {/* ─── CANTIDAD (botones ± estilo referencia) ─── */}
+                                                    <Box
+                                                        sx={{
+                                                            flex: 1,
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            gap: 0.5,
+                                                        }}
+                                                    >
+                                                        <Button
+                                                            onClick={() => disminuirCantidad(item.id)}
+                                                            sx={{
+                                                                minWidth: 32,
+                                                                height: 32,
+                                                                p: 0,
+                                                                borderRadius: 1,
+                                                                border: 'none',
+                                                                bgcolor: 'rgba(255, 174, 0, 0.78)',
+                                                                color: 'rgb(255, 255, 255)',
+                                                                '&:hover': {
+                                                                    bgcolor: 'rgb(255, 166, 0)',
+                                                                },
+                                                            }}
+                                                        >
+                                                            <RemoveIcon sx={{ fontSize: 16 }} />
                                                         </Button>
-                                                        <Typography sx={{ fontWeight: "bold", minWidth: 24, textAlign: "center" }}>
+
+                                                        <Typography
+                                                            sx={{
+                                                                fontWeight: 700,
+                                                                minWidth: 28,
+                                                                textAlign: 'center',
+                                                                fontSize: '0.9rem',
+                                                                color: '#1a1a2e',
+                                                            }}
+                                                        >
                                                             {item.cantidad}
                                                         </Typography>
+
                                                         <Button
-                                                            size="small"
-                                                            variant="outlined"
                                                             onClick={() => aumentarCantidad(item.id)}
+                                                            sx={{
+                                                                minWidth: 32,
+                                                                height: 32,
+                                                                p: 0,
+                                                                borderRadius: 1,
+                                                                border: 'none',
+                                                                bgcolor: 'rgba(255, 174, 0, 0.78)',
+                                                                color: 'rgb(255, 255, 255)',
+                                                                '&:hover': {
+                                                                    bgcolor: 'rgb(255, 166, 0)',
+                                                                },
+                                                            }}
                                                         >
-                                                            +
+                                                            <AddIcon sx={{ fontSize: 16 }} />
                                                         </Button>
                                                     </Box>
-                                                </Box>
 
-                                                {/* 🎟 Descuento (%) */}
-                                                <Box sx={{ textAlign: "center", flexShrink: 0 }}>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Desc %
-                                                    </Typography>
-                                                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                                        <Button
-                                                            size="small"
-                                                            variant="outlined"
-                                                            color="warning"
-                                                            onClick={() => disminuirDescuento(item.id)}
+                                                    {/* ─── PRECIO UNITARIO ─── */}
+                                                    <Box
+                                                        sx={{
+                                                            flex: 1,
+                                                            textAlign: 'center',
+                                                        }}
+                                                    >
+                                                        <Typography
+                                                            sx={{
+                                                                fontWeight: 600,
+                                                                color: '#666',
+                                                                fontSize: '0.9rem',
+                                                            }}
                                                         >
-                                                            -
-                                                        </Button>
-                                                        <Typography sx={{ fontWeight: "bold", minWidth: 30, textAlign: "center" }}>
-                                                            {item.descuento}%
+                                                            {item.precio.toFixed(2)} {moneda}
                                                         </Typography>
-                                                        <Button
-                                                            size="small"
-                                                            variant="outlined"
-                                                            color="warning"
-                                                            onClick={() => aumentarDescuento(item.id)}
-                                                        >
-                                                            +
-                                                        </Button>
                                                     </Box>
-                                                </Box>
 
-                                                {/* 💰 Total */}
-                                                <Box sx={{ minWidth: 110, textAlign: "right", flexShrink: 0 }}>
-                                                    <Typography variant="caption" color="text.secondary">
-                                                        Total
-                                                    </Typography>
-                                                    <Typography sx={{ fontWeight: "bold" }}>
-                                                        {((item.cantidad * item.precio) * (1 - item.descuento / 100)).toFixed(2)} {moneda}
-                                                    </Typography>
-                                                </Box>
+                                                    {/* ─── TOTAL ─── */}
+                                                    <Box
+                                                        sx={{
+                                                            flex: 1,
+                                                            textAlign: 'right',
+                                                            mr: 2,
+                                                        }}
+                                                    >
+                                                        <Typography
+                                                            sx={{
+                                                                fontWeight: 700,
+                                                                color: '#1a1a2e',
+                                                                fontSize: '0.95rem',
+                                                            }}
+                                                        >
+                                                            {totalItem} {moneda}
+                                                        </Typography>
+                                                    </Box>
 
-                                                {/* ❌ Eliminar */}
-                                                <IconButton
-                                                    color="error"
-                                                    onClick={() => quitarProducto(item.id)}
-                                                    sx={{ flexShrink: 0 }}
-                                                >
-                                                    <DeleteIcon />
-                                                </IconButton>
-                                            </Box>
-                                        ))
+                                                    {/* ─── ELIMINAR (X rojo estilo referencia) ─── */}
+                                                    <IconButton
+                                                        onClick={() => quitarProducto(item.id)}
+                                                        sx={{
+                                                            width: 36,
+                                                            height: 36,
+                                                            bgcolor: 'rgb(220, 20, 60)',
+                                                            color: 'white',
+                                                            borderRadius: '50%',
+                                                            '&:hover': {
+                                                                bgcolor: 'rgb(200, 10, 40)',
+                                                                transform: 'scale(1.05)',
+                                                            },
+                                                            transition: 'all 0.2s ease',
+                                                        }}
+                                                    >
+                                                        <DeleteIcon sx={{ fontSize: 16 }} />
+                                                    </IconButton>
+                                                </Card>
+                                            );
+                                        })
                                     )}
                                 </Box>
                             </Box>
@@ -832,10 +1179,26 @@ export default function PuntoVentaPage() {
                                         pt: 1,
                                         borderTop: "2px solid #e0e0e0"
                                     }}>
-                                        <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                                            TOTAL
+                                        <Typography
+                                            variant="body2"
+                                            sx={{
+                                                color: '#888',
+                                                fontWeight: 500,
+                                            }}
+                                        >
+                                            Total General:
                                         </Typography>
-                                        <Typography variant="h6" sx={{ fontWeight: "bold", color: "primary.main" }}>
+                                        <Typography
+                                            variant="h5"
+                                            sx={{
+                                                fontWeight: 700,
+                                                color: '#1a1a2e',
+                                                background: 'linear-gradient(135deg, rgba(0, 89, 255, 0.84), rgba(230, 21, 118, 0.9))',
+                                                backgroundClip: 'text',
+                                                WebkitBackgroundClip: 'text',
+                                                WebkitTextFillColor: 'transparent',
+                                            }}
+                                        >
                                             {totalFinal.toFixed(2)} {moneda}
                                         </Typography>
                                     </Box>
@@ -873,7 +1236,7 @@ export default function PuntoVentaPage() {
                                     <DialogPagoEfectivo
                                         open={openPago}
                                         onClose={handleClosePago}
-                                        montoTotal={totalFinal} 
+                                        montoTotal={totalFinal}
                                         onPagoCompletado={handlePagoCompletado}
                                     />
 
@@ -935,27 +1298,6 @@ export default function PuntoVentaPage() {
                                         Cambio
                                     </Button>
                                 </Box>
-
-                                {/* 🔘 Botón Checkout */}
-                                <Button
-                                    fullWidth
-                                    variant="contained"
-                                    color="primary"
-                                    size="large"
-                                    sx={{
-                                        py: 1.5,
-                                        borderRadius: 2,
-                                        fontWeight: "bold",
-                                        fontSize: "1.1rem"
-                                    }}
-                                    disabled={totalPagado < totalFinal || carrito.length === 0}
-                                    onClick={() => {
-                                        generarTicket();
-                                        finalizarVenta();
-                                    }}
-                                >
-                                    CHECK OUT
-                                </Button>
                             </Box>
                         </Card>
                     )}

@@ -4,11 +4,12 @@ import {
     CardContent,
     Typography,
     Button,
-    CardActionArea,
-    CardActions,
-    Box
+    Box,
+    Avatar,
+    Chip,
 } from "@mui/material";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import ImageIcon from "@mui/icons-material/Image";
 
 interface ProductCardProps {
     nombre: string;
@@ -37,97 +38,154 @@ export default function ProductCard({
 
     return (
         <Card
+            elevation={0}
             sx={{
-                maxWidth: 320,
-                borderRadius: 1,
-                background: "linear-gradient(145deg, #e2e5ec, #e0e7f1)",
-                color: "primary.main",
-                boxShadow: "0 15px 40px rgba(0,0,0,0.4)",
-                position: "relative",
-                overflow: "hidden",
-                transition: "all 0.3s ease",
+                display: "flex",
+                alignItems: "center",
+                p: 2,
+                borderRadius: 3,
+                border: "1px solid rgba(0,0,0,0.04)",
+                bgcolor: "white",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                transition: "all 0.2s ease",
+                width: "100%",
+                maxWidth: "100%",
                 "&:hover": {
-                    transform: "translateY(-6px)",
-                    boxShadow: "0 20px 60px rgba(150, 148, 148, 0.6)"
-                }
+                    boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                    transform: "translateY(-1px)",
+                },
             }}
         >
-            <CardActionArea sx={{ p: 2 }}>
+            {/* ═══════════════════════════════════════════════════════════
+                IMAGEN PLACEHOLDER (estilo referencia)
+                ═══════════════════════════════════════════════════════════ */}
+            <Avatar
+                variant="rounded"
+                sx={{
+                    width: 80,
+                    height: 80,
+                    bgcolor: "#e8ecf1",
+                    color: "#b0b8c4",
+                    mr: 2.5,
+                    flexShrink: 0,
+                    borderRadius: 2.5,
+                }}
+            >
+                <ImageIcon sx={{ fontSize: 32 }} />
+            </Avatar>
 
-                <CardContent sx={{ p: 0 }}>
+            {/* ═══════════════════════════════════════════════════════════
+                INFO DEL PRODUCTO
+                ═══════════════════════════════════════════════════════════ */}
+            <Box sx={{ flex: 1, minWidth: 0, mr: 2 }}>
+                <Typography
+                    sx={{
+                        fontWeight: 700,
+                        fontSize: "1rem",
+                        color: "#1a1a2e",
+                        mb: 0.5,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                    }}
+                >
+                    {nombre}
+                </Typography>
 
-                    <Typography variant="h6"
+                <Typography
+                    variant="body2"
+                    sx={{
+                        color: "#888",
+                        mb: 1,
+                        fontSize: "0.8rem",
+                        lineHeight: 1.4,
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                    }}
+                >
+                    {categoria}
+                </Typography>
+
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Chip
+                        label={sinStock ? "Sin Stock" : `${stock} disponibles`}
+                        size="small"
                         sx={{
+                            height: 22,
+                            fontSize: "0.7rem",
+                            fontWeight: 600,
+                            bgcolor: sinStock
+                                ? "rgba(255, 0, 0, 0.08)"
+                                : "rgba(10, 218, 20, 0.1)",
+                            color: sinStock
+                                ? "rgb(220, 20, 60)"
+                                : "rgb(10, 218, 20)",
                             borderRadius: 1,
-                            boxShadow: 2,
-                            p: 1,
-                            textAlign: "center",
-                            background: "linear-gradient(135deg, rgba(0, 89, 255, 0.84), rgba(230, 21, 118, 0.9))",
-                            WebkitBackgroundClip: "text",
-                            WebkitTextFillColor: "transparent",
-                        }}>
-                        {nombre}
-                    </Typography>
-
-                    <Typography
-                        variant="h6"
-                        sx={{
-                            mt: 1,
-                            background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
-                            WebkitBackgroundClip: "text",
-                            WebkitTextFillColor: "transparent",
                         }}
-                    >
-                        Precio: {formatCurrency(precio)}
-                    </Typography>
+                    />
+                </Box>
+            </Box>
 
-                    <Box sx={{ mt: 1, display: "flex", flexDirection: "column", gap: 1 }}>
-                        <Typography
-                            variant="body1"
-                            sx={{
-                                opacity: 0.8,
-                                color: "black"
-                            }}>
-                            Categoría: {categoria}
-                        </Typography>
+            {/* ═══════════════════════════════════════════════════════════
+                PRECIO + BOTÓN
+                ═══════════════════════════════════════════════════════════ */}
+            <Box
+                sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-end",
+                    gap: 1,
+                    flexShrink: 0,
+                }}
+            >
+                <Typography
+                    sx={{
+                        fontWeight: 700,
+                        fontSize: "1.1rem",
+                        color: "#1a1a2e",
+                        background: "linear-gradient(135deg, rgba(0, 89, 255, 0.84), rgba(230, 21, 118, 0.9))",
+                        backgroundClip: "text",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                    }}
+                >
+                    {formatCurrency(precio)}
+                </Typography>
 
-                        <Typography
-                            variant="body1"
-                            sx={{
-                                color: sinStock ? "#f31d1d" : "#09b817",
-                            }}
-                        >
-                            {sinStock ? "Sin Stock" : `Stock disponible: ${stock}`}
-                        </Typography>
-                    </Box>
-                </CardContent>
-            </CardActionArea>
-
-            <CardActions sx={{ p: 2 }}>
                 <Button
-                    fullWidth
                     disabled={sinStock}
                     onClick={onAddToCart}
                     sx={{
-                        borderRadius: 1,
-                        py: 1.2,
-                        background: "linear-gradient(150deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
-                        color: "#fff",
-                        transition: "0.3s",
+                        minWidth: 140,
+                        py: 0.8,
+                        px: 2,
+                        borderRadius: 2,
+                        textTransform: "none",
+                        fontWeight: 600,
+                        fontSize: "0.8rem",
+                        background: sinStock
+                            ? "#e0e0e0"
+                            : "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(196, 45, 226, 0.9))",
+                        color: sinStock ? "#999" : "white",
+                        boxShadow: sinStock
+                            ? "none"
+                            : "0 4px 12px rgba(10, 83, 218, 0.3)",
                         "&:hover": {
-                            background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
-                            boxShadow: "0 6px 12px rgba(238, 10, 10, 0.77)",
+                            background: sinStock
+                                ? "#e0e0e0"
+                                : "linear-gradient(135deg, rgba(10, 83, 218, 1), rgba(196, 45, 226, 1))",
+                            boxShadow: sinStock
+                                ? "none"
+                                : "0 6px 16px rgba(10, 83, 218, 0.4)",
                         },
-                        "&:disabled": {
-                            background: "#555",
-                            color: "#aaa"
-                        }
                     }}
-                    startIcon={<ShoppingCartIcon />}
+                    startIcon={<ShoppingCartIcon sx={{ fontSize: 18 }} />}
                 >
-                    Agregar al carrito
+                    {sinStock ? "Agotado" : "Agregar"}
                 </Button>
-            </CardActions>
+            </Box>
         </Card>
     );
 }
