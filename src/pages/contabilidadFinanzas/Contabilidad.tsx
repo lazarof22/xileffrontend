@@ -232,17 +232,14 @@ export default function ContabilidadPage() {
                                     </Box>
                                 ) : (
                                     <CustomDataGrid
-                                        title="Productos"
+                                        title="Plan de Cuentas"
                                         rows={rows}
                                         getRowId={(row) => row.id}
                                         columns={[
                                             { field: "codigo", headerName: "Código" },
-                                            { field: "producto", headerName: "Producto" },
-                                            { field: "categoria", headerName: "Categoría" },
-                                            { field: "precioCompra", headerName: "Precio Compra", numeric: true },
-                                            { field: "precioVenta", headerName: "Precio Venta", numeric: true },
-                                            { field: "stock", headerName: "Stock", numeric: true },
-                                            { field: "stockMinimo", headerName: "Stock Mínimo", numeric: true },
+                                            { field: "nombre", headerName: "Nombre" },
+                                            { field: "tipo", headerName: "Tipo de Cuenta" },
+                                            { field: "naturaleza", headerName: "Naturaleza"},
                                             { field: "estado", headerName: "Estado" },
                                         ]}
                                     />

@@ -405,7 +405,7 @@ export default function InventoryPage() {
             <Box
                 sx={{
                     width: '100%',
-                    height: 60,
+                    height: 70,
                     background: "linear-gradient(135deg, rgba(0,114,255,0.9), rgba(142,45,226,0.9)), url('/images/login-bg.jpg')",
                     backgroundSize: "cover",
                     backgroundPosition: "center",
@@ -415,9 +415,14 @@ export default function InventoryPage() {
                     alignItems: 'center',
                     px: 2,
                 }}>
-                <Typography variant="h5" sx={{ ml: 2, color: 'white' }}>
-                    Gestión de Inventario
-                </Typography>
+                <Box>
+                    <Typography variant="h5" sx={{ color: 'white', fontWeight: 700, letterSpacing: '-0.02em' }}>
+                        Inventario
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                        Modulo de Gestion de Inventario
+                    </Typography>
+                </Box>
                 <Box>
                     <Button
                         variant="contained"
@@ -425,10 +430,13 @@ export default function InventoryPage() {
                         sx={{
                             ml: 1,
                             background: "linear-gradient(135deg, rgb(0, 174, 255), rgba(196, 45, 226, 0.9))",
+                            backdropFilter: 'blur(10px)',
                             color: "#fff",
                             textTransform: "none",
                             fontWeight: 600,
                             boxShadow: "none",
+                            border: '1px solid rgba(255,255,255,0.2)',
+                            borderRadius: 2,
                             "&:hover": {
                                 background: "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))",
                                 boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
@@ -444,10 +452,13 @@ export default function InventoryPage() {
                         sx={{
                             ml: 1,
                             background: "linear-gradient(135deg, rgb(0, 174, 255), rgba(196, 45, 226, 0.9))",
+                            backdropFilter: 'blur(10px)',
                             color: "#fff",
                             textTransform: "none",
                             fontWeight: 600,
                             boxShadow: "none",
+                            border: '1px solid rgba(255,255,255,0.2)',
+                            borderRadius: 2,
                             "&:hover": {
                                 background: "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))",
                                 boxShadow: "0 4px 12px rgba(0,0,0,0.2)"

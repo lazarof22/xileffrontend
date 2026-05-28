@@ -59,7 +59,7 @@ export default function DashboardPage() {
                     variant="contained"
                     startIcon={<RestartAltIcon sx={{ transition: 'transform 0.3s ease' }} />}
                     sx={{
-                        background: 'rgba(255,255,255,0.15)',
+                        background: 'linear-gradient(135deg, rgba(0,114,255,0.95), rgba(142,45,226,0.95))',
                         backdropFilter: 'blur(10px)',
                         color: 'white',
                         textTransform: 'none',
@@ -69,7 +69,7 @@ export default function DashboardPage() {
                         fontWeight: 500,
                         border: '1px solid rgba(255,255,255,0.2)',
                         '&:hover': {
-                            background: 'rgba(255,255,255,0.25)',
+                            background: 'linear-gradient(135deg, rgba(0,114,255,0.95), rgba(142,45,226,0.95))',
                             '& .MuiSvgIcon-root': {
                                 transform: 'rotate(180deg)',
                             }
