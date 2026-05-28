@@ -570,7 +570,7 @@ export default function PuntoVentaPage() {
                                         }}
                                     />
                                 </Box>
-
+                                <Divider sx={{ my: 1 }} />
                                 {/* ═══════════════════════════════════════════════════════════
                                     HEADER DE COLUMNAS (estilo referencia - solo desktop)
                                     ═══════════════════════════════════════════════════════════ */}
@@ -622,7 +622,35 @@ export default function PuntoVentaPage() {
                                             fontSize: "0.7rem",
                                         }}
                                     >
-                                        Precio / Acción
+                                        Stock
+                                    </Typography>
+                                    <Typography
+                                        variant="caption"
+                                        sx={{
+                                            flex: 1,
+                                            textAlign: "right",
+                                            fontWeight: 600,
+                                            color: "#888",
+                                            textTransform: "uppercase",
+                                            letterSpacing: "0.05em",
+                                            fontSize: "0.7rem",
+                                        }}
+                                    >
+                                        Precio
+                                    </Typography>
+                                    <Typography
+                                        variant="caption"
+                                        sx={{
+                                            flex: 1,
+                                            textAlign: "right",
+                                            fontWeight: 600,
+                                            color: "#888",
+                                            textTransform: "uppercase",
+                                            letterSpacing: "0.05em",
+                                            fontSize: "0.7rem",
+                                        }}
+                                    >
+                                        Acción
                                     </Typography>
                                 </Box>
 
