@@ -30,6 +30,7 @@ import ImageIcon from '@mui/icons-material/Image';
 import RemoveIcon from '@mui/icons-material/Remove';
 import DialogCrearCliente, { type ClienteFormData } from '../../components/AddClientDialog';
 import DialogPagoEfectivo, { type PagoEfectivoData } from '../../components/PagoEfectivoDialog';
+import DialogPagoCredito, { type PagoCreditoData } from '../../components/PagoCreditoDialog';
 
 export default function PuntoVentaPage() {
     const [search, setSearch] = React.useState("");
@@ -124,6 +125,16 @@ export default function PuntoVentaPage() {
     // 🧾 Datos de facturación
     const [cliente, setCliente] = React.useState("");
     const [nit, setNit] = React.useState("");
+
+    const [openPagoCredito, setOpenPagoCredito] = useState(false);
+
+    const handleOpenPagoCredito = (): void => {
+        setOpenPagoCredito(true);
+    };
+
+    const handleClosePagoCredito = (): void => {
+        setOpenPagoCredito(false);
+    };
 
     const agregarAlCarrito = (producto: any) => {
         setAnimateId(producto.id);
@@ -329,6 +340,13 @@ export default function PuntoVentaPage() {
 
     const handlePagoCompletado = (data: PagoEfectivoData): void => {
         console.log('Pago procesado:', data);
+    };
+
+    const handlePagoCreditoCompletado = (data: PagoCreditoData): void => {
+        console.log('Pago a crédito procesado:', data);
+        // Aquí puedes: limpiar carrito, generar factura, etc.
+        // setCarrito([]);
+        // setEfectivo("");
     };
 
     return (
@@ -1100,52 +1118,6 @@ export default function PuntoVentaPage() {
                                         Factura
                                     </Typography>
 
-                                    <Box
-                                        sx={{
-                                            display: "flex",
-                                            width: "100%",
-                                            mt: 1,
-                                            mb: 1,
-                                            gap: 1,
-                                            alignItems: "center",
-                                        }}>
-                                        <TextField
-                                            sx={{
-                                                width: "75%",
-                                            }}
-                                            label="Cliente"
-                                            size='small'
-                                            value={cliente}
-                                            onChange={(e) => setCliente(e.target.value)}
-                                        />
-                                        <Button
-                                            variant="contained"
-                                            size='small'
-                                            startIcon={<PersonAddIcon sx={{ fontSize: "medium" }} />}
-                                            onClick={() => setOpenDialog(true)}
-                                            sx={{
-                                                width: "40%",
-                                                ml: 1,
-                                                background: "linear-gradient(135deg, rgba(245, 6, 6, 0.9), rgba(10, 83, 218, 0.9))",
-                                                color: "#fff",
-                                                textTransform: "none",
-                                                fontWeight: 600,
-                                                boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
-                                                "&:hover": {
-                                                    background: "linear-gradient(135deg, rgba(245, 6, 6, 0.9), rgba(10, 83, 218, 0.9))",
-                                                    boxShadow: "0 4px 12px rgb(12, 83, 235)"
-                                                }
-                                            }}
-                                        >
-                                            Nuevo Cliente
-                                        </Button>
-                                        <DialogCrearCliente
-                                            open={openDialog}
-                                            onClose={() => setOpenDialog(false)}
-                                            onClienteCreado={handleClienteCreado}
-                                        />
-                                    </Box>
-
                                     <Box sx={{ display: "flex", justifyContent: "space-between", py: 0.5 }}>
                                         <Typography color="text.secondary">Subtotal</Typography>
                                         <Typography>{subtotal.toFixed(2)} {moneda}</Typography>
@@ -1233,6 +1205,7 @@ export default function PuntoVentaPage() {
                                         variant="contained"
                                         size="small"
                                         startIcon={<PaymentIcon sx={{ fontSize: "medium" }} />}
+                                        onClick={handleOpenPagoCredito}
                                         sx={{
                                             ml: 1,
                                             background: "linear-gradient(135deg, rgb(255, 238, 0), rgba(226, 64, 14, 0.9))",
@@ -1248,6 +1221,12 @@ export default function PuntoVentaPage() {
                                     >
                                         Pago por Credito
                                     </Button>
+                                    <DialogPagoCredito
+                                        open={openPagoCredito}
+                                        onClose={handleClosePagoCredito}
+                                        montoTotal={totalFinal}
+                                        onPagoCompletado={handlePagoCreditoCompletado}
+                                    />
                                     <Button
                                         variant="contained"
                                         size="small"
