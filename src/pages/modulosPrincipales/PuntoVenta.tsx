@@ -350,45 +350,6 @@ export default function PuntoVentaPage() {
                 <Typography variant="h5" sx={{ ml: 2, color: 'white' }}>
                     Punto de Venta
                 </Typography>
-                <Box>
-                    <Button
-                        variant="contained"
-                        startIcon={<AddIcon />}
-                        sx={{
-                            ml: 1,
-                            background: "linear-gradient(135deg, rgb(0, 174, 255), rgba(196, 45, 226, 0.9))",
-                            color: "#fff",
-                            textTransform: "none",
-                            fontWeight: 600,
-                            boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
-                            "&:hover": {
-                                background: "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))",
-                                boxShadow: "0 4px 12px rgba(5, 118, 248, 0.93)"
-                            }
-                        }}
-                    >
-                        Nueva Venta
-                    </Button>
-                    <Button
-                        variant="contained"
-                        size="small"
-                        startIcon={<PictureAsPdfIcon sx={{ fontSize: "medium" }} />}
-                        sx={{
-                            ml: 1,
-                            background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
-                            color: "#fff",
-                            textTransform: "none",
-                            fontWeight: 600,
-                            boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
-                            "&:hover": {
-                                background: "linear-gradient(135deg, rgba(255,0,0,1), rgb(196, 45, 226))",
-                                boxShadow: "0 4px 12px rgb(158, 6, 6)"
-                            }
-                        }}
-                    >
-                        Exportar PDF
-                    </Button>
-                </Box>
             </Box>
             <Box
                 sx={{
@@ -1305,25 +1266,6 @@ export default function PuntoVentaPage() {
                                         }}
                                     >
                                         Pago por Transferencia
-                                    </Button>
-                                    <Button
-                                        variant="contained"
-                                        size="small"
-                                        startIcon={<CurrencyExchangeIcon sx={{ fontSize: "medium" }} />}
-                                        sx={{
-                                            ml: 1,
-                                            background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
-                                            color: "#fff",
-                                            textTransform: "none",
-                                            fontWeight: 600,
-                                            boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
-                                            "&:hover": {
-                                                background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
-                                                boxShadow: "0 4px 12px rgb(31, 235, 12)"
-                                            }
-                                        }}
-                                    >
-                                        Cambio
                                     </Button>
                                 </Box>
                             </Box>
