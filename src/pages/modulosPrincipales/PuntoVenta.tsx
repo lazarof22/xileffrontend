@@ -126,9 +126,6 @@ export default function PuntoVentaPage() {
     // 💳 Pago mixto
     const [transferencia, setTransferencia] = React.useState("");
 
-    // 🎟 Descuento
-    const [descuento, setDescuento] = React.useState(0);
-
     // 📊 Impuesto dinámico
     const [impuesto, setImpuesto] = React.useState(0);
 
@@ -190,6 +187,11 @@ export default function PuntoVentaPage() {
         (acc, item) => acc + item.precio * item.cantidad,
         0
     );
+
+    const descuento = carrito.reduce(
+        (acc, item) => acc + item.descuento,
+        0
+    )
 
     // Descuento aplicado
     const montoDescuento = subtotal * (descuento / 100);
@@ -374,9 +376,8 @@ export default function PuntoVentaPage() {
             <Box
                 sx={{
                     width: '100%',
-                    height: 60,
-                    background:
-                        "linear-gradient(135deg, rgba(0,114,255,0.9), rgba(142,45,226,0.9)), url('/images/login-bg.jpg')",
+                    height: 70,
+                    background: "linear-gradient(135deg, rgba(0,114,255,0.9), rgba(142,45,226,0.9)), url('/images/login-bg.jpg')",
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                     alignContent: 'center',
@@ -385,9 +386,14 @@ export default function PuntoVentaPage() {
                     alignItems: 'center',
                     px: 2,
                 }}>
-                <Typography variant="h5" sx={{ ml: 2, color: 'white' }}>
-                    Punto de Venta
-                </Typography>
+                <Box>
+                    <Typography variant="h5" sx={{ color: 'white', fontWeight: 700, letterSpacing: '-0.02em' }}>
+                        Punto de Venta
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                        Modulo de Gestion de Venta de Productos
+                    </Typography>
+                </Box>
             </Box>
             <Box
                 sx={{
@@ -497,6 +503,7 @@ export default function PuntoVentaPage() {
                                 bgcolor: "#f8f9fa",
                                 boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
                                 overflow: "hidden",
+                                m: 1
                             }}
                         >
                             <CardContent sx={{ p: { xs: 2, md: 3 } }}>
@@ -513,28 +520,34 @@ export default function PuntoVentaPage() {
                                         gap: 2,
                                     }}
                                 >
-                                    <Typography
-                                        variant="h6"
+                                    <Typography variant="h6"
                                         sx={{
-                                            fontWeight: 700,
-                                            fontSize: "1.25rem",
-                                            color: "#1a1a2e",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: 1,
-                                        }}
-                                    >
-                                        <ShoppingCartIcon
-                                            sx={{
-                                                color: "transparent",
-                                                background: "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))",
-                                                backgroundClip: "text",
-                                                WebkitBackgroundClip: "text",
-                                                fontSize: 26,
-                                            }}
-                                        />
-                                        Catálogo de Productos
+                                            p: 1,
+                                            textAlign: "center",
+                                            background: "linear-gradient(135deg, rgba(0, 89, 255, 0.84), rgba(230, 21, 118, 0.9))",
+                                            WebkitBackgroundClip: "text",
+                                            WebkitTextFillColor: "transparent",
+                                        }}>
+                                        <span style={{ marginRight: '8px', display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}>
+                                            <ShoppingCartIcon
+                                                sx={{
+                                                    fill: 'url(#iconGradient)',
+                                                    width: 24,
+                                                    height: 24
+                                                }}
+                                            />
+                                            <svg width="0" height="0">
+                                                <defs>
+                                                    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                        <stop offset="0%" stopColor="rgba(0, 89, 255, 0.84)" />
+                                                        <stop offset="100%" stopColor="rgba(230, 21, 118, 0.9)" />
+                                                    </linearGradient>
+                                                </defs>
+                                            </svg>
+                                        </span>
+                                        Catalogo de Productos
                                     </Typography>
+
 
                                     <TextField
                                         placeholder="Buscar producto..."
@@ -569,89 +582,8 @@ export default function PuntoVentaPage() {
                                         }}
                                     />
                                 </Box>
-                                <Divider sx={{ my: 1 }} />
-                                {/* ═══════════════════════════════════════════════════════════
-                                    HEADER DE COLUMNAS (estilo referencia - solo desktop)
-                                    ═══════════════════════════════════════════════════════════ */}
-                                <Box
-                                    sx={{
-                                        display: { xs: "none", md: "flex" },
-                                        px: 2,
-                                        py: 1,
-                                        mb: 1,
-                                    }}
-                                >
-                                    <Typography
-                                        variant="caption"
-                                        sx={{
-                                            flex: 2,
-                                            fontWeight: 600,
-                                            color: "#888",
-                                            textTransform: "uppercase",
-                                            letterSpacing: "0.05em",
-                                            fontSize: "0.7rem",
-                                            pl: 11, // Alineado con la imagen
-                                        }}
-                                    >
-                                        Producto
-                                    </Typography>
-                                    <Typography
-                                        variant="caption"
-                                        sx={{
-                                            flex: 1,
-                                            textAlign: "center",
-                                            fontWeight: 600,
-                                            color: "#888",
-                                            textTransform: "uppercase",
-                                            letterSpacing: "0.05em",
-                                            fontSize: "0.7rem",
-                                        }}
-                                    >
-                                        Categoría
-                                    </Typography>
-                                    <Typography
-                                        variant="caption"
-                                        sx={{
-                                            flex: 1,
-                                            textAlign: "right",
-                                            fontWeight: 600,
-                                            color: "#888",
-                                            textTransform: "uppercase",
-                                            letterSpacing: "0.05em",
-                                            fontSize: "0.7rem",
-                                        }}
-                                    >
-                                        Stock
-                                    </Typography>
-                                    <Typography
-                                        variant="caption"
-                                        sx={{
-                                            flex: 1,
-                                            textAlign: "right",
-                                            fontWeight: 600,
-                                            color: "#888",
-                                            textTransform: "uppercase",
-                                            letterSpacing: "0.05em",
-                                            fontSize: "0.7rem",
-                                        }}
-                                    >
-                                        Precio
-                                    </Typography>
-                                    <Typography
-                                        variant="caption"
-                                        sx={{
-                                            flex: 1,
-                                            textAlign: "right",
-                                            fontWeight: 600,
-                                            color: "#888",
-                                            textTransform: "uppercase",
-                                            letterSpacing: "0.05em",
-                                            fontSize: "0.7rem",
-                                        }}
-                                    >
-                                        Acción
-                                    </Typography>
-                                </Box>
+
+                                <Divider sx={{ my: 3 }} />
 
                                 {/* ═══════════════════════════════════════════════════════════
                                     LISTA DE PRODUCTOS (tarjetas estilo referencia)
@@ -737,7 +669,7 @@ export default function PuntoVentaPage() {
                             sx={{
                                 height: "100%",
                                 minHeight: 600, // ✅ Altura mínima fija para mantener consistencia
-                                borderRadius: 1,
+                                borderRadius: 3,
                                 boxShadow: 5,
                                 backgroundColor: "#fff",
                                 display: "flex",
@@ -767,40 +699,46 @@ export default function PuntoVentaPage() {
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'space-between',
-                                        mb: 3,
+
                                     }}
                                 >
-                                    <Typography
-                                        variant="h6"
+                                    <Typography variant="h6"
                                         sx={{
-                                            fontWeight: 700,
-                                            fontSize: '1.25rem',
-                                            color: '#1a1a2e',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 1,
-                                        }}
-                                    >
-                                        <ShoppingCartIcon
-                                            sx={{
-                                                color: 'transparent',
-                                                background: 'linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))',
-                                                backgroundClip: 'text',
-                                                WebkitBackgroundClip: 'text',
-                                                fontSize: 28,
-                                            }}
-                                        />
+                                            p: 1,
+                                            textAlign: "center",
+                                            background: "linear-gradient(135deg, rgba(0, 89, 255, 0.84), rgba(230, 21, 118, 0.9))",
+                                            WebkitBackgroundClip: "text",
+                                            WebkitTextFillColor: "transparent",
+                                        }}>
+                                        <span style={{ marginRight: '8px', display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}>
+                                            <ShoppingCartIcon
+                                                sx={{
+                                                    fill: 'url(#iconGradient)',
+                                                    width: 24,
+                                                    height: 24
+                                                }}
+                                            />
+                                            <svg width="0" height="0">
+                                                <defs>
+                                                    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                        <stop offset="0%" stopColor="rgba(0, 89, 255, 0.84)" />
+                                                        <stop offset="100%" stopColor="rgba(230, 21, 118, 0.9)" />
+                                                    </linearGradient>
+                                                </defs>
+                                            </svg>
+                                        </span>
                                         Carrito de Compras
                                     </Typography>
 
                                     <Chip
-                                        label={`${carrito.length} items`}
-                                        size="small"
+                                        label={`${carrito.length} productos`}
+                                        size="medium"
                                         sx={{
                                             bgcolor: 'rgba(10, 83, 218, 0.1)',
                                             color: 'rgb(10, 83, 218)',
                                             fontWeight: 600,
                                             borderRadius: 2,
+                                            p: 1
                                         }}
                                     />
                                 </Box>
@@ -808,7 +746,8 @@ export default function PuntoVentaPage() {
                                 {/* ═══════════════════════════════════════════════════════════
                                         TABLA HEADER (Item | Quantity | Price | Amount |  )
                                     ═══════════════════════════════════════════════════════════ */}
-                                <Divider />
+                                <Divider sx={{ my: 1 }} />
+
                                 <Box
                                     sx={{
                                         display: { xs: 'none', md: 'flex' },
@@ -826,6 +765,7 @@ export default function PuntoVentaPage() {
                                             textTransform: 'uppercase',
                                             letterSpacing: '0.05em',
                                             fontSize: '0.7rem',
+                                            mr: 4
                                         }}
                                     >
                                         Producto
@@ -857,6 +797,20 @@ export default function PuntoVentaPage() {
                                         }}
                                     >
                                         Precio
+                                    </Typography>
+                                    <Typography
+                                        variant="caption"
+                                        sx={{
+                                            flex: 1,
+                                            textAlign: 'center',
+                                            fontWeight: 600,
+                                            color: '#888',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.05em',
+                                            fontSize: '0.7rem',
+                                        }}
+                                    >
+                                        Descuento
                                     </Typography>
                                     <Typography
                                         variant="caption"
@@ -961,7 +915,7 @@ export default function PuntoVentaPage() {
                                                     </Avatar>
 
                                                     {/* ─── INFO PRODUCTO ─── */}
-                                                    <Box sx={{ flex: 2, minWidth: 0, mr: 2 }}>
+                                                    <Box sx={{ flex: 2, minWidth: 0, mr: -6 }}>
                                                         <Typography
                                                             sx={{
                                                                 fontWeight: 700,
@@ -985,19 +939,6 @@ export default function PuntoVentaPage() {
                                                         >
                                                             {item.descripcion || 'Producto del inventario'}
                                                         </Typography>
-                                                        {item.descuento > 0 && (
-                                                            <Chip
-                                                                label={`-${item.descuento}% desc.`}
-                                                                size="small"
-                                                                sx={{
-                                                                    height: 20,
-                                                                    fontSize: '0.65rem',
-                                                                    bgcolor: 'rgba(255, 140, 0, 0.1)',
-                                                                    color: 'rgb(255, 140, 0)',
-                                                                    fontWeight: 600,
-                                                                }}
-                                                            />
-                                                        )}
                                                     </Box>
 
                                                     {/* ─── CANTIDAD (botones ± estilo referencia) ─── */}
@@ -1077,6 +1018,65 @@ export default function PuntoVentaPage() {
                                                         </Typography>
                                                     </Box>
 
+                                                    {/* ─── DESCUENTO ─── */}
+                                                    <Box
+                                                        sx={{
+                                                            flex: 1,
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            gap: 0.5,
+                                                        }}
+                                                    >
+                                                        <Button
+                                                            onClick={() => disminuirDescuento(item.id)}
+                                                            sx={{
+                                                                minWidth: 32,
+                                                                height: 32,
+                                                                p: 0,
+                                                                borderRadius: 1,
+                                                                border: 'none',
+                                                                bgcolor: 'rgba(255, 174, 0, 0.78)',
+                                                                color: 'rgb(255, 255, 255)',
+                                                                '&:hover': {
+                                                                    bgcolor: 'rgb(255, 166, 0)',
+                                                                },
+                                                            }}
+                                                        >
+                                                            <RemoveIcon sx={{ fontSize: 16 }} />
+                                                        </Button>
+
+                                                        <Typography
+                                                            sx={{
+                                                                fontWeight: 700,
+                                                                minWidth: 28,
+                                                                textAlign: 'center',
+                                                                fontSize: '0.9rem',
+                                                                color: '#1a1a2e',
+                                                            }}
+                                                        >
+                                                            {item.descuento}%
+                                                        </Typography>
+
+                                                        <Button
+                                                            onClick={() => aumentarDescuento(item.id)}
+                                                            sx={{
+                                                                minWidth: 32,
+                                                                height: 32,
+                                                                p: 0,
+                                                                borderRadius: 1,
+                                                                border: 'none',
+                                                                bgcolor: 'rgba(255, 174, 0, 0.78)',
+                                                                color: 'rgb(255, 255, 255)',
+                                                                '&:hover': {
+                                                                    bgcolor: 'rgb(255, 166, 0)',
+                                                                },
+                                                            }}
+                                                        >
+                                                            <AddIcon sx={{ fontSize: 16 }} />
+                                                        </Button>
+                                                    </Box>
+
                                                     {/* ─── TOTAL ─── */}
                                                     <Box
                                                         sx={{
@@ -1124,7 +1124,7 @@ export default function PuntoVentaPage() {
                             {/* ========== LADO DERECHO: FACTURACIÓN (50%) ========== */}
                             <Box
                                 sx={{
-                                    flex: "1 1 55%", // 
+                                    flex: "1 1 40%", // 
                                     display: "flex",
                                     flexDirection: "column",
                                     p: 3,
@@ -1137,8 +1137,6 @@ export default function PuntoVentaPage() {
                                 <Box sx={{ mb: 2 }}>
                                     <Typography variant="h6"
                                         sx={{
-                                            borderRadius: 1,
-                                            boxShadow: 2,
                                             p: 1,
                                             textAlign: "center",
                                             background: "linear-gradient(135deg, rgba(0, 89, 255, 0.84), rgba(230, 21, 118, 0.9))",
@@ -1156,8 +1154,8 @@ export default function PuntoVentaPage() {
                                             <svg width="0" height="0">
                                                 <defs>
                                                     <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                                        <stop offset="0%" stopColor="rgb(0, 174, 255)" />
-                                                        <stop offset="100%" stopColor="rgb(196, 45, 226)" />
+                                                        <stop offset="0%" stopColor="rgba(0, 89, 255, 0.84)" />
+                                                        <stop offset="100%" stopColor="rgba(230, 21, 118, 0.9)" />
                                                     </linearGradient>
                                                 </defs>
                                             </svg>
@@ -1165,14 +1163,16 @@ export default function PuntoVentaPage() {
                                         Factura
                                     </Typography>
 
+                                    <Divider sx={{ my: 1 }} />
+
                                     <Box sx={{ display: "flex", justifyContent: "space-between", py: 0.5 }}>
                                         <Typography color="text.secondary">Subtotal</Typography>
-                                        <Typography>{subtotal.toFixed(2)} {moneda}</Typography>
+                                        <Typography variant='button' color='success'>{subtotal.toFixed(2)} {moneda}</Typography>
                                     </Box>
 
                                     <Box sx={{ display: "flex", justifyContent: "space-between", py: 0.5 }}>
                                         <Typography color="text.secondary">Descuento</Typography>
-                                        <Typography>-{montoDescuento.toFixed(2)} {moneda}</Typography>
+                                        <Typography variant='button' color='error'>-{montoDescuento.toFixed(2)} {moneda}</Typography>
                                     </Box>
 
                                     <Box sx={{ display: "flex", justifyContent: "space-between", py: 0.5 }}>
@@ -1216,9 +1216,9 @@ export default function PuntoVentaPage() {
                                 <Box
                                     sx={{
                                         display: "grid",
-                                        gridTemplateColumns: "1fr 1fr", // 2 columnas iguales
-                                        gridTemplateRows: "1fr 1fr",    // 2 filas iguales
-                                        gap: 2,                          // Espacio entre botones
+                                        gridTemplateColumns: "1fr", // 1 columnas iguales
+                                        gridTemplateRows: "1fr",    // 1 filas iguales
+                                        gap: 2,                     // Espacio entre botones
                                         width: "100%"
                                     }}>
                                     <Button

@@ -108,18 +108,14 @@ export default function ProductCard({
 
             {/* INFO DEL PRODUCTO */}
             <Box sx={{ flex: 1, minWidth: 0, mr: 2 }}>
-                <Typography
+                <Typography variant="button"
                     sx={{
-                        fontWeight: 700,
-                        fontSize: "1rem",
-                        color: "#1a1a2e",
-                        mb: 0.5,
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
+                        background: "linear-gradient(135deg, rgba(0, 89, 255, 0.84), rgba(230, 21, 118, 0.9))",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
                     }}
                 >
-                    {nombre}
+                    Producto: {nombre}
                 </Typography>
 
                 <Typography
@@ -135,16 +131,17 @@ export default function ProductCard({
                         overflow: "hidden",
                     }}
                 >
-                    {categoria || "Sin categoría"}
+                    Categoria: {categoria || "Sin categoría"}
                 </Typography>
 
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    Stock:
                     <Chip
                         label={sinStock ? "Sin Stock" : stockBajo ? `¡Solo ${stock}!` : `${stock} disponibles`}
                         size="small"
                         sx={{
                             height: 22,
-                            fontSize: "0.7rem",
+                            fontSize: "0.8rem",
                             fontWeight: 600,
                             bgcolor: sinStock
                                 ? "rgba(255, 0, 0, 0.08)"
@@ -197,7 +194,7 @@ export default function ProductCard({
                         WebkitTextFillColor: "transparent",
                     }}
                 >
-                    {formatCurrency(precio)}
+                    Precio: {formatCurrency(precio)}
                 </Typography>
 
                 <Button
