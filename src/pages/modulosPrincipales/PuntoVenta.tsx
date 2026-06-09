@@ -1,5 +1,5 @@
 // src/pages/PuntoVentaPage.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Card, CardContent, Typography, Box, IconButton, Button,
     TextField,
@@ -11,6 +11,8 @@ import {
     Avatar,
     Chip,
     Stack,
+    CircularProgress,
+    Alert,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
@@ -32,72 +34,80 @@ import DialogCrearCliente, { type ClienteFormData } from '../../components/AddCl
 import DialogPagoEfectivo, { type PagoEfectivoData } from '../../components/PagoEfectivoDialog';
 import DialogPagoCredito, { type PagoCreditoData } from '../../components/PagoCreditoDialog';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+interface ProductoAPI {
+    _id: string;
+    codigo_producto: string;
+    nombre_producto: string;
+    categoria_producto: string; // ObjectId como string
+    precio_compra: number;
+    precio_venta: number;
+    stock_inicial: number;
+    stock_minimo: number;
+    estado: string; // ObjectId como string
+    createdAt?: string;
+    updatedAt?: string;
+}
+
 export default function PuntoVentaPage() {
     const [search, setSearch] = React.useState("");
 
-    const productos = [
-        {
-            id: 1,
-            nombre: "Arroz 1kg",
-            precio: 250,
-            stock: 15,
-            categoria: "Alimentos",
-            imagen: "https://via.placeholder.com/300",
-            descuento: 0
-        },
-        {
-            id: 2,
-            nombre: "Aceite 1L",
-            precio: 800,
-            stock: 5,
-            categoria: "Alimentos",
-            imagen: "https://via.placeholder.com/300",
-            descuento: 0
-        },
-        {
-            id: 3,
-            nombre: "Refresco Cola",
-            precio: 350,
-            stock: 0,
-            categoria: "Bebidas",
-            imagen: "https://via.placeholder.com/300",
-            descuento: 0
-        },
-        {
-            id: 4,
-            nombre: "Arroz",
-            precio: 250,
-            stock: 15,
-            categoria: "Alimentos",
-            imagen: "https://via.placeholder.com/300",
-            descuento: 0
-        },
-        {
-            id: 5,
-            nombre: "Aceite 1L",
-            precio: 800,
-            stock: 5,
-            categoria: "Alimentos",
-            imagen: "https://via.placeholder.com/300",
-            descuento: 0
-        },
-        {
-            id: 6,
-            nombre: "Refresco Cola",
-            precio: 350,
-            stock: 0,
-            categoria: "Bebidas",
-            imagen: "https://via.placeholder.com/300",
-            descuento: 0
-        }
-    ];
+    // ─── ESTADOS DE PRODUCTOS (REEMPLAZA EL ARRAY ESTÁTICO) ──────────
+    const [productos, setProductos] = useState<ProductoAPI[]>([]);
+    const [loadingProductos, setLoadingProductos] = useState(false);
+    const [errorProductos, setErrorProductos] = useState<string | null>(null);
 
+    // Cargar productos desde la API al montar
+    useEffect(() => {
+        fetchProductos();
+    }, []);
+
+    const fetchProductos = async () => {
+        setLoadingProductos(true);
+        setErrorProductos(null);
+        try {
+            const response = await fetch(`${API_URL}/producto`);
+            if (!response.ok) {
+                throw new Error(`Error ${response.status}: ${response.statusText}`);
+            }
+            const result = await response.json();
+
+            const data = Array.isArray(result) ? result : result.data || [];
+
+            const mappedData = data.map((p: any) => ({
+                _id: p._id,
+                codigo_producto: p.codigo_producto,
+                nombre_producto: p.nombre_producto,
+                categoria_producto: typeof p.categoria_producto === 'object'
+                    ? p.categoria_producto?.nombre_categoria
+                    : p.categoria_producto,
+                precio_compra: p.precio_compra,
+                precio_venta: p.precio_venta,
+                stock_inicial: p.stock_inicial,
+                stock_minimo: p.stock_minimo,
+                estado: typeof p.estado === 'object'
+                    ? p.estado?.estado
+                    : p.estado,
+            }));
+
+            setProductos(mappedData);
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : 'Error al cargar productos';
+            setErrorProductos(msg);
+            console.error('Error fetching productos:', error);
+        } finally {
+            setLoadingProductos(false);
+        }
+    };
+
+    // Filtrar productos según búsqueda
     const productosFiltrados = productos.filter((producto) => {
         const texto = search.toLowerCase();
         return (
-            producto.nombre.toLowerCase().includes(texto) ||
-            producto.categoria.toLowerCase().includes(texto) ||
-            producto.precio.toString().includes(texto)
+            producto.nombre_producto.toLowerCase().includes(texto) ||
+            producto.categoria_producto.toLowerCase().includes(texto) ||
+            producto.precio_venta.toString().includes(texto) ||
+            producto.codigo_producto.toLowerCase().includes(texto)
         );
     });
 
@@ -111,7 +121,7 @@ export default function PuntoVentaPage() {
     const [clienteSeleccionado, setClienteSeleccionado] = useState<ClienteFormData | null>(null);
 
     const [carrito, setCarrito] = React.useState<any[]>([]);
-    const [animateId, setAnimateId] = React.useState<number | null>(null);
+    const [animateId, setAnimateId] = React.useState<string | null>(null);
 
     // 💳 Pago mixto
     const [transferencia, setTransferencia] = React.useState("");
@@ -136,21 +146,31 @@ export default function PuntoVentaPage() {
         setOpenPagoCredito(false);
     };
 
-    const agregarAlCarrito = (producto: any) => {
-        setAnimateId(producto.id);
+    const agregarAlCarrito = (producto: ProductoAPI) => {
+        setAnimateId(producto._id);
 
         setCarrito((prev) => {
-            const existe = prev.find((p) => p.id === producto.id);
+            const existe = prev.find((p) => p.id === producto._id);
 
             if (existe) {
                 return prev.map((p) =>
-                    p.id === producto.id
+                    p.id === producto._id
                         ? { ...p, cantidad: p.cantidad + 1 }
                         : p
                 );
             }
 
-            return [...prev, { ...producto, cantidad: 1 }];
+            // Mapear ProductoAPI al formato del carrito
+            return [...prev, {
+                id: producto._id,
+                codigo: producto.codigo_producto,
+                nombre: producto.nombre_producto,
+                precio: producto.precio_venta, // ← Usamos precio_venta
+                stock: producto.stock_inicial,
+                categoria: producto.categoria_producto,
+                cantidad: 1,
+                descuento: 0
+            }];
         });
 
         setTimeout(() => setAnimateId(null), 300);
@@ -212,11 +232,11 @@ export default function PuntoVentaPage() {
 
     const finalizarVenta = () => {
         const nuevosProductos = productosStock.map(prod => {
-            const item = carrito.find(p => p.id === prod.id);
+            const item = carrito.find(p => p.id === prod._id);
             if (item) {
                 return {
                     ...prod,
-                    stock: prod.stock - item.cantidad
+                    stock: prod.stock_inicial - item.cantidad
                 };
             }
             return prod;
@@ -637,19 +657,46 @@ export default function PuntoVentaPage() {
                                     LISTA DE PRODUCTOS (tarjetas estilo referencia)
                                     ═══════════════════════════════════════════════════════════ */}
                                 <Stack spacing={1.5}>
-                                    {productosFiltrados.length > 0 ? (
+                                    {loadingProductos ? (
+                                        // Skeletons de carga
+                                        <>
+                                            <ProductCard codigo="" nombre="" precio={0} stock={0} loading />
+                                            <ProductCard codigo="" nombre="" precio={0} stock={0} loading />
+                                            <ProductCard codigo="" nombre="" precio={0} stock={0} loading />
+                                            <ProductCard codigo="" nombre="" precio={0} stock={0} loading />
+                                            <ProductCard codigo="" nombre="" precio={0} stock={0} loading />
+                                            <ProductCard codigo="" nombre="" precio={0} stock={0} loading />
+                                        </>
+                                    ) : errorProductos ? (
+                                        // Error
+                                        <Box sx={{ textAlign: "center", py: 6 }}>
+                                            <Alert severity="error" sx={{ mb: 2 }}>
+                                                {errorProductos}
+                                            </Alert>
+                                            <Button
+                                                variant="outlined"
+                                                onClick={fetchProductos}
+                                                startIcon={<SearchIcon />}
+                                            >
+                                                Reintentar
+                                            </Button>
+                                        </Box>
+                                    ) : productosFiltrados.length > 0 ? (
+                                        // Productos reales de la base de datos
                                         productosFiltrados.map((producto) => (
                                             <ProductCard
-                                                key={producto.id}
-                                                nombre={producto.nombre}
-                                                precio={producto.precio}
-                                                stock={producto.stock}
-                                                categoria={producto.categoria}
-                                                imagen={producto.imagen}
+                                                key={producto._id}
+                                                codigo={producto.codigo_producto}
+                                                nombre={producto.nombre_producto}
+                                                precio={producto.precio_venta}
+                                                stock={producto.stock_inicial}
+                                                stockMinimo={producto.stock_minimo}
+                                                categoria={producto.categoria_producto} // ← Ya es string, no objeto
                                                 onAddToCart={() => agregarAlCarrito(producto)}
                                             />
                                         ))
                                     ) : (
+                                        // Sin resultados
                                         <Box
                                             sx={{
                                                 width: "100%",
@@ -672,10 +719,10 @@ export default function PuntoVentaPage() {
                                                 <SearchIcon sx={{ fontSize: 32 }} />
                                             </Avatar>
                                             <Typography color="text.secondary" sx={{ fontWeight: 500 }}>
-                                                No se encontraron productos
+                                                {search ? "No se encontraron productos" : "No hay productos disponibles"}
                                             </Typography>
                                             <Typography variant="caption" color="text.disabled">
-                                                Intenta con otro término de búsqueda
+                                                {search ? "Intenta con otro término de búsqueda" : "La base de datos está vacía"}
                                             </Typography>
                                         </Box>
                                     )}

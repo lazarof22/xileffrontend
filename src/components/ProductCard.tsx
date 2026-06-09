@@ -1,23 +1,26 @@
 // src/components/ProductCard.tsx
 import {
     Card,
-    CardContent,
     Typography,
     Button,
     Box,
     Avatar,
     Chip,
+    Skeleton,
 } from "@mui/material";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import ImageIcon from "@mui/icons-material/Image";
 
 interface ProductCardProps {
+    codigo: string;
     nombre: string;
     precio: number;
     stock: number;
-    categoria: string;
+    stockMinimo?: number;
+    categoria?: string;
     imagen?: string;
     onAddToCart?: () => void;
+    loading?: boolean;
 }
 
 const formatCurrency = (value: number) => {
@@ -28,13 +31,44 @@ const formatCurrency = (value: number) => {
 };
 
 export default function ProductCard({
+    codigo,
     nombre,
     precio,
     stock,
+    stockMinimo,
     categoria,
     onAddToCart,
+    loading = false,
 }: ProductCardProps) {
     const sinStock = stock <= 0;
+    const stockBajo = stockMinimo !== undefined && stock > 0 && stock <= stockMinimo;
+
+    if (loading) {
+        return (
+            <Card
+                elevation={0}
+                sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    p: 2,
+                    borderRadius: 3,
+                    border: "1px solid rgba(0,0,0,0.04)",
+                    bgcolor: "white",
+                }}
+            >
+                <Skeleton variant="rounded" width={80} height={80} sx={{ mr: 2.5, borderRadius: 2.5 }} />
+                <Box sx={{ flex: 1 }}>
+                    <Skeleton width="60%" height={24} />
+                    <Skeleton width="40%" height={20} sx={{ mt: 0.5 }} />
+                    <Skeleton width="30%" height={22} sx={{ mt: 1 }} />
+                </Box>
+                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 1 }}>
+                    <Skeleton width={80} height={28} />
+                    <Skeleton width={120} height={36} sx={{ borderRadius: 2 }} />
+                </Box>
+            </Card>
+        );
+    }
 
     return (
         <Card
@@ -56,9 +90,7 @@ export default function ProductCard({
                 },
             }}
         >
-            {/* ═══════════════════════════════════════════════════════════
-                IMAGEN PLACEHOLDER (estilo referencia)
-                ═══════════════════════════════════════════════════════════ */}
+            {/* IMAGEN PLACEHOLDER */}
             <Avatar
                 variant="rounded"
                 sx={{
@@ -74,9 +106,7 @@ export default function ProductCard({
                 <ImageIcon sx={{ fontSize: 32 }} />
             </Avatar>
 
-            {/* ═══════════════════════════════════════════════════════════
-                INFO DEL PRODUCTO
-                ═══════════════════════════════════════════════════════════ */}
+            {/* INFO DEL PRODUCTO */}
             <Box sx={{ flex: 1, minWidth: 0, mr: 2 }}>
                 <Typography
                     sx={{
@@ -105,12 +135,12 @@ export default function ProductCard({
                         overflow: "hidden",
                     }}
                 >
-                    {categoria}
+                    {categoria || "Sin categoría"}
                 </Typography>
 
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <Chip
-                        label={sinStock ? "Sin Stock" : `${stock} disponibles`}
+                        label={sinStock ? "Sin Stock" : stockBajo ? `¡Solo ${stock}!` : `${stock} disponibles`}
                         size="small"
                         sx={{
                             height: 22,
@@ -118,19 +148,35 @@ export default function ProductCard({
                             fontWeight: 600,
                             bgcolor: sinStock
                                 ? "rgba(255, 0, 0, 0.08)"
-                                : "rgba(10, 218, 20, 0.1)",
+                                : stockBajo
+                                    ? "rgba(255, 140, 0, 0.1)"
+                                    : "rgba(10, 218, 20, 0.1)",
                             color: sinStock
                                 ? "rgb(220, 20, 60)"
-                                : "rgb(10, 218, 20)",
+                                : stockBajo
+                                    ? "rgb(255, 140, 0)"
+                                    : "rgb(10, 218, 20)",
                             borderRadius: 1,
                         }}
                     />
+                    {stockBajo && !sinStock && (
+                        <Chip
+                            label="Stock bajo"
+                            size="small"
+                            sx={{
+                                height: 22,
+                                fontSize: "0.65rem",
+                                fontWeight: 600,
+                                bgcolor: "rgba(255, 140, 0, 0.08)",
+                                color: "rgb(255, 140, 0)",
+                                borderRadius: 1,
+                            }}
+                        />
+                    )}
                 </Box>
             </Box>
 
-            {/* ═══════════════════════════════════════════════════════════
-                PRECIO + BOTÓN
-                ═══════════════════════════════════════════════════════════ */}
+            {/* PRECIO + BOTÓN */}
             <Box
                 sx={{
                     display: "flex",
