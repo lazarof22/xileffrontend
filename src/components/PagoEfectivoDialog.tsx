@@ -12,7 +12,8 @@ import {
     Typography,
     Divider,
     Grid,
-    Box
+    Box,
+    Card
 } from '@mui/material';
 import MoneyIcon from '@mui/icons-material/Money';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -24,6 +25,8 @@ export interface PagoEfectivoData {
     monto_a_pagar: string;
     monto_pagado: string;
     cambio: string;
+    billestes_5000: string;
+    billetes_2000: string;
     billetes_1000: string;
     billetes_500: string;
     billetes_200: string;
@@ -54,6 +57,8 @@ const initialPago: PagoEfectivoData = {
     monto_a_pagar: '',
     monto_pagado: '',
     cambio: '0.00',
+    billestes_5000: '',
+    billetes_2000: '',
     billetes_1000: '',
     billetes_500: '',
     billetes_200: '',
@@ -67,6 +72,8 @@ const initialPago: PagoEfectivoData = {
 };
 
 const billetesConfig = [
+    { key: 'billestes_5000' as const, label: 'Billetes de 5000', denom: 5000 },
+    { key: 'billetes_2000' as const, label: 'Billetes de 2000', denom: 2000 },
     { key: 'billetes_1000' as const, label: 'Billetes de 1000', denom: 1000 },
     { key: 'billetes_500' as const, label: 'Billetes de 500', denom: 500 },
     { key: 'billetes_200' as const, label: 'Billetes de 200', denom: 200 },
@@ -300,28 +307,44 @@ export default function DialogPagoEfectivo({
                         </Typography>
                     </Divider>
 
-                    <Grid container spacing={2}>
-                        {billetesConfig.map(billete => (
-                            <Grid item xs={6} sm={4} key={billete.key}>
-                                <TextField
-                                    fullWidth
-                                    label={billete.label}
-                                    margin="dense"
-                                    size="small"
-                                    type="number"
-                                    value={pagoData[billete.key]}
-                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                        handleChange(billete.key, e.target.value)
-                                    }
-                                    error={!!errors.billetes_1000 && billete.key === 'billetes_1000'}
-                                    helperText={billete.key === 'billetes_1000' ? errors.billetes_1000 : ''}
-                                    disabled={loading}
-                                    slotProps={{ min: 0 }}
-                                    placeholder="0"
-                                />
-                            </Grid>
-                        ))}
-                    </Grid>
+                    <Box sx={{ display: "flex", justifyContent: "center" }}>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                justifyContent: "center",
+                                gap: 2,
+                                maxWidth: 600
+                            }}
+                        >
+                            {billetesConfig.map(billete => (
+                                <Card
+                                    key={billete.key}
+                                    sx={{
+                                        width: { xs: 'calc(50% - 8px)', sm: 'calc(33.333% - 11px)' },
+                                        p: 1.5,
+                                    }}
+                                >
+                                    <TextField
+                                        fullWidth
+                                        label={billete.label}
+                                        margin="dense"
+                                        size="small"
+                                        type="number"
+                                        value={pagoData[billete.key]}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                            handleChange(billete.key, e.target.value)
+                                        }
+                                        error={!!errors.billetes_1000 && billete.key === 'billetes_1000'}
+                                        helperText={billete.key === 'billetes_1000' ? errors.billetes_1000 : ''}
+                                        disabled={loading}
+                                        slotProps={{ min: 0 }}
+                                        placeholder="0"
+                                    />
+                                </Card>
+                            ))}
+                        </Box>
+                    </Box>
 
                     <Box
                         sx={{
