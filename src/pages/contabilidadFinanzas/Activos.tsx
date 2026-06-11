@@ -30,25 +30,25 @@ export default function Activos() {
         const fetchActivos = async () => {
             setLoading(true);
             try {
-                const response = await fetch(`${API_URL}/activo-fijo`);
-                if (!response.ok) throw new Error('Error al cargar productos');
+                const response = await fetch(`${API_URL}/activofijo`);
+                if (!response.ok) throw new Error('Error al cargar activos');
                 const result = await response.json();
 
                 const data = Array.isArray(result) ? result : result.data || [];
 
                 const mappedData = data.map((p: any) => ({
-                    /**
-                     * id: p._id,
-                    codigo: p.codigo_producto,
-                    producto: p.nombre_producto,
-                    categoria: p.categoria_producto,
-                    precioCompra: p.precio_compra,
-                    precioVenta: p.precio_venta,
-                    stock: p.stock_inicial,
-                    stockMinimo: p.stock_minimo,
-                    estado: p.estado,
+                    id: p._id,
+                    codigo: p.codigoActivo,
+                    descripcion: p.descripcionActivo,
+                    fechaCompra: p.fechaCompra,
+                    movimiento: p.movimiento,
+                    estado: p.estadoActivo, // Es ObjectId, probablemente necesites popularlo en backend
+                    valor: p.valor,
+                    ajusteValor: p.ajusteValor,
+                    depreciacion: p.depreciacionAcumulada,
+                    comprasActivos: p.compra,
+                    estadoActivo: p.estadoActivo, // Duplicado para la columna "estado" numérica si aplica
                     _original: p
-                     */
                 }));
 
                 setRows(mappedData);
@@ -63,6 +63,11 @@ export default function Activos() {
 
         fetchActivos();
     }, [])
+
+    // Handler para eliminar activo seleccionado
+    const handleDelete = async () => {
+        // Implementar según tu CustomDataGrid (necesitarás selección de filas)
+    };
 
     return (
         <div>
@@ -103,34 +108,60 @@ export default function Activos() {
                     >
                         Nuevo Activo
                     </Button>
+                    <Button
+                        variant="contained"
+                        startIcon={<DeleteIcon />}
+                        sx={{
+                            ml: 1,
+                            background: "#d32f2f",
+                            color: "#fff",
+                            textTransform: "none",
+                            fontWeight: 600,
+                            boxShadow: "none",
+                            "&:hover": {
+                                background: "#b71c1c",
+                                boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
+                            }
+                        }}
+                        onClick={handleDelete}
+                    >
+                        Eliminar
+                    </Button>
                 </Box>
             </Box>
             <AddActivoDialog
                 open={openCreateActivo}
                 onClose={() => setOpenCreateActivo(false)}
                 onActivoCreado={(activo: ActivoFormData) => {
-
+                    setSnackbarMessage('Activo creado exitosamente');
+                    setSnackbarSeverity('success');
+                    setOpenSnackbar(true);
                     setOpenCreateActivo(false);
+                    // Refrescar la lista
+                    // Opción 1: Agregar el nuevo activo al estado local
+                    // setRows(prev => [...prev, { id: activo._id, ... }]);
+                    // Opción 2: Volver a fetchear
                 }}
-            ></AddActivoDialog>
+            />
 
             {/* Tabla de activos */}
             <Card sx={{ width: '100%', p: 2 }}>
                 <CustomDataGrid
                     title="Activos"
                     rows={rows}
+                    loading={loading}
                     getRowId={(row) => row.id}
                     columns={[
                         { field: "codigo", headerName: "Código" },
                         { field: "descripcion", headerName: "Descripción" },
-                        { field: "fecha de compra", headerName: "Fecha compra" },
+                        { field: "fechaCompra", headerName: "Fecha compra" },
                         { field: "movimiento", headerName: "Movimiento" },
                         { field: "estado", headerName: "Estado" },
                         { field: "valor", headerName: "Valor", numeric: true },
-                        { field: "ajuste de Valor", headerName: "Ajuste valor", numeric: true },
+                        { field: "ajusteValor", headerName: "Ajuste valor", numeric: true },
                         { field: "depreciacion", headerName: "Depreciación", numeric: true },
-                        { field: "compras de activos", headerName: "Compras activos", numeric: true },
-                        { field: "estado", headerName: "Estado", numeric: true },
+                        { field: "comprasActivos", headerName: "Compras activos", numeric: true },
+                        { field: "estadoActivo", headerName: "Estado", numeric: true },
                     ]}
                 />
             </Card>
