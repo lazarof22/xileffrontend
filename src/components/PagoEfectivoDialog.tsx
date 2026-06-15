@@ -11,7 +11,6 @@ import {
     Snackbar,
     Typography,
     Divider,
-    Grid,
     Box,
     Card
 } from '@mui/material';
@@ -165,7 +164,11 @@ export default function DialogPagoEfectivo({
 
         const totalBilletes = calcularTotalBilletes();
         if (totalBilletes !== montoPagado) {
-            newErrors.billetes_1000 = `La suma de billetes (${totalBilletes.toFixed(2)}) no coincide con el monto pagado (${montoPagado.toFixed(2)})`;
+            setSnackbar({
+                open: true,
+                message: `La suma de billetes (${totalBilletes.toFixed(2)}) no coincide con el monto pagado (${montoPagado.toFixed(2)})`,
+                severity: 'error'
+            });
         }
 
         setErrors(newErrors);
@@ -173,6 +176,28 @@ export default function DialogPagoEfectivo({
     };
 
     const handleFinalizarPago = async (): Promise<void> => {
+        const totalBilletes = calcularTotalBilletes();
+        const montoPagado = parseFloat(pagoData.monto_pagado);
+        const montoaPagar = parseFloat(pagoData.monto_a_pagar);
+
+        if (totalBilletes > montoPagado) {
+            setSnackbar({
+                open: true,
+                message: 'El Total en Billetes no coincide con el Monto Pagado, inserte un monto mayor',
+                severity: 'error'
+            });
+            return;
+        }
+
+        if (montoaPagar === 0) {
+            setSnackbar({
+                open: true,
+                message: 'Seleccione un producto del Stock',
+                severity: 'error'
+            });
+            return;
+        }
+
         if (!validate()) return;
 
         setLoading(true);
@@ -264,7 +289,7 @@ export default function DialogPagoEfectivo({
                         margin="normal"
                         value={pagoData.monto_a_pagar}
                         disabled
-                        slotProps={{ readOnly: true }}
+                        slotProps={{ input: { readOnly: true } }}
                         sx={{
                             "& .MuiInputBase-input": {
                                 fontWeight: 700,
@@ -292,7 +317,7 @@ export default function DialogPagoEfectivo({
                         margin="normal"
                         value={pagoData.cambio}
                         disabled
-                        slotProps={{ readOnly: true }}
+                        slotProps={{ input: { readOnly: true } }}
                         sx={{
                             "& .MuiInputBase-input": {
                                 color: parseFloat(pagoData.cambio) > 0 ? "#2e7d32" : "inherit",
@@ -338,7 +363,7 @@ export default function DialogPagoEfectivo({
                                         error={!!errors.billetes_1000 && billete.key === 'billetes_1000'}
                                         helperText={billete.key === 'billetes_1000' ? errors.billetes_1000 : ''}
                                         disabled={loading}
-                                        slotProps={{ min: 0 }}
+                                        slotProps={{ htmlInput: { min: 0 } }}
                                         placeholder="0"
                                     />
                                 </Card>
@@ -364,6 +389,11 @@ export default function DialogPagoEfectivo({
                         {calcularTotalBilletes() !== (parseFloat(pagoData.monto_pagado) || 0) && (
                             <Typography variant="caption" color="error">
                                 ⚠️ Los totales no coinciden
+                            </Typography>
+                        )}
+                        {calcularTotalBilletes() > parseFloat(pagoData.monto_pagado || "0") && (
+                            <Typography variant="caption" color="error" sx={{ display: 'block', mb: 1 }}>
+                                ⚠️ El total en billetes no coincide con el monto pagado, inserte un monto mayor
                             </Typography>
                         )}
                     </Box>
@@ -399,7 +429,7 @@ export default function DialogPagoEfectivo({
                     <Button
                         variant="contained"
                         onClick={handleFinalizarPago}
-                        disabled={loading}
+                        disabled={loading || calcularTotalBilletes() < parseFloat(pagoData.monto_pagado || "0")}
                         fullWidth
                         startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <CheckCircleIcon />}
                         sx={{

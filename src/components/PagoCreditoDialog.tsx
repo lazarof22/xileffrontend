@@ -78,7 +78,7 @@ export default function PagoCreditoDialog({
     const [snackbar, setSnackbar] = useState<{
         open: boolean;
         message: string;
-        severity: 'success' | 'error';
+        severity: 'success' | 'error' | 'warning';
     }>({
         open: false,
         message: '',
@@ -155,13 +155,18 @@ export default function PagoCreditoDialog({
             newErrors.cliente = 'El cliente es requerido';
         }
         if (!idCliente.trim()) {
-            newErrors.id_cliente = 'El CI es requerido';
+            newErrors.id_cliente = 'El Carnet de Identidad es requerido';
         }
         if (!telefono.trim()) {
             newErrors.telefono_cliente = 'El teléfono es requerido';
         }
         if (!montoPagar.trim() || isNaN(Number(montoPagar)) || Number(montoPagar) <= 0) {
             newErrors.monto_pagar = 'El monto debe ser mayor a 0';
+            setSnackbar({
+                open: true,
+                message: 'Seleccione un producto del Stock',
+                severity: 'warning'
+            });
         }
 
         setErrors(newErrors);
@@ -169,6 +174,7 @@ export default function PagoCreditoDialog({
     };
 
     const handleFinalizarPago = async (): Promise<void> => {
+
         if (!validate()) return;
 
         setLoading(true);
@@ -358,7 +364,7 @@ export default function PagoCreditoDialog({
                     {/* CI */}
                     <TextField
                         fullWidth
-                        label="CI"
+                        label="Carnet de Identidad"
                         margin="normal"
                         size="small"
                         value={idCliente}
@@ -372,7 +378,7 @@ export default function PagoCreditoDialog({
                             errors.id_cliente ||
                             (idCliente.length > 0 && idCliente.length !== 11
                                 ? `Debe tener exactamente 11 dígitos (${idCliente.length}/11)`
-                                : "Ingrese los 11 dígitos del carnet")
+                                : "Inserte el carnet de identidad")
                         }
                         disabled={loading}
                         slotProps={{

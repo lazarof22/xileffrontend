@@ -242,7 +242,7 @@ export default function DialogCrearCliente({
                             errors.id_cliente ||
                             (newCliente.id_cliente.length > 0 && newCliente.id_cliente.length !== 11
                                 ? `Debe tener exactamente 11 dígitos (${newCliente.id_cliente.length}/11)`
-                                : "Ingrese los 11 dígitos del carnet")
+                                : "Inserte el carnet de identidad")
                         }
                         disabled={loading}
                         slotProps={{
