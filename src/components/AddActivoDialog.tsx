@@ -1,5 +1,5 @@
 // src/components/AddActivoDialog.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -30,37 +30,38 @@ export interface ActivoFormData {
     area: string;
     fechaCompra: string;
     valor: number;
+    valorResidual: number;
     depreciacionActivo: string;
-    depreciacionAcumulada: number;
+    moneda: string;
     vidaUtil: number;
-    compra: string;
+    pais: string;
+    concepto: string;
     ajusteValor: number;
-    movimiento: 'ALTA' | 'BAJA';
+    movimiento: string;
     estadoActivo: string;
+}
+
+export interface NomencladorItem {
+    _id: string;
+    nombre: string;
 }
 
 export interface AddActivoDialogProps {
     open: boolean;
     onClose: () => void;
-    onActivoCreado?: (activo: ActivoFormData) => void;
+    onActivoCreado?: () => void;
 }
 
-// ==================== CONSTANTES ====================
-const MOVIMIENTOS = [
-    { label: "Alta", value: "ALTA" },
-    { label: "Baja", value: "BAJA" },
-];
-
-// Estilo base para cada CELDA del grid (cada input ocupa una celda)
+// Estilo base para cada CELDA del grid
 const CELL_STYLE = {
     flex: '1 1 45%',
     display: 'flex',
     flexDirection: 'column' as const,
-    justifyContent: 'flex-end', // Alinea el contenido al fondo para que los labels queden arriba alineados
-    minHeight: 80, // Altura mínima consistente para todas las celdas
+    justifyContent: 'flex-end',
+    minHeight: 80,
 };
 
-// Estilo para el label de los DatePickers (mismo estilo que MUI InputLabel)
+// Estilo para el label de los DatePickers
 const LABEL_STYLE = {
     fontSize: '0.75rem',
     color: 'rgba(0, 0, 0, 0.6)',
@@ -84,16 +85,78 @@ export default function AddActivoDialog({
         area: "",
         fechaCompra: "",
         valor: 0,
+        valorResidual: 0,
         depreciacionActivo: "",
-        depreciacionAcumulada: 0,
+        moneda: "",
         vidaUtil: 0,
-        compra: "",
+        pais: "",
+        concepto: "",
         ajusteValor: 0,
-        movimiento: "ALTA",
+        movimiento: "",
         estadoActivo: "",
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
+
+    // Nomencladores
+    const [proveedores, setProveedores] = useState<NomencladorItem[]>([]);
+    const [areas, setAreas] = useState<NomencladorItem[]>([]);
+    const [monedas, setMonedas] = useState<NomencladorItem[]>([]);
+    const [paises, setPaises] = useState<NomencladorItem[]>([]);
+    const [conceptos, setConceptos] = useState<NomencladorItem[]>([]);
+    const [movimientos, setMovimientos] = useState<NomencladorItem[]>([]);
+    const [estados, setEstados] = useState<NomencladorItem[]>([]);
+    const [loadingNomencladores, setLoadingNomencladores] = useState(false);
+
+    // Cargar nomencladores al abrir el diálogo
+    useEffect(() => {
+        if (!open) return;
+
+        const fetchNomencladores = async () => {
+            setLoadingNomencladores(true);
+            try {
+                const [
+                    resProv,
+                    resArea,
+                    resMon,
+                    resPais,
+                    resConc,
+                    resMov,
+                    resEst
+                ] = await Promise.all([
+                    fetch(`${API_URL}/empresas`),
+                    fetch(`${API_URL}/areas`),
+                    fetch(`${API_URL}/monedas`),
+                    fetch(`${API_URL}/paises`),
+                    fetch(`${API_URL}/conceptos`),
+                    fetch(`${API_URL}/movimientos`),
+                    fetch(`${API_URL}/estados`),
+                ]);
+
+                const dataProv = resProv.ok ? await resProv.json() : [];
+                const dataArea = resArea.ok ? await resArea.json() : [];
+                const dataMon = resMon.ok ? await resMon.json() : [];
+                const dataPais = resPais.ok ? await resPais.json() : [];
+                const dataConc = resConc.ok ? await resConc.json() : [];
+                const dataMov = resMov.ok ? await resMov.json() : [];
+                const dataEst = resEst.ok ? await resEst.json() : [];
+
+                setProveedores(Array.isArray(dataProv) ? dataProv : dataProv.data || []);
+                setAreas(Array.isArray(dataArea) ? dataArea : dataArea.data || []);
+                setMonedas(Array.isArray(dataMon) ? dataMon : dataMon.data || []);
+                setPaises(Array.isArray(dataPais) ? dataPais : dataPais.data || []);
+                setConceptos(Array.isArray(dataConc) ? dataConc : dataConc.data || []);
+                setMovimientos(Array.isArray(dataMov) ? dataMov : dataMov.data || []);
+                setEstados(Array.isArray(dataEst) ? dataEst : dataEst.data || []);
+            } catch (err) {
+                console.error('Error cargando nomencladores:', err);
+            } finally {
+                setLoadingNomencladores(false);
+            }
+        };
+
+        fetchNomencladores();
+    }, [open]);
 
     // ==================== HANDLERS ====================
     const handleChange = (field: keyof ActivoFormData, value: string | number) => {
@@ -119,9 +182,14 @@ export default function AddActivoDialog({
         if (!newActivo.area.trim()) newErrors.area = "El área es obligatoria";
         if (!newActivo.fechaCompra) newErrors.fechaCompra = "La fecha de compra es obligatoria";
         if (newActivo.valor <= 0) newErrors.valor = "El valor debe ser mayor a 0";
+        if (newActivo.valorResidual < 0) newErrors.valorResidual = "El valor residual no puede ser negativo";
         if (!newActivo.depreciacionActivo.trim()) newErrors.depreciacionActivo = "La tasa de depreciación es obligatoria";
-        if (newActivo.vidaUtil <= 0) newErrors.vidaUtil = "La vida útil debe ser mayor a 0";
-        if (!newActivo.compra.trim()) newErrors.compra = "La compra es obligatoria";
+        if (!newActivo.moneda.trim()) newErrors.moneda = "La moneda es obligatoria";
+        if (newActivo.vidaUtil < 1) newErrors.vidaUtil = "La vida útil debe ser al menos 1 año";
+        if (!newActivo.pais.trim()) newErrors.pais = "El país es obligatorio";
+        if (!newActivo.concepto.trim()) newErrors.concepto = "El concepto es obligatorio";
+        if (newActivo.ajusteValor < 0) newErrors.ajusteValor = "El ajuste de valor no puede ser negativo";
+        if (!newActivo.movimiento.trim()) newErrors.movimiento = "El movimiento es obligatorio";
         if (!newActivo.estadoActivo.trim()) newErrors.estadoActivo = "El estado es obligatorio";
 
         setErrors(newErrors);
@@ -149,7 +217,7 @@ export default function AddActivoDialog({
             const createdActivo = await response.json();
 
             if (onActivoCreado) {
-                onActivoCreado(createdActivo);
+                onActivoCreado();
             }
 
             // Resetear formulario
@@ -160,12 +228,14 @@ export default function AddActivoDialog({
                 area: "",
                 fechaCompra: "",
                 valor: 0,
+                valorResidual: 0,
                 depreciacionActivo: "",
-                depreciacionAcumulada: 0,
+                moneda: "",
                 vidaUtil: 0,
-                compra: "",
+                pais: "",
+                concepto: "",
                 ajusteValor: 0,
-                movimiento: "ALTA",
+                movimiento: "",
                 estadoActivo: "",
             });
             setFechaCompra(null);
@@ -187,12 +257,14 @@ export default function AddActivoDialog({
             area: "",
             fechaCompra: "",
             valor: 0,
+            valorResidual: 0,
             depreciacionActivo: "",
-            depreciacionAcumulada: 0,
+            moneda: "",
             vidaUtil: 0,
-            compra: "",
+            pais: "",
+            concepto: "",
             ajusteValor: 0,
-            movimiento: "ALTA",
+            movimiento: "",
             estadoActivo: "",
         });
         setFechaCompra(null);
@@ -242,7 +314,7 @@ export default function AddActivoDialog({
                 </DialogTitle>
                 <DialogContent sx={{ mt: 1 }}>
                     {/* ═══════════════════════════════════════════════════════
-                        GRID DE 2 COLUMNAS CON ALINEACIÓN PERFECTA
+                        GRID DE 2 COLUMNAS
                         ═══════════════════════════════════════════════════════ */}
                     
                     {/* Fila 1: Código y Descripción */}
@@ -275,31 +347,46 @@ export default function AddActivoDialog({
                     <Box sx={{ display: 'flex', gap: 3, mb: 2 }}>
                         <Box sx={CELL_STYLE}>
                             <TextField
+                                select
                                 fullWidth
                                 size="small"
-                                label="Proveedor (ID)"
+                                label="Proveedor"
                                 value={newActivo.proveedor}
                                 onChange={(e) => handleChange("proveedor", e.target.value)}
                                 error={!!errors.proveedor}
                                 helperText={errors.proveedor || ""}
-                            />
+                                disabled={loadingNomencladores}
+                            >
+                                {proveedores.map((p) => (
+                                    <MenuItem key={p._id} value={p._id}>
+                                        {p.nombre}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
                         </Box>
                         <Box sx={CELL_STYLE}>
                             <TextField
+                                select
                                 fullWidth
                                 size="small"
-                                label="Área (ID)"
+                                label="Área"
                                 value={newActivo.area}
                                 onChange={(e) => handleChange("area", e.target.value)}
                                 error={!!errors.area}
                                 helperText={errors.area || ""}
-                            />
+                                disabled={loadingNomencladores}
+                            >
+                                {areas.map((a) => (
+                                    <MenuItem key={a._id} value={a._id}>
+                                        {a.nombre}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
                         </Box>
                     </Box>
 
-                    {/* Fila 3: Fecha de compra (MobileDatePicker) y Valor */}
+                    {/* Fila 3: Fecha de Compra y Valor */}
                     <Box sx={{ display: 'flex', gap: 3, mb: 2 }}>
-                        {/* FECHA DE COMPRA - MobileDatePicker */}
                         <Box sx={CELL_STYLE}>
                             <Typography sx={LABEL_STYLE}>
                                 Fecha de Compra *
@@ -344,7 +431,35 @@ export default function AddActivoDialog({
                         </Box>
                     </Box>
 
-                    {/* Fila 4: Tasa de depreciación y Depreciación acumulada */}
+                    {/* Fila 4: Valor Residual y Vida Útil */}
+                    <Box sx={{ display: 'flex', gap: 3, mb: 2 }}>
+                        <Box sx={CELL_STYLE}>
+                            <TextField
+                                fullWidth
+                                size="small"
+                                type="number"
+                                label="Valor Residual"
+                                value={newActivo.valorResidual}
+                                onChange={(e) => handleChange("valorResidual", Number(e.target.value))}
+                                error={!!errors.valorResidual}
+                                helperText={errors.valorResidual}
+                            />
+                        </Box>
+                        <Box sx={CELL_STYLE}>
+                            <TextField
+                                fullWidth
+                                size="small"
+                                type="number"
+                                label="Vida Útil (años)"
+                                value={newActivo.vidaUtil}
+                                onChange={(e) => handleChange("vidaUtil", Number(e.target.value))}
+                                error={!!errors.vidaUtil}
+                                helperText={errors.vidaUtil}
+                            />
+                        </Box>
+                    </Box>
+
+                    {/* Fila 5: Tasa Depreciación y Moneda */}
                     <Box sx={{ display: 'flex', gap: 3, mb: 2 }}>
                         <Box sx={CELL_STYLE}>
                             <TextField
@@ -359,44 +474,68 @@ export default function AddActivoDialog({
                         </Box>
                         <Box sx={CELL_STYLE}>
                             <TextField
+                                select
                                 fullWidth
                                 size="small"
-                                type="number"
-                                label="Depreciación Acumulada"
-                                value={newActivo.depreciacionAcumulada}
-                                onChange={(e) => handleChange("depreciacionAcumulada", Number(e.target.value))}
-                            />
+                                label="Moneda"
+                                value={newActivo.moneda}
+                                onChange={(e) => handleChange("moneda", e.target.value)}
+                                error={!!errors.moneda}
+                                helperText={errors.moneda || ""}
+                                disabled={loadingNomencladores}
+                            >
+                                {monedas.map((m) => (
+                                    <MenuItem key={m._id} value={m._id}>
+                                        {m.nombre}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
                         </Box>
                     </Box>
 
-                    {/* Fila 5: Vida útil y Compra */}
+                    {/* Fila 6: País y Concepto */}
                     <Box sx={{ display: 'flex', gap: 3, mb: 2 }}>
                         <Box sx={CELL_STYLE}>
                             <TextField
+                                select
                                 fullWidth
                                 size="small"
-                                type="number"
-                                label="Vida Útil (años)"
-                                value={newActivo.vidaUtil}
-                                onChange={(e) => handleChange("vidaUtil", Number(e.target.value))}
-                                error={!!errors.vidaUtil}
-                                helperText={errors.vidaUtil}
-                            />
+                                label="País"
+                                value={newActivo.pais}
+                                onChange={(e) => handleChange("pais", e.target.value)}
+                                error={!!errors.pais}
+                                helperText={errors.pais || ""}
+                                disabled={loadingNomencladores}
+                            >
+                                {paises.map((p) => (
+                                    <MenuItem key={p._id} value={p._id}>
+                                        {p.nombre}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
                         </Box>
                         <Box sx={CELL_STYLE}>
                             <TextField
+                                select
                                 fullWidth
                                 size="small"
-                                label="Compra"
-                                value={newActivo.compra}
-                                onChange={(e) => handleChange("compra", e.target.value)}
-                                error={!!errors.compra}
-                                helperText={errors.compra}
-                            />
+                                label="Concepto"
+                                value={newActivo.concepto}
+                                onChange={(e) => handleChange("concepto", e.target.value)}
+                                error={!!errors.concepto}
+                                helperText={errors.concepto || ""}
+                                disabled={loadingNomencladores}
+                            >
+                                {conceptos.map((c) => (
+                                    <MenuItem key={c._id} value={c._id}>
+                                        {c.nombre}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
                         </Box>
                     </Box>
 
-                    {/* Fila 6: Ajuste de valor y Movimiento */}
+                    {/* Fila 7: Ajuste Valor y Movimiento */}
                     <Box sx={{ display: 'flex', gap: 3, mb: 2 }}>
                         <Box sx={CELL_STYLE}>
                             <TextField
@@ -406,6 +545,8 @@ export default function AddActivoDialog({
                                 label="Ajuste de Valor"
                                 value={newActivo.ajusteValor}
                                 onChange={(e) => handleChange("ajusteValor", Number(e.target.value))}
+                                error={!!errors.ajusteValor}
+                                helperText={errors.ajusteValor}
                             />
                         </Box>
                         <Box sx={CELL_STYLE}>
@@ -416,30 +557,40 @@ export default function AddActivoDialog({
                                 label="Movimiento"
                                 value={newActivo.movimiento}
                                 onChange={(e) => handleChange("movimiento", e.target.value)}
+                                error={!!errors.movimiento}
+                                helperText={errors.movimiento || ""}
+                                disabled={loadingNomencladores}
                             >
-                                {MOVIMIENTOS.map((m) => (
-                                    <MenuItem key={m.value} value={m.value}>
-                                        {m.label}
+                                {movimientos.map((m) => (
+                                    <MenuItem key={m._id} value={m._id}>
+                                        {m.nombre}
                                     </MenuItem>
                                 ))}
                             </TextField>
                         </Box>
                     </Box>
 
-                    {/* Fila 7: Estado del activo (ocupa toda la fila o mitad) */}
+                    {/* Fila 8: Estado del Activo */}
                     <Box sx={{ display: 'flex', gap: 3, mb: 2 }}>
                         <Box sx={CELL_STYLE}>
                             <TextField
+                                select
                                 fullWidth
                                 size="small"
-                                label="Estado del Activo (ID)"
+                                label="Estado del Activo"
                                 value={newActivo.estadoActivo}
                                 onChange={(e) => handleChange("estadoActivo", e.target.value)}
                                 error={!!errors.estadoActivo}
                                 helperText={errors.estadoActivo || ""}
-                            />
+                                disabled={loadingNomencladores}
+                            >
+                                {estados.map((e) => (
+                                    <MenuItem key={e._id} value={e._id}>
+                                        {e.nombre}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
                         </Box>
-                        {/* Celda vacía para mantener el grid de 2 columnas */}
                         <Box sx={CELL_STYLE} />
                     </Box>
 
