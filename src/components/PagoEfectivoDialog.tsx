@@ -213,16 +213,6 @@ export default function DialogPagoEfectivo({
             return;
         }
 
-        // Validar que haya cliente seleccionado
-        if (!clienteId) {
-            setSnackbar({
-                open: true,
-                message: 'Seleccione un cliente para continuar',
-                severity: 'warning'
-            });
-            return;
-        }
-
         // Validar que haya productos en el carrito
         if (productosCarrito.length === 0) {
             setSnackbar({
@@ -508,7 +498,6 @@ export default function DialogPagoEfectivo({
                             loading ||
                             calcularTotalBilletes() < parseFloat(pagoData.monto_pagado || "0") ||
                             parseFloat(pagoData.monto_a_pagar || "0") === 0 ||
-                            !clienteId ||
                             productosCarrito.length === 0
                         }
                         fullWidth
