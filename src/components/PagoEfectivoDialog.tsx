@@ -17,6 +17,8 @@ import {
 import MoneyIcon from '@mui/icons-material/Money';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import { procesarVentaCompleta, convertirDesgloseBilletes, calcularTotalDesglose, } from '../service/ventaService';
+import type { ProductoCarrito } from '../types/venta.types';
 
 // ─── Tipos ─────────────────────────────────────────────
 
@@ -36,6 +38,7 @@ export interface PagoEfectivoData {
     billetes_5: string;
     billetes_3: string;
     billetes_1: string;
+    [key: string]: string;
 }
 
 interface PagoErrors {
@@ -47,7 +50,15 @@ export interface DialogPagoEfectivoProps {
     open: boolean;
     onClose: () => void;
     montoTotal: number;
+    // ─── NUEVO: Datos necesarios para la venta ──────────────
+    clienteId: string;           // ID del cliente seleccionado
+    productosCarrito: ProductoCarrito[];
+    subtotal: number;
+    descuentoTotal: number;
+    impuesto: number;
+    // ───────────────────────────────────────────────────────
     onPagoCompletado?: (data: PagoEfectivoData) => void;
+    onVentaExitosa?: (ventaId: string) => void;  // Callback cuando todo sale bien
 }
 
 // ─── Constantes ──────────────────────────────────────
@@ -91,7 +102,15 @@ export default function DialogPagoEfectivo({
     open,
     onClose,
     montoTotal,
-    onPagoCompletado
+    // ─── NUEVAS PROPS ───────────────────────────────────────
+    clienteId,
+    productosCarrito,
+    subtotal,
+    descuentoTotal,
+    impuesto,
+    // ───────────────────────────────────────────────────────
+    onPagoCompletado,
+    onVentaExitosa,
 }: DialogPagoEfectivoProps): React.JSX.Element {
     const [pagoData, setPagoData] = useState<PagoEfectivoData>(initialPago);
     const [errors, setErrors] = useState<PagoErrors>({});
@@ -99,7 +118,7 @@ export default function DialogPagoEfectivo({
     const [snackbar, setSnackbar] = useState<{
         open: boolean;
         message: string;
-        severity: 'success' | 'error';
+        severity: 'success' | 'error' | 'warning';
     }>({
         open: false,
         message: '',
@@ -162,24 +181,20 @@ export default function DialogPagoEfectivo({
             newErrors.monto_pagado = 'El monto pagado debe ser mayor o igual al monto a pagar';
         }
 
-        const totalBilletes = calcularTotalBilletes();
-        if (totalBilletes !== montoPagado) {
-            setSnackbar({
-                open: true,
-                message: `La suma de billetes (${totalBilletes.toFixed(2)}) no coincide con el monto pagado (${montoPagado.toFixed(2)})`,
-                severity: 'error'
-            });
-        }
-
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
+    // ═══════════════════════════════════════════════════════════════
+    // HANDLE FINALIZAR PAGO — CON INTEGRACIÓN AL BACKEND
+    // ═══════════════════════════════════════════════════════════════
     const handleFinalizarPago = async (): Promise<void> => {
         const totalBilletes = calcularTotalBilletes();
         const montoPagado = parseFloat(pagoData.monto_pagado);
-        const montoaPagar = parseFloat(pagoData.monto_a_pagar);
+        const montoAPagar = parseFloat(pagoData.monto_a_pagar);
+        const cambio = parseFloat(pagoData.cambio);
 
+        // ─── Validaciones previas ─────────────────────────────
         if (totalBilletes > montoPagado) {
             setSnackbar({
                 open: true,
@@ -189,11 +204,31 @@ export default function DialogPagoEfectivo({
             return;
         }
 
-        if (montoaPagar === 0) {
+        if (montoAPagar === 0) {
             setSnackbar({
                 open: true,
                 message: 'Seleccione un producto del Stock',
-                severity: 'error'
+                severity: 'warning'
+            });
+            return;
+        }
+
+        // Validar que haya cliente seleccionado
+        if (!clienteId) {
+            setSnackbar({
+                open: true,
+                message: 'Seleccione un cliente para continuar',
+                severity: 'warning'
+            });
+            return;
+        }
+
+        // Validar que haya productos en el carrito
+        if (productosCarrito.length === 0) {
+            setSnackbar({
+                open: true,
+                message: 'El carrito está vacío',
+                severity: 'warning'
             });
             return;
         }
@@ -203,22 +238,62 @@ export default function DialogPagoEfectivo({
         setLoading(true);
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            // ─── PASO 1: Convertir desglose al formato del backend ─
+            const desglose = convertirDesgloseBilletes(pagoData);
 
-            onPagoCompletado?.(pagoData);
+            // Verificar que el desglose coincida con el monto pagado
+            const totalDesgloseCalculado = calcularTotalDesglose(desglose);
+            if (totalDesgloseCalculado !== montoPagado) {
+                setSnackbar({
+                    open: true,
+                    message: `El desglose (${totalDesgloseCalculado.toFixed(2)}) no coincide con el monto pagado (${montoPagado.toFixed(2)})`,
+                    severity: 'error'
+                });
+                setLoading(false);
+                return;
+            }
 
+            // ─── PASO 2: Llamar al servicio de procesamiento ──────
+            const resultado = await procesarVentaCompleta({
+                metodoPago: 'efectivo',
+                montoPagado: montoPagado,
+                desglose: desglose,
+                montoPagar: montoAPagar,
+                cambio: cambio,
+                clienteIdVenta: clienteId,
+                productosCarrito: productosCarrito,
+                subtotal: subtotal,
+                descuentoTotal: descuentoTotal,
+                impuesto: impuesto,
+            });
+
+            if (!resultado.exito) {
+                setSnackbar({
+                    open: true,
+                    message: resultado.mensaje,
+                    severity: 'error'
+                });
+                setLoading(false);
+                return;
+            }
+
+            // ─── ÉXITO ────────────────────────────────────────────
             setSnackbar({
                 open: true,
-                message: 'Pago en efectivo procesado correctamente',
+                message: `Venta #${resultado.venta?._id.slice(-6)} procesada exitosamente. Cambio: ${cambio.toFixed(2)}`,
                 severity: 'success'
             });
 
+            onPagoCompletado?.(pagoData);
+            onVentaExitosa?.(resultado.venta!._id);
+
+            // Limpiar y cerrar
             setPagoData(initialPago);
             setErrors({});
 
             setTimeout(() => {
                 onClose();
-            }, 1000);
+            }, 1500);
 
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Error al procesar el pago';
@@ -429,7 +504,13 @@ export default function DialogPagoEfectivo({
                     <Button
                         variant="contained"
                         onClick={handleFinalizarPago}
-                        disabled={loading || calcularTotalBilletes() < parseFloat(pagoData.monto_pagado || "0")}
+                        disabled={
+                            loading ||
+                            calcularTotalBilletes() < parseFloat(pagoData.monto_pagado || "0") ||
+                            parseFloat(pagoData.monto_a_pagar || "0") === 0 ||
+                            !clienteId ||
+                            productosCarrito.length === 0
+                        }
                         fullWidth
                         startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <CheckCircleIcon />}
                         sx={{

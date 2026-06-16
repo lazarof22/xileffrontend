@@ -18,6 +18,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import DialogCrearCliente, { type ClienteFormData } from './AddClientDialog';
+import { procesarVentaCompleta } from '../service/ventaService';
+import type { ProductoCarrito } from '../types/venta.types';
 
 // ─── Configuración ───────────────────────────────────
 
@@ -39,6 +41,7 @@ interface ClienteOption {
     email_cliente: string;
     direccion_cliente: string;
     tipo_cliente: string;
+    _id?: string;  // MongoDB ID para referencia
 }
 
 interface PagoCreditoErrors {
@@ -52,7 +55,14 @@ export interface PagoCreditoDialogProps {
     open: boolean;
     onClose: () => void;
     montoTotal: number;
+    // ─── NUEVO: Datos necesarios para la venta ──────────────
+    productosCarrito: ProductoCarrito[];
+    subtotal: number;
+    descuentoTotal: number;
+    impuesto: number;
+    // ───────────────────────────────────────────────────────
     onPagoCompletado?: (data: PagoCreditoData) => void;
+    onVentaExitosa?: (ventaId: string) => void;
 }
 
 // ─── Componente ──────────────────────────────────────
@@ -61,12 +71,20 @@ export default function PagoCreditoDialog({
     open,
     onClose,
     montoTotal,
-    onPagoCompletado
+    // ─── NUEVAS PROPS ───────────────────────────────────────
+    productosCarrito,
+    subtotal,
+    descuentoTotal,
+    impuesto,
+    // ───────────────────────────────────────────────────────
+    onPagoCompletado,
+    onVentaExitosa,
 }: PagoCreditoDialogProps): React.JSX.Element {
     const [cliente, setCliente] = useState<string>('');
     const [idCliente, setIdCliente] = useState<string>('');
     const [telefono, setTelefono] = useState<string>('');
     const [montoPagar, setMontoPagar] = useState<string>(montoTotal.toFixed(2));
+    const [clienteMongoId, setClienteMongoId] = useState<string>('');  // _id de MongoDB
 
     const [clientes, setClientes] = useState<ClienteOption[]>([]);
     const [loadingClientes, setLoadingClientes] = useState<boolean>(false);
@@ -99,9 +117,20 @@ export default function PagoCreditoDialog({
             const response = await fetch(`${API_URL}/cliente`);
             if (!response.ok) throw new Error('Error al cargar clientes');
             const data = await response.json();
-            setClientes(data);
+            // Mapear para incluir _id de MongoDB
+            const mappedClientes = data.map((c: any) => ({
+                ...c,
+                id_cliente: c.id_cliente || c.carnet_identidad || c.ci || '',
+                _id: c._id || c.id,
+            }));
+            setClientes(mappedClientes);
         } catch (error) {
             console.error('Error cargando clientes:', error);
+            setSnackbar({
+                open: true,
+                message: 'Error al cargar clientes',
+                severity: 'error'
+            });
         } finally {
             setLoadingClientes(false);
         }
@@ -115,13 +144,14 @@ export default function PagoCreditoDialog({
             setCliente(value.nombre_cliente);
             setIdCliente(value.id_cliente);
             setTelefono(value.telefono_cliente || '');
+            setClienteMongoId(value._id || '');
         } else {
             setCliente('');
             setIdCliente('');
             setTelefono('');
+            setClienteMongoId('');
         }
 
-        // Limpiar errores del campo
         if (errors.cliente) {
             setErrors(prev => {
                 const newErrors = { ...prev };
@@ -169,34 +199,78 @@ export default function PagoCreditoDialog({
             });
         }
 
+        // Validar que haya productos en el carrito
+        if (productosCarrito.length === 0) {
+            setSnackbar({
+                open: true,
+                message: 'El carrito está vacío. Agregue productos para continuar.',
+                severity: 'warning'
+            });
+        }
+
         setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        return Object.keys(newErrors).length === 0 && productosCarrito.length > 0;
     };
 
+    // ═══════════════════════════════════════════════════════════════
+    // HANDLE FINALIZAR PAGO — CON INTEGRACIÓN AL BACKEND
+    // ═══════════════════════════════════════════════════════════════
     const handleFinalizarPago = async (): Promise<void> => {
-
         if (!validate()) return;
+
+        const montoPagarNum = Number(montoPagar);
+
+        // Validar que tengamos el ID de MongoDB del cliente
+        if (!clienteMongoId) {
+            setSnackbar({
+                open: true,
+                message: 'Error: No se pudo obtener el ID del cliente. Seleccione el cliente nuevamente.',
+                severity: 'error'
+            });
+            return;
+        }
 
         setLoading(true);
 
         try {
-            // Aquí iría tu lógica de guardar el pago a crédito
-            // const response = await fetch(`${API_URL}/venta/credito`, { ... });
+            // ─── PASO 1: Procesar venta completa (Pago + Venta) ──
+            const resultado = await procesarVentaCompleta({
+                metodoPago: 'credito',
+                montoPagado: montoPagarNum,
+                clienteId: clienteMongoId,  // ID de MongoDB para el pago
+                clienteIdVenta: clienteMongoId,  // ID de MongoDB para la venta
+                productosCarrito: productosCarrito,
+                subtotal: subtotal,
+                descuentoTotal: descuentoTotal,
+                impuesto: impuesto,
+            });
 
+            if (!resultado.exito) {
+                setSnackbar({
+                    open: true,
+                    message: resultado.mensaje,
+                    severity: 'error'
+                });
+                setLoading(false);
+                return;
+            }
+
+            // ─── ÉXITO ────────────────────────────────────────────
             const pagoData: PagoCreditoData = {
                 cliente: cliente,
                 id_cliente: idCliente,
                 telefono_cliente: telefono,
-                monto_pagar: Number(montoPagar)
+                monto_pagar: montoPagarNum,
             };
 
             setSnackbar({
                 open: true,
-                message: 'Pago a crédito procesado exitosamente',
+                message: `Venta a crédito #${resultado.venta?._id.slice(-6)} procesada exitosamente para ${cliente}`,
                 severity: 'success'
             });
 
             onPagoCompletado?.(pagoData);
+            onVentaExitosa?.(resultado.venta!._id);
 
             setTimeout(() => {
                 handleClose();
@@ -219,6 +293,7 @@ export default function PagoCreditoDialog({
         setIdCliente('');
         setTelefono('');
         setMontoPagar(montoTotal.toFixed(2));
+        setClienteMongoId('');
         setErrors({});
         onClose();
     };
@@ -227,6 +302,10 @@ export default function PagoCreditoDialog({
         setCliente(nuevoCliente.nombre_cliente);
         setIdCliente(nuevoCliente.id_cliente);
         setTelefono(nuevoCliente.telefono_cliente);
+        // Guardar el _id si viene en la respuesta
+        if ((nuevoCliente as any)._id) {
+            setClienteMongoId((nuevoCliente as any)._id);
+        }
 
         // Actualizar la lista de clientes
         setClientes(prev => [...prev, {
@@ -235,7 +314,8 @@ export default function PagoCreditoDialog({
             telefono_cliente: nuevoCliente.telefono_cliente,
             email_cliente: nuevoCliente.email_cliente,
             direccion_cliente: nuevoCliente.direccion_cliente,
-            tipo_cliente: nuevoCliente.tipo_cliente
+            tipo_cliente: nuevoCliente.tipo_cliente,
+            _id: (nuevoCliente as any)._id || '',
         }]);
     };
 
@@ -461,7 +541,12 @@ export default function PagoCreditoDialog({
                     <Button
                         variant="contained"
                         onClick={handleFinalizarPago}
-                        disabled={loading}
+                        disabled={
+                            loading ||
+                            !clienteMongoId ||
+                            !montoPagar || Number(montoPagar) <= 0 ||
+                            productosCarrito.length === 0
+                        }
                         fullWidth
                         startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <CheckCircleIcon />}
                         sx={{

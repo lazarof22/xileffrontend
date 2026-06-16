@@ -11,11 +11,9 @@ import {
     Avatar,
     Chip,
     Stack,
-    CircularProgress,
     Alert,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import ProductCard from "../../components/ProductCard";
 import ShoppingBasketIcon from '@mui/icons-material/ShoppingBasket';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
@@ -26,13 +24,12 @@ import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import MoneyIcon from '@mui/icons-material/Money';
 import PaymentIcon from '@mui/icons-material/Payment';
 import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
-import CurrencyExchangeIcon from '@mui/icons-material/CurrencyExchange';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import ImageIcon from '@mui/icons-material/Image';
 import RemoveIcon from '@mui/icons-material/Remove';
 import DialogCrearCliente, { type ClienteFormData } from '../../components/AddClientDialog';
 import DialogPagoEfectivo, { type PagoEfectivoData } from '../../components/PagoEfectivoDialog';
 import DialogPagoCredito, { type PagoCreditoData } from '../../components/PagoCreditoDialog';
+import type { ProductoCarrito } from '../../types/venta.types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 interface ProductoAPI {
@@ -369,6 +366,16 @@ export default function PuntoVentaPage() {
         // Aquí puedes: limpiar carrito, generar factura, etc.
         // setCarrito([]);
         // setEfectivo("");
+    };
+
+    const handleVentaExitosa = (ventaId: string): void => {
+        // ✅ Limpiar todo después de venta exitosa
+        setCarrito([]);
+        setEfectivo("");
+        setTransferencia("");
+        setClienteSeleccionado(null);
+        setCliente("");
+        setNit("");
     };
 
     return (
@@ -1245,7 +1252,13 @@ export default function PuntoVentaPage() {
                                         open={openPago}
                                         onClose={handleClosePago}
                                         montoTotal={totalFinal}
+                                        clienteId={clienteSeleccionado?.id_cliente || ''}  // ← NUEVO
+                                        productosCarrito={carrito}                   // ← NUEVO
+                                        subtotal={subtotal}                          // ← NUEVO
+                                        descuentoTotal={montoDescuento}              // ← NUEVO
+                                        impuesto={montoImpuesto}                     // ← NUEVO
                                         onPagoCompletado={handlePagoCompletado}
+                                        onVentaExitosa={handleVentaExitosa}          // ← NUEVO
                                     />
 
                                     <Button
@@ -1272,7 +1285,12 @@ export default function PuntoVentaPage() {
                                         open={openPagoCredito}
                                         onClose={handleClosePagoCredito}
                                         montoTotal={totalFinal}
+                                        productosCarrito={carrito}                   // ← NUEVO
+                                        subtotal={subtotal}                          // ← NUEVO
+                                        descuentoTotal={montoDescuento}              // ← NUEVO
+                                        impuesto={montoImpuesto}                     // ← NUEVO
                                         onPagoCompletado={handlePagoCreditoCompletado}
+                                        onVentaExitosa={handleVentaExitosa}          // ← NUEVO
                                     />
                                     <Button
                                         variant="contained"
