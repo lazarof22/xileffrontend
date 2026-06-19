@@ -18,10 +18,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import DialogCrearCliente, { type ClienteFormData } from './AddClientDialog';
-import { procesarVentaCompleta } from '../service/ventaService';
+import { procesarVentaCredito } from '../service/ventaService';
 import type { ProductoCarrito } from '../types/venta.types';
-
-// ─── Configuración ───────────────────────────────────
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -41,7 +39,7 @@ interface ClienteOption {
     email_cliente: string;
     direccion_cliente: string;
     tipo_cliente: string;
-    _id?: string;  // MongoDB ID para referencia
+    _id?: string;
 }
 
 interface PagoCreditoErrors {
@@ -55,12 +53,10 @@ export interface PagoCreditoDialogProps {
     open: boolean;
     onClose: () => void;
     montoTotal: number;
-    // ─── NUEVO: Datos necesarios para la venta ──────────────
     productosCarrito: ProductoCarrito[];
     subtotal: number;
     descuentoTotal: number;
     impuesto: number;
-    // ───────────────────────────────────────────────────────
     onPagoCompletado?: (data: PagoCreditoData) => void;
     onVentaExitosa?: (ventaId: string) => void;
 }
@@ -71,12 +67,10 @@ export default function PagoCreditoDialog({
     open,
     onClose,
     montoTotal,
-    // ─── NUEVAS PROPS ───────────────────────────────────────
     productosCarrito,
     subtotal,
     descuentoTotal,
     impuesto,
-    // ───────────────────────────────────────────────────────
     onPagoCompletado,
     onVentaExitosa,
 }: PagoCreditoDialogProps): React.JSX.Element {
@@ -84,7 +78,7 @@ export default function PagoCreditoDialog({
     const [idCliente, setIdCliente] = useState<string>('');
     const [telefono, setTelefono] = useState<string>('');
     const [montoPagar, setMontoPagar] = useState<string>(montoTotal.toFixed(2));
-    const [clienteMongoId, setClienteMongoId] = useState<string>('');  // _id de MongoDB
+    const [clienteMongoId, setClienteMongoId] = useState<string>('');
 
     const [clientes, setClientes] = useState<ClienteOption[]>([]);
     const [loadingClientes, setLoadingClientes] = useState<boolean>(false);
@@ -103,7 +97,6 @@ export default function PagoCreditoDialog({
         severity: 'success'
     });
 
-    // Cargar clientes al abrir el dialog
     useEffect(() => {
         if (open) {
             fetchClientes();
@@ -117,7 +110,6 @@ export default function PagoCreditoDialog({
             const response = await fetch(`${API_URL}/cliente`);
             if (!response.ok) throw new Error('Error al cargar clientes');
             const data = await response.json();
-            // Mapear para incluir _id de MongoDB
             const mappedClientes = data.map((c: any) => ({
                 ...c,
                 id_cliente: c.id_cliente || c.carnet_identidad || c.ci || '',
@@ -199,7 +191,6 @@ export default function PagoCreditoDialog({
             });
         }
 
-        // Validar que haya productos en el carrito
         if (productosCarrito.length === 0) {
             setSnackbar({
                 open: true,
@@ -213,14 +204,13 @@ export default function PagoCreditoDialog({
     };
 
     // ═══════════════════════════════════════════════════════════════
-    // HANDLE FINALIZAR PAGO — CON INTEGRACIÓN AL BACKEND
+    // HANDLE FINALIZAR PAGO — CRÉDITO
     // ═══════════════════════════════════════════════════════════════
     const handleFinalizarPago = async (): Promise<void> => {
         if (!validate()) return;
 
         const montoPagarNum = Number(montoPagar);
 
-        // Validar que tengamos el ID de MongoDB del cliente
         if (!clienteMongoId) {
             setSnackbar({
                 open: true,
@@ -233,12 +223,11 @@ export default function PagoCreditoDialog({
         setLoading(true);
 
         try {
-            // ─── PASO 1: Procesar venta completa (Pago + Venta) ──
-            const resultado = await procesarVentaCompleta({
-                metodoPago: 'credito',
-                montoPagado: montoPagarNum,
-                clienteId: clienteMongoId,  // ID de MongoDB para el pago
-                clienteIdVenta: clienteMongoId,  // ID de MongoDB para la venta
+            // ─── PASO 1: Procesar venta completa (Pago Crédito + Venta) ──
+            const resultado = await procesarVentaCredito({
+                montoPagar: montoPagarNum,
+                clienteId: clienteMongoId,
+                clienteIdVenta: clienteMongoId,
                 productosCarrito: productosCarrito,
                 subtotal: subtotal,
                 descuentoTotal: descuentoTotal,
@@ -302,12 +291,10 @@ export default function PagoCreditoDialog({
         setCliente(nuevoCliente.nombre_cliente);
         setIdCliente(nuevoCliente.id_cliente);
         setTelefono(nuevoCliente.telefono_cliente);
-        // Guardar el _id si viene en la respuesta
         if ((nuevoCliente as any)._id) {
             setClienteMongoId((nuevoCliente as any)._id);
         }
 
-        // Actualizar la lista de clientes
         setClientes(prev => [...prev, {
             id_cliente: nuevoCliente.id_cliente,
             nombre_cliente: nuevoCliente.nombre_cliente,
@@ -325,48 +312,19 @@ export default function PagoCreditoDialog({
 
     return (
         <>
-            <Dialog
-                open={open}
-                onClose={handleClose}
-                maxWidth="xs"
-                fullWidth
-            >
+            <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
                 <DialogTitle>
-                    <Typography
-                        variant="h6"
-                        sx={{
-                            borderRadius: 1,
-                            boxShadow: 2,
-                            p: 1,
-                            textAlign: "center",
-                            background: "linear-gradient(135deg, rgba(0, 89, 255, 0.84), rgba(230, 21, 118, 0.9))",
-                            WebkitBackgroundClip: "text",
-                            WebkitTextFillColor: "transparent",
-                        }}
-                    >
-                        <span style={{ marginRight: '8px', display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}>
-                            <PaymentIcon
-                                sx={{
-                                    fill: 'url(#iconGradientCredito)',
-                                    width: 24,
-                                    height: 24
-                                }}
-                            />
-                            <svg width="0" height="0">
-                                <defs>
-                                    <linearGradient id="iconGradientCredito" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stopColor="rgb(0, 174, 255)" />
-                                        <stop offset="100%" stopColor="rgb(196, 45, 226)" />
-                                    </linearGradient>
-                                </defs>
-                            </svg>
-                        </span>
+                    <Typography variant="h6" sx={{
+                        borderRadius: 1, boxShadow: 2, p: 1, textAlign: "center",
+                        background: "linear-gradient(135deg, rgba(0, 89, 255, 0.84), rgba(230, 21, 118, 0.9))",
+                        WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                    }}>
+                        <PaymentIcon sx={{ fill: 'url(#iconGradientCredito)', width: 24, height: 24, mr: 1 }} />
                         Pago por Crédito
                     </Typography>
                 </DialogTitle>
 
                 <DialogContent>
-                    {/* Autocomplete de Cliente + Botón Nuevo */}
                     <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', mt: 1 }}>
                         <Box sx={{ width: '75%' }}>
                             <Autocomplete
@@ -376,81 +334,39 @@ export default function PagoCreditoDialog({
                                 onChange={handleClienteSeleccionado}
                                 value={clientes.find(c => c.nombre_cliente === cliente) || null}
                                 renderInput={(params) => (
-                                    <TextField
-                                        {...params}
-                                        label="Cliente"
-                                        size="small"
-                                        error={!!errors.cliente}
-                                        helperText={errors.cliente}
-                                    />
+                                    <TextField {...params} label="Cliente" size="small"
+                                        error={!!errors.cliente} helperText={errors.cliente} />
                                 )}
                             />
-                            {loadingClientes && (
-                                <CircularProgress
-                                    size={16}
-                                    sx={{
-                                        position: 'absolute',
-                                        right: 40,
-                                        top: '50%',
-                                        transform: 'translateY(-50%)',
-                                    }}
-                                />
-                            )}
                         </Box>
-                        <Button
-                            variant="contained"
-                            size="small"
+                        <Button variant="contained" size="small"
                             startIcon={<PersonAddIcon sx={{ fontSize: "medium" }} />}
                             onClick={() => setOpenDialogCrear(true)}
                             sx={{
                                 width: '40%',
                                 background: "linear-gradient(135deg, rgba(245, 6, 6, 0.9), rgba(10, 83, 218, 0.9))",
-                                color: "#fff",
-                                textTransform: "none",
-                                fontWeight: 600,
-                                boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
-                                "&:hover": {
-                                    background: "linear-gradient(135deg, rgba(245, 6, 6, 0.9), rgba(10, 83, 218, 0.9))",
-                                    boxShadow: "0 4px 12px rgb(12, 83, 235)"
-                                }
-                            }}
-                        >
+                                color: "#fff", textTransform: "none", fontWeight: 600,
+                            }}>
                             Nuevo
                         </Button>
                     </Box>
 
-                    {/* Nombre del Cliente (solo lectura o editable) */}
-                    <TextField
-                        fullWidth
-                        label="Nombre del Cliente"
-                        margin="normal"
-                        size="small"
+                    <TextField fullWidth label="Nombre del Cliente" margin="normal" size="small"
                         value={cliente}
                         onChange={(e) => {
                             setCliente(e.target.value);
                             if (errors.cliente) {
-                                setErrors(prev => {
-                                    const newErrors = { ...prev };
-                                    delete newErrors.cliente;
-                                    return newErrors;
-                                });
+                                setErrors(prev => { const n = { ...prev }; delete n.cliente; return n; });
                             }
                         }}
-                        error={!!errors.cliente}
-                        helperText={errors.cliente}
+                        error={!!errors.cliente} helperText={errors.cliente}
                         disabled={loading}
                     />
 
-                    {/* CI */}
-                    <TextField
-                        fullWidth
-                        label="Carnet de Identidad"
-                        margin="normal"
-                        size="small"
+                    <TextField fullWidth label="Carnet de Identidad" margin="normal" size="small"
                         value={idCliente}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                            const input = e.target.value;
-                            const soloNumeros = input.replace(/\D/g, '').slice(0, 11);
+                            const soloNumeros = e.target.value.replace(/\D/g, '').slice(0, 11);
                             handleChange("id_cliente", soloNumeros);
                         }}
                         error={!!errors.id_cliente || (idCliente.length > 0 && idCliente.length !== 11)}
@@ -463,43 +379,26 @@ export default function PagoCreditoDialog({
                         disabled={loading}
                         slotProps={{
                             input: {
-                                inputProps: {
-                                    maxLength: 11,
-                                    inputMode: 'numeric',
-                                    pattern: '[0-9]*',
-                                }
+                                inputProps: { maxLength: 11, inputMode: 'numeric', pattern: '[0-9]*' }
                             }
                         }}
                     />
 
-                    {/* Teléfono */}
-                    <TextField
-                        fullWidth
-                        label="Teléfono"
-                        margin="normal"
-                        size="small"
+                    <TextField fullWidth label="Teléfono" margin="normal" size="small"
                         value={telefono}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                             handleChange("telefono_cliente", e.target.value)
                         }
-                        error={!!errors.telefono_cliente}
-                        helperText={errors.telefono_cliente}
+                        error={!!errors.telefono_cliente} helperText={errors.telefono_cliente}
                         disabled={loading}
                     />
 
-                    {/* Monto a Pagar */}
-                    <TextField
-                        fullWidth
-                        label="Monto a Pagar"
-                        margin="normal"
-                        size="small"
-                        type="number"
-                        value={montoPagar}
+                    <TextField fullWidth label="Monto a Pagar" margin="normal" size="small"
+                        type="number" value={montoPagar}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                             handleChange("monto_pagar", e.target.value)
                         }
-                        error={!!errors.monto_pagar}
-                        helperText={errors.monto_pagar}
+                        error={!!errors.monto_pagar} helperText={errors.monto_pagar}
                         disabled={loading}
                         slotProps={{
                             input: {
@@ -511,36 +410,16 @@ export default function PagoCreditoDialog({
                     />
                 </DialogContent>
 
-                <DialogActions
-                    sx={{
-                        display: "flex",
-                        p: 2,
-                        ml: 0,
-                        gap: 2,
-                        width: "100%"
-                    }}
-                >
-                    <Button
-                        onClick={handleClose}
-                        disabled={loading}
-                        fullWidth
-                        startIcon={<CancelIcon />}
+                <DialogActions sx={{ display: "flex", p: 2, ml: 0, gap: 2, width: "100%" }}>
+                    <Button onClick={handleClose} disabled={loading} fullWidth startIcon={<CancelIcon />}
                         sx={{
                             flex: 1,
                             background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
-                            boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
-                            color: "white",
-                            "&:hover": {
-                                background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(226, 45, 187, 0.9))",
-                                boxShadow: "0 4px 12px rgb(158, 6, 6)"
-                            }
-                        }}
-                    >
+                            boxShadow: "0 4px 19px rgba(0,0,0,0.2)", color: "white",
+                        }}>
                         Cancelar
                     </Button>
-                    <Button
-                        variant="contained"
-                        onClick={handleFinalizarPago}
+                    <Button variant="contained" onClick={handleFinalizarPago}
                         disabled={
                             loading ||
                             !clienteMongoId ||
@@ -553,35 +432,21 @@ export default function PagoCreditoDialog({
                             flex: 1,
                             background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
                             boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
-                            "&:hover": {
-                                background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
-                                boxShadow: "0 4px 12px rgba(13, 248, 5, 0.93)"
-                            }
-                        }}
-                    >
+                        }}>
                         {loading ? 'Procesando...' : 'Finalizar Pago'}
                     </Button>
                 </DialogActions>
             </Dialog>
 
-            {/* Dialog para crear cliente nuevo */}
             <DialogCrearCliente
                 open={openDialogCrear}
                 onClose={() => setOpenDialogCrear(false)}
                 onClienteCreado={handleClienteCreado}
             />
 
-            <Snackbar
-                open={snackbar.open}
-                autoHideDuration={4000}
-                onClose={handleCloseSnackbar}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-            >
-                <Alert
-                    onClose={handleCloseSnackbar}
-                    severity={snackbar.severity}
-                    sx={{ width: '100%' }}
-                >
+            <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={handleCloseSnackbar}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+                <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
                     {snackbar.message}
                 </Alert>
             </Snackbar>

@@ -13,18 +13,7 @@ export interface ProductoCarrito {
     descuento: number;    // % de descuento
 }
 
-// ─── DTO: Crear Pago (POST /pago) ────────────────────────────
-export interface CreatePagoDto {
-    metodoPago: 'efectivo' | 'transferencia' | 'credito';
-    monto_pagado: number;
-    // Solo para efectivo:
-    desglose?: DesgloseBilletes;
-    monto_pagar?: number;
-    cambio?: number;
-    // Solo para crédito:
-    clienteId?: string;
-}
-
+// ─── Desglose de billetes ────────────────────────────────────
 export interface DesgloseBilletes {
     billete5000: number;
     billete2000: number;
@@ -38,19 +27,6 @@ export interface DesgloseBilletes {
     billete5: number;
     billete3: number;
     billete1: number;
-}
-
-// ─── Respuesta del backend al crear pago ─────────────────────
-export interface PagoResponse {
-    _id: string;
-    monto_pagado: number;
-    metodoPago: string;
-    desglose?: DesgloseBilletes;
-    monto_pagar?: number;
-    cambio?: number;
-    clienteId?: string;
-    createdAt: string;
-    updatedAt: string;
 }
 
 // ─── Item de venta (para el DTO) ─────────────────────────────
@@ -70,11 +46,11 @@ export interface CreateVentaDto {
     pago: string;  // _id del pago creado
 }
 
-// ─── Respuesta del backend al crear venta ────────────────────
+// ─── Respuesta del backend ───────────────────────────────────
 export interface VentaResponse {
     _id: string;
     clienteId: string;
-    clienteNombre: string;
+    clienteNombre?: string;
     productos: Array<{
         productoId: string;
         cantidad: number;
@@ -83,9 +59,9 @@ export interface VentaResponse {
     subtotal_venta: number;
     descuento_total: number;
     impuesto: number;
-    pago: PagoResponse;
-    createdAt: string;
-    updatedAt: string;
+    pago: any;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 // ─── Estado del procesamiento ────────────────────────────────
@@ -93,5 +69,5 @@ export interface ProcesamientoVenta {
     exito: boolean;
     mensaje: string;
     venta?: VentaResponse;
-    pago?: PagoResponse;
+    pago?: any;
 }

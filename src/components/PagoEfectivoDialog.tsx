@@ -17,7 +17,11 @@ import {
 import MoneyIcon from '@mui/icons-material/Money';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
-import { procesarVentaCompleta, convertirDesgloseBilletes, calcularTotalDesglose, } from '../service/ventaService';
+import {
+    procesarVentaEfectivo,
+    convertirDesgloseBilletes,
+    calcularTotalDesglose,
+} from '../service/ventaService';
 import type { ProductoCarrito } from '../types/venta.types';
 
 // ─── Tipos ─────────────────────────────────────────────
@@ -43,22 +47,19 @@ export interface PagoEfectivoData {
 
 interface PagoErrors {
     monto_pagado?: string;
-    billetes_1000?: string;
 }
 
 export interface DialogPagoEfectivoProps {
     open: boolean;
     onClose: () => void;
     montoTotal: number;
-    // ─── NUEVO: Datos necesarios para la venta ──────────────
-    clienteId: string;           // ID del cliente seleccionado
+    clienteId: string;
     productosCarrito: ProductoCarrito[];
     subtotal: number;
     descuentoTotal: number;
     impuesto: number;
-    // ───────────────────────────────────────────────────────
     onPagoCompletado?: (data: PagoEfectivoData) => void;
-    onVentaExitosa?: (ventaId: string) => void;  // Callback cuando todo sale bien
+    onVentaExitosa?: (ventaId: string) => void;
 }
 
 // ─── Constantes ──────────────────────────────────────
@@ -102,13 +103,11 @@ export default function DialogPagoEfectivo({
     open,
     onClose,
     montoTotal,
-    // ─── NUEVAS PROPS ───────────────────────────────────────
     clienteId,
     productosCarrito,
     subtotal,
     descuentoTotal,
     impuesto,
-    // ───────────────────────────────────────────────────────
     onPagoCompletado,
     onVentaExitosa,
 }: DialogPagoEfectivoProps): React.JSX.Element {
@@ -186,7 +185,7 @@ export default function DialogPagoEfectivo({
     };
 
     // ═══════════════════════════════════════════════════════════════
-    // HANDLE FINALIZAR PAGO — CON INTEGRACIÓN AL BACKEND
+    // HANDLE FINALIZAR PAGO — EFECTIVO
     // ═══════════════════════════════════════════════════════════════
     const handleFinalizarPago = async (): Promise<void> => {
         const totalBilletes = calcularTotalBilletes();
@@ -213,7 +212,6 @@ export default function DialogPagoEfectivo({
             return;
         }
 
-        // Validar que haya productos en el carrito
         if (productosCarrito.length === 0) {
             setSnackbar({
                 open: true,
@@ -228,10 +226,9 @@ export default function DialogPagoEfectivo({
         setLoading(true);
 
         try {
-            // ─── PASO 1: Convertir desglose al formato del backend ─
+            // ─── PASO 1: Convertir desglose ──────────────────────
             const desglose = convertirDesgloseBilletes(pagoData);
 
-            // Verificar que el desglose coincida con el monto pagado
             const totalDesgloseCalculado = calcularTotalDesglose(desglose);
             if (totalDesgloseCalculado !== montoPagado) {
                 setSnackbar({
@@ -243,11 +240,10 @@ export default function DialogPagoEfectivo({
                 return;
             }
 
-            // ─── PASO 2: Llamar al servicio de procesamiento ──────
-            const resultado = await procesarVentaCompleta({
-                metodoPago: 'efectivo',
-                montoPagado: montoPagado,
+            // ─── PASO 2: Llamar a procesarVentaEfectivo ────────────
+            const resultado = await procesarVentaEfectivo({
                 desglose: desglose,
+                montoPagado: totalDesgloseCalculado,  // Total del desglose
                 montoPagar: montoAPagar,
                 cambio: cambio,
                 clienteIdVenta: clienteId,
@@ -277,7 +273,6 @@ export default function DialogPagoEfectivo({
             onPagoCompletado?.(pagoData);
             onVentaExitosa?.(resultado.venta!._id);
 
-            // Limpiar y cerrar
             setPagoData(initialPago);
             setErrors({});
 
@@ -309,124 +304,52 @@ export default function DialogPagoEfectivo({
 
     return (
         <>
-            <Dialog
-                open={open}
-                onClose={handleClose}
-                maxWidth="sm"
-                fullWidth
-            >
+            <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
                 <DialogTitle>
-                    <Typography variant="h6"
-                        sx={{
-                            borderRadius: 1,
-                            boxShadow: 2,
-                            p: 1,
-                            textAlign: "center",
-                            background: "linear-gradient(135deg, rgba(0, 89, 255, 0.84), rgba(230, 21, 118, 0.9))",
-                            WebkitBackgroundClip: "text",
-                            WebkitTextFillColor: "transparent",
-                        }}>
-                        <span style={{ marginRight: '8px', display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}>
-                            <MoneyIcon
-                                sx={{
-                                    fill: 'url(#moneyIconGradient)',
-                                    width: 24,
-                                    height: 24
-                                }}
-                            />
-                            <svg width="0" height="0">
-                                <defs>
-                                    <linearGradient id="moneyIconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stopColor="rgb(0, 174, 255)" />
-                                        <stop offset="100%" stopColor="rgb(196, 45, 226)" />
-                                    </linearGradient>
-                                </defs>
-                            </svg>
-                        </span>
+                    <Typography variant="h6" sx={{
+                        borderRadius: 1, boxShadow: 2, p: 1, textAlign: "center",
+                        background: "linear-gradient(135deg, rgba(0, 89, 255, 0.84), rgba(230, 21, 118, 0.9))",
+                        WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                    }}>
+                        <MoneyIcon sx={{ fill: 'url(#moneyIconGradient)', width: 24, height: 24, mr: 1 }} />
                         Pago en Efectivo
                     </Typography>
                 </DialogTitle>
 
                 <DialogContent>
-                    <TextField
-                        fullWidth
-                        label="Monto a Pagar"
-                        margin="normal"
-                        value={pagoData.monto_a_pagar}
-                        disabled
+                    <TextField fullWidth label="Monto a Pagar" margin="normal"
+                        value={pagoData.monto_a_pagar} disabled
                         slotProps={{ input: { readOnly: true } }}
-                        sx={{
-                            "& .MuiInputBase-input": {
-                                fontWeight: 700,
-                                fontSize: "1.1rem",
-                            },
-                        }}
+                        sx={{ "& .MuiInputBase-input": { fontWeight: 700, fontSize: "1.1rem" } }}
                     />
-                    <TextField
-                        fullWidth
-                        label="Monto Pagado"
-                        margin="normal"
+                    <TextField fullWidth label="Monto Pagado" margin="normal"
                         value={pagoData.monto_pagado}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                            handleChange("monto_pagado", e.target.value)
-                        }
+                        onChange={(e) => handleChange("monto_pagado", e.target.value)}
                         error={!!errors.monto_pagado}
                         helperText={errors.monto_pagado}
                         disabled={loading}
-                        autoFocus
-                        placeholder="0.00"
+                        autoFocus placeholder="0.00"
                     />
-                    <TextField
-                        fullWidth
-                        label="Cambio"
-                        margin="normal"
-                        value={pagoData.cambio}
-                        disabled
+                    <TextField fullWidth label="Cambio" margin="normal"
+                        value={pagoData.cambio} disabled
                         slotProps={{ input: { readOnly: true } }}
-                        sx={{
-                            "& .MuiInputBase-input": {
-                                color: parseFloat(pagoData.cambio) > 0 ? "#2e7d32" : "inherit",
-                                fontWeight: 700,
-                            },
-                        }}
+                        sx={{ "& .MuiInputBase-input": {
+                            color: parseFloat(pagoData.cambio) > 0 ? "#2e7d32" : "inherit",
+                            fontWeight: 700,
+                        }}}
                     />
 
                     <Divider sx={{ my: 2 }}>
-                        <Typography variant="caption" color="text.secondary">
-                            Desglose de Billetes
-                        </Typography>
+                        <Typography variant="caption" color="text.secondary">Desglose de Billetes</Typography>
                     </Divider>
 
                     <Box sx={{ display: "flex", justifyContent: "center" }}>
-                        <Box
-                            sx={{
-                                display: "flex",
-                                flexWrap: "wrap",
-                                justifyContent: "center",
-                                gap: 2,
-                                maxWidth: 600
-                            }}
-                        >
+                        <Box sx={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 2, maxWidth: 600 }}>
                             {billetesConfig.map(billete => (
-                                <Card
-                                    key={billete.key}
-                                    sx={{
-                                        width: { xs: 'calc(50% - 8px)', sm: 'calc(33.333% - 11px)' },
-                                        p: 1.5,
-                                    }}
-                                >
-                                    <TextField
-                                        fullWidth
-                                        label={billete.label}
-                                        margin="dense"
-                                        size="small"
-                                        type="number"
-                                        value={pagoData[billete.key]}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                            handleChange(billete.key, e.target.value)
-                                        }
-                                        error={!!errors.billetes_1000 && billete.key === 'billetes_1000'}
-                                        helperText={billete.key === 'billetes_1000' ? errors.billetes_1000 : ''}
+                                <Card key={billete.key} sx={{ width: { xs: 'calc(50% - 8px)', sm: 'calc(33.333% - 11px)' }, p: 1.5 }}>
+                                    <TextField fullWidth label={billete.label} margin="dense" size="small"
+                                        type="number" value={pagoData[billete.key]}
+                                        onChange={(e) => handleChange(billete.key, e.target.value)}
                                         disabled={loading}
                                         slotProps={{ htmlInput: { min: 0 } }}
                                         placeholder="0"
@@ -436,15 +359,11 @@ export default function DialogPagoEfectivo({
                         </Box>
                     </Box>
 
-                    <Box
-                        sx={{
-                            mt: 2,
-                            p: 1.5,
-                            borderRadius: 1,
-                            backgroundColor: "rgba(0, 89, 255, 0.05)",
-                            border: "1px solid rgba(0, 89, 255, 0.2)",
-                        }}
-                    >
+                    <Box sx={{
+                        mt: 2, p: 1.5, borderRadius: 1,
+                        backgroundColor: "rgba(0, 89, 255, 0.05)",
+                        border: "1px solid rgba(0, 89, 255, 0.2)",
+                    }}>
                         <Typography variant="body2" color="text.secondary">
                             Total en billetes: <strong>${calcularTotalBilletes().toFixed(2)}</strong>
                         </Typography>
@@ -452,9 +371,7 @@ export default function DialogPagoEfectivo({
                             Monto pagado: <strong>${parseFloat(pagoData.monto_pagado || "0").toFixed(2)}</strong>
                         </Typography>
                         {calcularTotalBilletes() !== (parseFloat(pagoData.monto_pagado) || 0) && (
-                            <Typography variant="caption" color="error">
-                                ⚠️ Los totales no coinciden
-                            </Typography>
+                            <Typography variant="caption" color="error">⚠️ Los totales no coinciden</Typography>
                         )}
                         {calcularTotalBilletes() > parseFloat(pagoData.monto_pagado || "0") && (
                             <Typography variant="caption" color="error" sx={{ display: 'block', mb: 1 }}>
@@ -464,36 +381,17 @@ export default function DialogPagoEfectivo({
                     </Box>
                 </DialogContent>
 
-                <DialogActions
-                    sx={{
-                        display: "flex",
-                        p: 2,
-                        ml: 0,
-                        gap: 2,
-                        width: "100%"
-                    }}
-                >
-                    <Button
-                        onClick={handleClose}
-                        disabled={loading}
-                        fullWidth
-                        startIcon={<CancelIcon />}
+                <DialogActions sx={{ display: "flex", p: 2, ml: 0, gap: 2, width: "100%" }}>
+                    <Button onClick={handleClose} disabled={loading} fullWidth startIcon={<CancelIcon />}
                         sx={{
                             flex: 1,
                             background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
-                            boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
-                            color: "white",
-                            "&:hover": {
-                                background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(226, 45, 187, 0.9))",
-                                boxShadow: "0 4px 12px rgb(158, 6, 6)"
-                            }
-                        }}
-                    >
+                            boxShadow: "0 4px 19px rgba(0,0,0,0.2)", color: "white",
+                            "&:hover": { background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(226, 45, 187, 0.9))" }
+                        }}>
                         Cancelar
                     </Button>
-                    <Button
-                        variant="contained"
-                        onClick={handleFinalizarPago}
+                    <Button variant="contained" onClick={handleFinalizarPago}
                         disabled={
                             loading ||
                             calcularTotalBilletes() < parseFloat(pagoData.monto_pagado || "0") ||
@@ -506,28 +404,16 @@ export default function DialogPagoEfectivo({
                             flex: 1,
                             background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
                             boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
-                            "&:hover": {
-                                background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
-                                boxShadow: "0 4px 12px rgba(13, 248, 5, 0.93)"
-                            }
-                        }}
-                    >
+                            "&:hover": { boxShadow: "0 4px 12px rgba(13, 248, 5, 0.93)" }
+                        }}>
                         {loading ? 'Procesando...' : 'Finalizar Pago'}
                     </Button>
                 </DialogActions>
             </Dialog>
 
-            <Snackbar
-                open={snackbar.open}
-                autoHideDuration={4000}
-                onClose={handleCloseSnackbar}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-            >
-                <Alert
-                    onClose={handleCloseSnackbar}
-                    severity={snackbar.severity}
-                    sx={{ width: '100%' }}
-                >
+            <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={handleCloseSnackbar}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+                <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
                     {snackbar.message}
                 </Alert>
             </Snackbar>
