@@ -12,7 +12,10 @@ import {
     Typography,
     Divider,
     Box,
-    Card
+    Card,
+    InputAdornment,
+    MenuItem,
+    Autocomplete
 } from '@mui/material';
 import MoneyIcon from '@mui/icons-material/Money';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -23,6 +26,11 @@ import {
     calcularTotalDesglose,
 } from '../service/ventaService';
 import type { ProductoCarrito } from '../types/venta.types';
+import CurrencyExchangeIcon from '@mui/icons-material/CurrencyExchange';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import EuroIcon from '@mui/icons-material/Euro';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 // ─── Tipos ─────────────────────────────────────────────
 
@@ -46,6 +54,9 @@ export interface PagoEfectivoData {
 }
 
 interface PagoErrors {
+    cliente?: string;
+    id_cliente?: string;
+    telefono_cliente?: string;
     monto_pagado?: string;
 }
 
@@ -97,6 +108,16 @@ const billetesConfig = [
     { key: 'billetes_1' as const, label: 'Billetes de 1', denom: 1 },
 ];
 
+interface ClienteOption {
+    id_cliente: string;
+    nombre_cliente: string;
+    telefono_cliente: string;
+    email_cliente: string;
+    direccion_cliente: string;
+    tipo_cliente: string;
+    _id?: string;
+}
+
 // ─── Componente ──────────────────────────────────────
 
 export default function DialogPagoEfectivo({
@@ -114,6 +135,13 @@ export default function DialogPagoEfectivo({
     const [pagoData, setPagoData] = useState<PagoEfectivoData>(initialPago);
     const [errors, setErrors] = useState<PagoErrors>({});
     const [loading, setLoading] = useState<boolean>(false);
+    const [moneda, setMoneda] = useState("");
+    const [clientes, setClientes] = useState<ClienteOption[]>([]);
+    const [loadingClientes, setLoadingClientes] = useState<boolean>(false);
+    const [cliente, setCliente] = useState<string>('');
+    const [idCliente, setIdCliente] = useState<string>('');
+    const [telefono, setTelefono] = useState<string>('');
+    const [clienteMongoId, setClienteMongoId] = useState<string>('');
     const [snackbar, setSnackbar] = useState<{
         open: boolean;
         message: string;
@@ -302,9 +330,67 @@ export default function DialogPagoEfectivo({
         setSnackbar(prev => ({ ...prev, open: false }));
     };
 
+    const getFlag = (currency: string) => {
+        switch (currency) {
+            case "CUP": return "https://flagcdn.com/w40/cu.png";
+            case "USD": return "https://flagcdn.com/w40/us.png";
+            case "EUR": return "https://flagcdn.com/w40/eu.png";
+            default: return "";
+        }
+    };
+
+    const fetchClientes = async (): Promise<void> => {
+        setLoadingClientes(true);
+        try {
+            const response = await fetch(`${API_URL}/cliente`);
+            if (!response.ok) throw new Error('Error al cargar clientes');
+            const data = await response.json();
+            const mappedClientes = data.map((c: any) => ({
+                ...c,
+                id_cliente: c.id_cliente || c.carnet_identidad || c.ci || '',
+                _id: c._id || c.id,
+            }));
+            setClientes(mappedClientes);
+        } catch (error) {
+            console.error('Error cargando clientes:', error);
+            setSnackbar({
+                open: true,
+                message: 'Error al cargar clientes',
+                severity: 'error'
+            });
+        } finally {
+            setLoadingClientes(false);
+        }
+    };
+
+    const handleClienteSeleccionado = (
+        _event: React.SyntheticEvent,
+        value: ClienteOption | null
+    ): void => {
+        if (value) {
+            setCliente(value.nombre_cliente);
+            setIdCliente(value.id_cliente);
+            setTelefono(value.telefono_cliente || '');
+            setClienteMongoId(value._id || '');
+        } else {
+            setCliente('');
+            setIdCliente('');
+            setTelefono('');
+            setClienteMongoId('');
+        }
+
+        if (errors.cliente) {
+            setErrors(prev => {
+                const newErrors = { ...prev };
+                delete newErrors.cliente;
+                return newErrors;
+            });
+        }
+    };
+
     return (
         <>
-            <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+            <Dialog open={open} onClose={handleClose} maxWidth="lg" fullWidth>
                 <DialogTitle>
                     <Typography variant="h6" sx={{
                         borderRadius: 1, boxShadow: 2, p: 1, textAlign: "center",
@@ -317,74 +403,165 @@ export default function DialogPagoEfectivo({
                 </DialogTitle>
 
                 <DialogContent>
-                    <TextField fullWidth label="Monto a Pagar" margin="normal"
-                        value={pagoData.monto_a_pagar} disabled
-                        slotProps={{ input: { readOnly: true } }}
-                        sx={{ "& .MuiInputBase-input": { fontWeight: 700, fontSize: "1.1rem" } }}
-                    />
-                    <TextField fullWidth label="Monto Pagado" margin="normal"
-                        value={pagoData.monto_pagado}
-                        onChange={(e) => handleChange("monto_pagado", e.target.value)}
-                        error={!!errors.monto_pagado}
-                        helperText={errors.monto_pagado}
-                        disabled={loading}
-                        autoFocus placeholder="0.00"
-                    />
-                    <TextField fullWidth label="Cambio" margin="normal"
-                        value={pagoData.cambio} disabled
-                        slotProps={{ input: { readOnly: true } }}
-                        sx={{ "& .MuiInputBase-input": {
-                            color: parseFloat(pagoData.cambio) > 0 ? "#2e7d32" : "inherit",
-                            fontWeight: 700,
-                        }}}
-                    />
+                    <Box sx={{ display: "flex", gap: 3, flexDirection: { xs: "column", md: "row" } }}>
+                        {/* COLUMNA IZQUIERDA */}
+                        <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
+                            <TextField
+                                select
+                                fullWidth
+                                label="Moneda"
+                                value={moneda}
+                                onChange={(e) => setMoneda(e.target.value)}
+                                slotProps={{
+                                    input: {
+                                        startAdornment: moneda && (
+                                            <InputAdornment position="start">
+                                                <img
+                                                    src={getFlag(moneda)}
+                                                    alt="flag"
+                                                    width={24}
+                                                    style={{ borderRadius: 3 }}
+                                                />
+                                            </InputAdornment>
+                                        ),
+                                    }
+                                }}
+                            >
+                                <MenuItem value="CUP">
+                                    <CurrencyExchangeIcon sx={{ mr: 1 }} />
+                                    CUP - Peso Cubano
+                                </MenuItem>
+                                <MenuItem value="USD">
+                                    <AttachMoneyIcon sx={{ mr: 1 }} />
+                                    USD - Dólar Americano
+                                </MenuItem>
+                                <MenuItem value="EUR">
+                                    <EuroIcon sx={{ mr: 1 }} />
+                                    EUR - Euro
+                                </MenuItem>
+                            </TextField>
 
-                    <Divider sx={{ my: 2 }}>
-                        <Typography variant="caption" color="text.secondary">Desglose de Billetes</Typography>
-                    </Divider>
+                            <Autocomplete
+                                options={clientes}
+                                getOptionLabel={(option) => option.nombre_cliente}
+                                loading={loadingClientes}
+                                onChange={handleClienteSeleccionado}
+                                value={clientes.find(c => c.nombre_cliente === cliente) || null}
+                                renderInput={(params) => (
+                                    <TextField {...params} label="Cliente"
+                                        error={!!errors.cliente} helperText={errors.cliente} />
+                                )}
+                            />
 
-                    <Box sx={{ display: "flex", justifyContent: "center" }}>
-                        <Box sx={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 2, maxWidth: 600 }}>
-                            {billetesConfig.map(billete => (
-                                <Card key={billete.key} sx={{ width: { xs: 'calc(50% - 8px)', sm: 'calc(33.333% - 11px)' }, p: 1.5 }}>
-                                    <TextField fullWidth label={billete.label} margin="dense" size="small"
-                                        type="number" value={pagoData[billete.key]}
-                                        onChange={(e) => handleChange(billete.key, e.target.value)}
-                                        disabled={loading}
-                                        slotProps={{ htmlInput: { min: 0 } }}
-                                        placeholder="0"
-                                    />
-                                </Card>
-                            ))}
+                            <TextField fullWidth label="Monto a Pagar"
+                                value={pagoData.monto_a_pagar} disabled
+                                slotProps={{ input: { readOnly: true } }}
+                                sx={{ "& .MuiInputBase-input": { fontWeight: 600 } }}
+                            />
+
+                            <TextField fullWidth label="Monto Pagado"
+                                value={pagoData.monto_pagado}
+                                onChange={(e) => handleChange("monto_pagado", e.target.value)}
+                                error={!!errors.monto_pagado}
+                                helperText={errors.monto_pagado}
+                                disabled={loading}
+                                autoFocus placeholder="0.00"
+                                sx={{ "& .MuiInputBase-input": { fontWeight: 600 } }}
+                            />
+
+                            <TextField fullWidth label="Cambio"
+                                value={pagoData.cambio} disabled
+                                slotProps={{ input: { readOnly: true } }}
+                                sx={{
+                                    "& .MuiInputBase-input": {
+                                        color: parseFloat(pagoData.cambio) > 0 ? "#2e7d32" : "inherit",
+                                        fontWeight: 600,
+                                    }
+                                }}
+                            />
                         </Box>
-                    </Box>
 
-                    <Box sx={{
-                        mt: 2, p: 1.5, borderRadius: 1,
-                        backgroundColor: "rgba(0, 89, 255, 0.05)",
-                        border: "1px solid rgba(0, 89, 255, 0.2)",
-                    }}>
-                        <Typography variant="body2" color="text.secondary">
-                            Total en billetes: <strong>${calcularTotalBilletes().toFixed(2)}</strong>
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            Monto pagado: <strong>${parseFloat(pagoData.monto_pagado || "0").toFixed(2)}</strong>
-                        </Typography>
-                        {calcularTotalBilletes() !== (parseFloat(pagoData.monto_pagado) || 0) && (
-                            <Typography variant="caption" color="error">⚠️ Los totales no coinciden</Typography>
-                        )}
-                        {calcularTotalBilletes() > parseFloat(pagoData.monto_pagado || "0") && (
-                            <Typography variant="caption" color="error" sx={{ display: 'block', mb: 1 }}>
-                                ⚠️ El total en billetes no coincide con el monto pagado, inserte un monto mayor
-                            </Typography>
-                        )}
+                        {/* COLUMNA DERECHA */}
+                        <Box sx={{
+                            flex: 1.5,
+                            backgroundColor: "rgba(0, 0, 0, 0.06)",
+                            borderRadius: 2,
+                            p: 2,
+                            display: "flex",
+                            flexDirection: "column",
+                        }}>
+                            <Box sx={{
+                                backgroundColor: "rgba(255,255,255,0.7)",
+                                borderRadius: 1,
+                                p: 1,
+                                mb: 2,
+                                textAlign: "center",
+                            }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                                    Desglose de Billetes
+                                </Typography>
+                            </Box>
+
+                            <Box sx={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                justifyContent: "center",
+                                gap: 2,
+                            }}>
+                                {billetesConfig.map(billete => (
+                                    <Card key={billete.key} sx={{
+                                        width: { xs: 'calc(50% - 8px)', sm: 'calc(33.333% - 11px)' },
+                                        p: 1.5,
+                                        backgroundColor: "rgba(255,255,255,0.8)",
+                                    }}>
+                                        <TextField fullWidth label={billete.label} margin="dense" size="small"
+                                            type="number" value={pagoData[billete.key]}
+                                            onChange={(e) => handleChange(billete.key, e.target.value)}
+                                            disabled={loading}
+                                            slotProps={{ htmlInput: { min: 0 } }}
+                                            placeholder="0"
+                                        />
+                                    </Card>
+                                ))}
+                            </Box>
+
+                            <Box sx={{
+                                mt: 2,
+                                p: 1.5,
+                                borderRadius: 1,
+                                backgroundColor: "rgba(0, 89, 255, 0.05)",
+                                border: "1px solid rgba(0, 89, 255, 0.2)",
+                            }}>
+                                <Typography variant="body2" color="text.secondary">
+                                    Total en billetes: <strong>${calcularTotalBilletes().toFixed(2)}</strong>
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    Monto pagado: <strong>${parseFloat(pagoData.monto_pagado || "0").toFixed(2)}</strong>
+                                </Typography>
+                                {calcularTotalBilletes() !== (parseFloat(pagoData.monto_pagado) || 0) && (
+                                    <Typography variant="caption" color="error">⚠️ Los totales no coinciden</Typography>
+                                )}
+                                {calcularTotalBilletes() > parseFloat(pagoData.monto_pagado || "0") && (
+                                    <Typography variant="caption" color="error" sx={{ display: 'block', mb: 1 }}>
+                                        ⚠️ El total en billetes no coincide con el monto pagado, inserte un monto mayor
+                                    </Typography>
+                                )}
+                            </Box>
+                        </Box>
                     </Box>
                 </DialogContent>
 
-                <DialogActions sx={{ display: "flex", p: 2, ml: 0, gap: 2, width: "100%" }}>
-                    <Button onClick={handleClose} disabled={loading} fullWidth startIcon={<CancelIcon />}
+                <DialogActions sx={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    p: 2,
+                    gap: 2,
+                    width: "100%",
+                }}>
+                    <Button onClick={handleClose} disabled={loading}
+                        startIcon={<CancelIcon />}
                         sx={{
-                            flex: 1,
+                            minWidth: 240,
                             background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
                             boxShadow: "0 4px 19px rgba(0,0,0,0.2)", color: "white",
                             "&:hover": { background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(226, 45, 187, 0.9))" }
@@ -398,10 +575,9 @@ export default function DialogPagoEfectivo({
                             parseFloat(pagoData.monto_a_pagar || "0") === 0 ||
                             productosCarrito.length === 0
                         }
-                        fullWidth
                         startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <CheckCircleIcon />}
                         sx={{
-                            flex: 1,
+                            minWidth: 240,
                             background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
                             boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
                             "&:hover": { boxShadow: "0 4px 12px rgba(13, 248, 5, 0.93)" }
@@ -410,7 +586,6 @@ export default function DialogPagoEfectivo({
                     </Button>
                 </DialogActions>
             </Dialog>
-
             <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={handleCloseSnackbar}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
                 <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>

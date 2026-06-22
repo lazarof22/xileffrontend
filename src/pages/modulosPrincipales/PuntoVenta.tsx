@@ -498,6 +498,67 @@ export default function PuntoVentaPage() {
                                 },
                             }}
                         />
+
+                        <Tab
+                            icon={<ShoppingBasketIcon sx={{ fontSize: "large" }} />}
+                            iconPosition="start"
+                            label="Reporte Plus"
+                            sx={{
+                                textTransform: "none",
+                                fontWeight: 600,
+                                borderRadius: "10px",
+                                minHeight: 45,
+                                width: "auto",
+                                transition: "all 0.3s ease",
+                                color: tab === 2 ? "#fff" : "#555",
+                                background:
+                                    tab === 2
+                                        ? "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))"
+                                        : "transparent",
+                                "&:hover": {
+                                    background:
+                                        tab === 2
+                                            ? "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))"
+                                            : "#e0e0e0",
+                                },
+                                "&.Mui-selected": {
+                                    color: "#ffffff",
+                                    background:
+                                        "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))"
+                                },
+                            }}
+                        />
+
+                        <Tab
+                            icon={<ShoppingBasketIcon sx={{ fontSize: "large" }} />}
+                            iconPosition="start"
+                            label="Cuarde de Caja"
+                            sx={{
+                                textTransform: "none",
+                                fontWeight: 600,
+                                borderRadius: "10px",
+                                minHeight: 45,
+                                width: "auto",
+                                transition: "all 0.3s ease",
+                                color: tab === 3 ? "#fff" : "#555",
+                                background:
+                                    tab === 3
+                                        ? "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))"
+                                        : "transparent",
+                                "&:hover": {
+                                    background:
+                                        tab === 3
+                                            ? "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))"
+                                            : "#e0e0e0",
+                                },
+                                "&.Mui-selected": {
+                                    color: "#ffffff",
+                                    background:
+                                        "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))"
+                                },
+                            }}
+                        />
+
                     </Tabs>
 
                     {/* ================= TAB PRODUCTOS ================= */}
