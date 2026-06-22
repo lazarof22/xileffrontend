@@ -30,6 +30,7 @@ import DialogCrearCliente, { type ClienteFormData } from '../../components/AddCl
 import DialogPagoEfectivo, { type PagoEfectivoData } from '../../components/PagoEfectivoDialog';
 import DialogPagoCredito, { type PagoCreditoData } from '../../components/PagoCreditoDialog';
 import type { ProductoCarrito } from '../../types/venta.types';
+import CustomDataGridR, { type Column } from '../../components/CustomDataGridR';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 interface ProductoAPI {
@@ -46,6 +47,17 @@ interface ProductoAPI {
     updatedAt?: string;
 }
 
+interface VentaHistorial {
+    id: string;
+    fecha: string;          // Fecha sin hora
+    producto: string;       // Nombre del producto
+    cantidadVendida: number;
+    stockFinal: number;
+    descuento: number;
+    impuesto: number;
+    totalPagado: number;
+}
+
 export default function PuntoVentaPage() {
     const [search, setSearch] = React.useState("");
 
@@ -53,6 +65,18 @@ export default function PuntoVentaPage() {
     const [productos, setProductos] = useState<ProductoAPI[]>([]);
     const [loadingProductos, setLoadingProductos] = useState(false);
     const [errorProductos, setErrorProductos] = useState<string | null>(null);
+
+    const [ventasHistorial, setVentasHistorial] = useState<VentaHistorial[]>([]);
+
+    const reportePlusColumns: Column<VentaHistorial>[] = [
+        { field: 'fecha', headerName: 'Fecha', filterable: true },
+        { field: 'producto', headerName: 'Producto', filterable: true },
+        { field: 'cantidadVendida', headerName: 'Cantidad Vendida', numeric: true, filterable: true },
+        { field: 'stockFinal', headerName: 'Stock Final', numeric: true, filterable: true },
+        { field: 'descuento', headerName: 'Descuento (%)', numeric: true, filterable: true },
+        { field: 'impuesto', headerName: 'Impuesto (%)', numeric: true, filterable: true },
+        { field: 'totalPagado', headerName: 'Total Pagado', numeric: true, filterable: true },
+    ];
 
     // Cargar productos desde la API al montar
     useEffect(() => {
@@ -369,6 +393,22 @@ export default function PuntoVentaPage() {
     };
 
     const handleVentaExitosa = (ventaId: string): void => {
+        // Generar registro para el historial de cada producto vendido
+        const fechaActual = new Date().toISOString().split('T')[0]; // Solo fecha YYYY-MM-DD
+
+        const nuevasVentas = carrito.map(item => ({
+            id: `${ventaId}-${item.id}`,
+            fecha: fechaActual,
+            producto: item.nombre,
+            cantidadVendida: item.cantidad,
+            stockFinal: Math.max(0, item.stock - item.cantidad),
+            descuento: item.descuento,
+            impuesto: impuesto,
+            totalPagado: (item.cantidad * item.precio * (1 - item.descuento / 100)) * (1 + impuesto / 100)
+        }));
+
+        setVentasHistorial(prev => [...nuevasVentas, ...prev]);
+
         // ✅ Limpiar todo después de venta exitosa
         setCarrito([]);
         setEfectivo("");
@@ -532,7 +572,7 @@ export default function PuntoVentaPage() {
                         <Tab
                             icon={<ShoppingBasketIcon sx={{ fontSize: "large" }} />}
                             iconPosition="start"
-                            label="Cuarde de Caja"
+                            label="Reporte de Caja"
                             sx={{
                                 textTransform: "none",
                                 fontWeight: 600,
@@ -548,6 +588,36 @@ export default function PuntoVentaPage() {
                                 "&:hover": {
                                     background:
                                         tab === 3
+                                            ? "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))"
+                                            : "#e0e0e0",
+                                },
+                                "&.Mui-selected": {
+                                    color: "#ffffff",
+                                    background:
+                                        "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))"
+                                },
+                            }}
+                        />
+
+                        <Tab
+                            icon={<ShoppingBasketIcon sx={{ fontSize: "large" }} />}
+                            iconPosition="start"
+                            label="Cuarde de Caja"
+                            sx={{
+                                textTransform: "none",
+                                fontWeight: 600,
+                                borderRadius: "10px",
+                                minHeight: 45,
+                                width: "auto",
+                                transition: "all 0.3s ease",
+                                color: tab === 4 ? "#fff" : "#555",
+                                background:
+                                    tab === 4
+                                        ? "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))"
+                                        : "transparent",
+                                "&:hover": {
+                                    background:
+                                        tab === 4
                                             ? "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))"
                                             : "#e0e0e0",
                                 },
@@ -1375,6 +1445,109 @@ export default function PuntoVentaPage() {
                                 </Box>
                             </Box>
                         </Card>
+                    )}
+
+                    {/* ================= TAB REPORTE PLUS ================= */}
+                    {tab === 2 && (
+                        <Card
+                            elevation={0}
+                            sx={{
+                                borderRadius: 3,
+                                border: "1px solid rgba(0,0,0,0.04)",
+                                bgcolor: "#f8f9fa",
+                                boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+                                overflow: "hidden",
+                                m: 1
+                            }}
+                        >
+                            <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+                                {/* Header */}
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        flexDirection: { xs: "column", sm: "row" },
+                                        justifyContent: "space-between",
+                                        alignItems: { xs: "stretch", sm: "center" },
+                                        mb: 3,
+                                        gap: 2,
+                                    }}
+                                >
+                                    <Typography variant="h6"
+                                        sx={{
+                                            p: 1,
+                                            textAlign: "center",
+                                            background: "linear-gradient(135deg, rgba(0, 89, 255, 0.84), rgba(230, 21, 118, 0.9))",
+                                            WebkitBackgroundClip: "text",
+                                            WebkitTextFillColor: "transparent",
+                                        }}>
+                                        <span style={{ marginRight: '8px', display: 'inline-flex', alignItems: 'center', verticalAlign: 'middle' }}>
+                                            <ReceiptLongIcon
+                                                sx={{
+                                                    fill: 'url(#iconGradient)',
+                                                    width: 24,
+                                                    height: 24
+                                                }}
+                                            />
+                                            <svg width="0" height="0">
+                                                <defs>
+                                                    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                        <stop offset="0%" stopColor="rgba(0, 89, 255, 0.84)" />
+                                                        <stop offset="100%" stopColor="rgba(230, 21, 118, 0.9)" />
+                                                    </linearGradient>
+                                                </defs>
+                                            </svg>
+                                        </span>
+                                        Reporte Plus - Historial de Ventas
+                                    </Typography>
+
+                                    <Chip
+                                        label={`${ventasHistorial.length} ventas registradas`}
+                                        size="medium"
+                                        sx={{
+                                            bgcolor: 'rgba(10, 83, 218, 0.1)',
+                                            color: 'rgb(10, 83, 218)',
+                                            fontWeight: 600,
+                                            borderRadius: 2,
+                                            p: 1
+                                        }}
+                                    />
+                                </Box>
+
+                                <Divider sx={{ my: 2 }} />
+
+                                {/* CustomDataGridR con los datos de ventas */}
+                                <CustomDataGridR<VentaHistorial>
+                                    rows={ventasHistorial}
+                                    columns={reportePlusColumns}
+                                    getRowId={(row) => row.id}
+                                    title="Historial de Ventas"
+                                    onEditRow={(row) => {
+                                        console.log('Editar venta:', row);
+                                        // Aquí puedes implementar edición si lo necesitas
+                                    }}
+                                />
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {/*Reporte Caja*/}
+                    {tab === 3 && (
+                        <Box sx={{ p: 2 }}>
+                            <Typography variant="h6" gutterBottom>
+                                Reporte Caja
+                            </Typography>
+
+                        </Box>
+                    )}
+
+                    {/*Cuadre de Caja*/}
+                    {tab === 4 && (
+                        <Box sx={{ p: 2 }}>
+                            <Typography variant="h6" gutterBottom>
+                                Cuadre de Caja
+                            </Typography>
+
+                        </Box>
                     )}
                 </Box>
             </Box>
