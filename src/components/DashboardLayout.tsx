@@ -84,7 +84,7 @@ const reportesAuditoria = [
 
 const menuSections = [
   { text: 'Nomencladores', icon: <SettingsIcon />, path: '/nomencladores' },
-  { text: 'Licencias', icon: <VpnKeyIcon />, path: '/licencias' },
+  { text: 'Configuración', icon: <VpnKeyIcon />, path: '/configuracion' },
 ];
 
 interface MenuItem {
