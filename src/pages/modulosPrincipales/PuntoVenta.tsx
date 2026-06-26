@@ -31,6 +31,7 @@ import DialogPagoEfectivo, { type PagoEfectivoData } from '../../components/Pago
 import DialogPagoCredito, { type PagoCreditoData } from '../../components/PagoCreditoDialog';
 import type { ProductoCarrito } from '../../types/venta.types';
 import CustomDataGridR, { type Column } from '../../components/CustomDataGridR';
+import FacturacionTab from '../../components/FacturacionTab';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 interface ProductoAPI {
@@ -69,13 +70,13 @@ export default function PuntoVentaPage() {
     const [ventasHistorial, setVentasHistorial] = useState<VentaHistorial[]>([]);
 
     const reportePlusColumns: Column<VentaHistorial>[] = [
-        { field: 'fecha', headerName: 'Fecha', filterable: true },
-        { field: 'producto', headerName: 'Producto', filterable: true },
-        { field: 'cantidadVendida', headerName: 'Cantidad Vendida', numeric: true, filterable: true },
-        { field: 'stockFinal', headerName: 'Stock Final', numeric: true, filterable: true },
-        { field: 'descuento', headerName: 'Descuento (%)', numeric: true, filterable: true },
-        { field: 'impuesto', headerName: 'Impuesto (%)', numeric: true, filterable: true },
-        { field: 'totalPagado', headerName: 'Total Pagado', numeric: true, filterable: true },
+        { field: 'fecha', headerName: 'Fecha' },
+        { field: 'producto', headerName: 'Producto' },
+        { field: 'cantidadVendida', headerName: 'Cantidad Vendida', numeric: true },
+        { field: 'stockFinal', headerName: 'Stock Final', numeric: true },
+        { field: 'descuento', headerName: 'Descuento (%)', numeric: true },
+        { field: 'impuesto', headerName: 'Impuesto (%)', numeric: true },
+        { field: 'totalPagado', headerName: 'Total Pagado', numeric: true },
     ];
 
     // Cargar productos desde la API al montar
@@ -500,25 +501,17 @@ export default function PuntoVentaPage() {
                             }}
                         />
 
+                        // Reemplazar el Tab 2 actual:
                         <Tab
-                            icon={
-                                <Badge
-                                    badgeContent={
-                                        carrito.reduce((acc, item) => acc + item.cantidad, 0)
-                                    }
-                                    color="error"
-                                    overlap="circular"
-                                >
-                                    <ShoppingCartIcon />
-                                </Badge>
-                            }
+                            icon={<ReceiptLongIcon sx={{ fontSize: "large" }} />}
                             iconPosition="start"
-                            label="Carrito"
+                            label="Facturación"
                             sx={{
                                 textTransform: "none",
                                 fontWeight: 600,
                                 borderRadius: "10px",
                                 minHeight: 45,
+                                width: "auto",
                                 transition: "all 0.3s ease",
                                 color: tab === 1 ? "#fff" : "#555",
                                 background:
@@ -540,15 +533,24 @@ export default function PuntoVentaPage() {
                         />
 
                         <Tab
-                            icon={<ShoppingBasketIcon sx={{ fontSize: "large" }} />}
+                            icon={
+                                <Badge
+                                    badgeContent={
+                                        carrito.reduce((acc, item) => acc + item.cantidad, 0)
+                                    }
+                                    color="error"
+                                    overlap="circular"
+                                >
+                                    <ShoppingCartIcon />
+                                </Badge>
+                            }
                             iconPosition="start"
-                            label="Reporte Plus"
+                            label="Carrito"
                             sx={{
                                 textTransform: "none",
                                 fontWeight: 600,
                                 borderRadius: "10px",
                                 minHeight: 45,
-                                width: "auto",
                                 transition: "all 0.3s ease",
                                 color: tab === 2 ? "#fff" : "#555",
                                 background:
@@ -572,7 +574,7 @@ export default function PuntoVentaPage() {
                         <Tab
                             icon={<ShoppingBasketIcon sx={{ fontSize: "large" }} />}
                             iconPosition="start"
-                            label="Reporte de Caja"
+                            label="Reporte Plus"
                             sx={{
                                 textTransform: "none",
                                 fontWeight: 600,
@@ -602,7 +604,7 @@ export default function PuntoVentaPage() {
                         <Tab
                             icon={<ShoppingBasketIcon sx={{ fontSize: "large" }} />}
                             iconPosition="start"
-                            label="Cuarde de Caja"
+                            label="Reporte de Caja"
                             sx={{
                                 textTransform: "none",
                                 fontWeight: 600,
@@ -618,6 +620,36 @@ export default function PuntoVentaPage() {
                                 "&:hover": {
                                     background:
                                         tab === 4
+                                            ? "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))"
+                                            : "#e0e0e0",
+                                },
+                                "&.Mui-selected": {
+                                    color: "#ffffff",
+                                    background:
+                                        "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))"
+                                },
+                            }}
+                        />
+
+                        <Tab
+                            icon={<ShoppingBasketIcon sx={{ fontSize: "large" }} />}
+                            iconPosition="start"
+                            label="Cuarde de Caja"
+                            sx={{
+                                textTransform: "none",
+                                fontWeight: 600,
+                                borderRadius: "10px",
+                                minHeight: 45,
+                                width: "auto",
+                                transition: "all 0.3s ease",
+                                color: tab === 5 ? "#fff" : "#555",
+                                background:
+                                    tab === 5
+                                        ? "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))"
+                                        : "transparent",
+                                "&:hover": {
+                                    background:
+                                        tab === 5
                                             ? "linear-gradient(135deg, rgb(0, 174, 255), rgb(196, 45, 226))"
                                             : "#e0e0e0",
                                 },
@@ -801,8 +833,19 @@ export default function PuntoVentaPage() {
                         </Card>
                     )}
 
-                    {/* ================= TAB CARRITO ================= */}
+                    {/* ================= TAB FACTURACIÓN ================= */}
                     {tab === 1 && (
+                        <FacturacionTab
+                            productos={productos}
+                            onFacturaEmitida={(factura) => {
+                                // Opcional: sincronizar con el carrito o reportes
+                                console.log('Factura emitida:', factura);
+                            }}
+                        />
+                    )}
+
+                    {/* ================= TAB CARRITO ================= */}
+                    {tab === 2 && (
                         <Card
                             sx={{
                                 height: "100%",
@@ -1354,9 +1397,9 @@ export default function PuntoVentaPage() {
                                 <Box
                                     sx={{
                                         display: "grid",
-                                        gridTemplateColumns: "1fr", // 1 columnas iguales
-                                        gridTemplateRows: "1fr",    // 1 filas iguales
-                                        gap: 2,                     // Espacio entre botones
+                                        gridTemplateColumns: "1fr 1fr", // 2 columnas
+                                        gridTemplateRows: "1fr 1fr",    // 2 filas
+                                        gap: 2,
                                         width: "100%"
                                     }}>
                                     <Button
@@ -1377,7 +1420,7 @@ export default function PuntoVentaPage() {
                                             }
                                         }}
                                     >
-                                        Pago en Efectivo
+                                        Efectivo
                                     </Button>
                                     <DialogPagoEfectivo
                                         open={openPago}
@@ -1410,7 +1453,7 @@ export default function PuntoVentaPage() {
                                             }
                                         }}
                                     >
-                                        Pago por Credito
+                                        Credito
                                     </Button>
                                     <DialogPagoCredito
                                         open={openPagoCredito}
@@ -1440,7 +1483,26 @@ export default function PuntoVentaPage() {
                                             }
                                         }}
                                     >
-                                        Pago por Transferencia
+                                        Transferencia
+                                    </Button>
+                                    <Button
+                                        variant="contained"
+                                        size="small"
+                                        startIcon={<PhoneAndroidIcon sx={{ fontSize: "medium" }} />}
+                                        sx={{
+                                            ml: 1,
+                                            background: "linear-gradient(135deg, rgb(6, 70, 245), rgba(45, 218, 10, 0.9))",
+                                            color: "#fff",
+                                            textTransform: "none",
+                                            fontWeight: 600,
+                                            boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
+                                            "&:hover": {
+                                                background: "linear-gradient(135deg, rgb(6, 70, 245), rgba(45, 218, 10, 0.9))",
+                                                boxShadow: "0 4px 12px rgb(12, 190, 235)"
+                                            }
+                                        }}
+                                    >
+                                        Extracción
                                     </Button>
                                 </Box>
                             </Box>
@@ -1549,8 +1611,9 @@ export default function PuntoVentaPage() {
 
                         </Box>
                     )}
+
                 </Box>
             </Box>
-        </Box>
+        </Box >
     );
 }
