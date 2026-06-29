@@ -426,6 +426,7 @@ export default function DialogPagoEfectivo({
                                         ),
                                     }
                                 }}
+                                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1, bgcolor: '#f8f9fa', '& fieldset': { borderColor: 'rgba(0,0,0,0.06)' } } }}
                             >
                                 <MenuItem value="CUP">
                                     <CurrencyExchangeIcon sx={{ mr: 1 }} />
@@ -449,14 +450,16 @@ export default function DialogPagoEfectivo({
                                 value={clientes.find(c => c.nombre_cliente === cliente) || null}
                                 renderInput={(params) => (
                                     <TextField {...params} label="Cliente"
-                                        error={!!errors.cliente} helperText={errors.cliente} />
+                                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1, bgcolor: '#f8f9fa', '& fieldset': { borderColor: 'rgba(0,0,0,0.06)' } } }}
+                                        error={!!errors.cliente} helperText={errors.cliente} 
+                                        />
                                 )}
                             />
 
                             <TextField fullWidth label="Monto a Pagar"
                                 value={pagoData.monto_a_pagar} disabled
                                 slotProps={{ input: { readOnly: true } }}
-                                sx={{ "& .MuiInputBase-input": { fontWeight: 600 } }}
+                                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1, bgcolor: '#f8f9fa', '& fieldset': { borderColor: 'rgba(0,0,0,0.06)' } } }}
                             />
 
                             <TextField fullWidth label="Monto Pagado"
@@ -466,7 +469,7 @@ export default function DialogPagoEfectivo({
                                 helperText={errors.monto_pagado}
                                 disabled={loading}
                                 autoFocus placeholder="0.00"
-                                sx={{ "& .MuiInputBase-input": { fontWeight: 600 } }}
+                                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1, bgcolor: '#f8f9fa', '& fieldset': { borderColor: 'rgba(0,0,0,0.06)' } } }}
                             />
 
                             <TextField fullWidth label="Cambio"
@@ -476,7 +479,8 @@ export default function DialogPagoEfectivo({
                                     "& .MuiInputBase-input": {
                                         color: parseFloat(pagoData.cambio) > 0 ? "#2e7d32" : "inherit",
                                         fontWeight: 600,
-                                    }
+                                    },
+                                    '& .MuiOutlinedInput-root': { borderRadius: 1, bgcolor: '#f8f9fa', '& fieldset': { borderColor: 'rgba(0,0,0,0.06)' } }
                                 }}
                             />
                         </Box>
