@@ -368,7 +368,7 @@ export default function FacturacionTab({ productos, onFacturaEmitida }: Facturac
 
     // ─── RENDER ─────────────────────────────────────────────────
     return (
-        <Box sx={{ p: { xs: 1, md: 2 } }}>
+        <Box>
             {/* Alertas */}
             {alert && (
                 <Alert
@@ -390,10 +390,10 @@ export default function FacturacionTab({ productos, onFacturaEmitida }: Facturac
                         sx={{
                             borderRadius: 3,
                             border: "1px solid rgba(0,0,0,0.04)",
-                            bgcolor: "#fff",
+                            bgcolor: "#f8f9fa",
                             boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
                             overflow: "hidden",
-                            height: '100%'
+                            m: 1
                         }}
                     >
                         <CardContent sx={{ p: 3 }}>
@@ -450,7 +450,7 @@ export default function FacturacionTab({ productos, onFacturaEmitida }: Facturac
                                             onChange={(e) => setCliente(e.target.value)}
                                             sx={{
                                                 '& .MuiOutlinedInput-root': {
-                                                    borderRadius: 2,
+                                                    borderRadius: 1,
                                                     bgcolor: '#f8f9fa',
                                                     '& fieldset': { borderColor: 'rgba(0,0,0,0.06)' },
                                                     '&:hover fieldset': { borderColor: 'rgba(10, 83, 218, 0.3)' },
@@ -469,7 +469,7 @@ export default function FacturacionTab({ productos, onFacturaEmitida }: Facturac
                                             onChange={(e) => setNit(e.target.value)}
                                             sx={{
                                                 '& .MuiOutlinedInput-root': {
-                                                    borderRadius: 2,
+                                                    borderRadius: 1,
                                                     bgcolor: '#f8f9fa',
                                                     '& fieldset': { borderColor: 'rgba(0,0,0,0.06)' },
                                                     '&:hover fieldset': { borderColor: 'rgba(10, 83, 218, 0.3)' },
@@ -488,7 +488,7 @@ export default function FacturacionTab({ productos, onFacturaEmitida }: Facturac
                                             onChange={(e) => setDireccion(e.target.value)}
                                             sx={{
                                                 '& .MuiOutlinedInput-root': {
-                                                    borderRadius: 2,
+                                                    borderRadius: 1,
                                                     bgcolor: '#f8f9fa',
                                                     '& fieldset': { borderColor: 'rgba(0,0,0,0.06)' },
                                                     '&:hover fieldset': { borderColor: 'rgba(10, 83, 218, 0.3)' },
@@ -507,7 +507,7 @@ export default function FacturacionTab({ productos, onFacturaEmitida }: Facturac
                                             onChange={(e) => setTelefono(e.target.value)}
                                             sx={{
                                                 '& .MuiOutlinedInput-root': {
-                                                    borderRadius: 2,
+                                                    borderRadius: 1,
                                                     bgcolor: '#f8f9fa',
                                                     '& fieldset': { borderColor: 'rgba(0,0,0,0.06)' },
                                                     '&:hover fieldset': { borderColor: 'rgba(10, 83, 218, 0.3)' },
@@ -527,7 +527,7 @@ export default function FacturacionTab({ productos, onFacturaEmitida }: Facturac
                                             onChange={(e) => setEmail(e.target.value)}
                                             sx={{
                                                 '& .MuiOutlinedInput-root': {
-                                                    borderRadius: 2,
+                                                    borderRadius: 1,
                                                     bgcolor: '#f8f9fa',
                                                     '& fieldset': { borderColor: 'rgba(0,0,0,0.06)' },
                                                     '&:hover fieldset': { borderColor: 'rgba(10, 83, 218, 0.3)' },
@@ -544,16 +544,16 @@ export default function FacturacionTab({ productos, onFacturaEmitida }: Facturac
                                                 label="Método de Pago"
                                                 onChange={(e: SelectChangeEvent) => setMetodoPago(e.target.value)}
                                                 sx={{
-                                                    borderRadius: 2,
+                                                    borderRadius: 1,
                                                     bgcolor: '#f8f9fa',
                                                     '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0,0,0,0.06)' },
                                                     '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(10, 83, 218, 0.3)' },
                                                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'rgb(10, 83, 218)' },
                                                 }}
                                             >
-                                                <MenuItem value="efectivo">💵 Efectivo</MenuItem>
-                                                <MenuItem value="transferencia">🏦 Transferencia</MenuItem>
-                                                <MenuItem value="credito">💳 Crédito</MenuItem>
+                                                <MenuItem value="efectivo"> Efectivo</MenuItem>
+                                                <MenuItem value="transferencia"> Transferencia</MenuItem>
+                                                <MenuItem value="credito"> Crédito</MenuItem>
                                             </Select>
                                         </FormControl>
                                     </Grid>
@@ -568,7 +568,7 @@ export default function FacturacionTab({ productos, onFacturaEmitida }: Facturac
                                     Agregar Producto
                                 </Typography>
                                 <Grid container spacing={2} alignItems="flex-end">
-                                    <Grid size={{ xs: 12, sm: 4 }}>
+                                    <Grid size={{ xs: 6, sm: 3 }}>
                                         <FormControl fullWidth size="small">
                                             <InputLabel>Producto</InputLabel>
                                             <Select
@@ -580,7 +580,7 @@ export default function FacturacionTab({ productos, onFacturaEmitida }: Facturac
                                                     if (prod) setPrecioVenta(prod.precio_venta.toString());
                                                 }}
                                                 sx={{
-                                                    borderRadius: 2,
+                                                    borderRadius: 1,
                                                     bgcolor: '#f8f9fa',
                                                     '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(0,0,0,0.06)' },
                                                     '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(10, 83, 218, 0.3)' },
@@ -607,7 +607,7 @@ export default function FacturacionTab({ productos, onFacturaEmitida }: Facturac
                                             onChange={(e) => setCantidad(e.target.value)}
                                             sx={{
                                                 '& .MuiOutlinedInput-root': {
-                                                    borderRadius: 2,
+                                                    borderRadius: 1,
                                                     bgcolor: '#f8f9fa',
                                                     '& fieldset': { borderColor: 'rgba(0,0,0,0.06)' },
                                                 }
@@ -633,18 +633,18 @@ export default function FacturacionTab({ productos, onFacturaEmitida }: Facturac
                                             }}
                                             sx={{
                                                 '& .MuiOutlinedInput-root': {
-                                                    borderRadius: 2,
+                                                    borderRadius: 1,
                                                     bgcolor: '#f8f9fa',
                                                     '& fieldset': { borderColor: 'rgba(0,0,0,0.06)' },
                                                 }
                                             }}
                                         />
                                     </Grid>
-                                    <Grid size={{ xs: 4, sm: 1.5 }}>
+                                    <Grid size={{ xs: 6, sm: 2 }}>
                                         <TextField
                                             fullWidth
                                             size="small"
-                                            label="Dto %"
+                                            label="Descuento en %"
                                             type="number"
                                             placeholder="0"
                                             value={descuentoPct}
@@ -652,18 +652,18 @@ export default function FacturacionTab({ productos, onFacturaEmitida }: Facturac
                                             inputProps={{ step: '0.1' }}
                                             sx={{
                                                 '& .MuiOutlinedInput-root': {
-                                                    borderRadius: 2,
+                                                    borderRadius: 1,
                                                     bgcolor: '#f8f9fa',
                                                     '& fieldset': { borderColor: 'rgba(0,0,0,0.06)' },
                                                 }
                                             }}
                                         />
                                     </Grid>
-                                    <Grid size={{ xs: 4, sm: 1.5 }}>
+                                    <Grid size={{ xs: 6, sm: 2 }}>
                                         <TextField
                                             fullWidth
                                             size="small"
-                                            label="Dto $"
+                                            label="Descuento en $"
                                             type="number"
                                             placeholder="0.00"
                                             inputProps={{ step: '0.01' }}
@@ -671,14 +671,14 @@ export default function FacturacionTab({ productos, onFacturaEmitida }: Facturac
                                             onChange={(e) => setDescuentoMonto(e.target.value)}
                                             sx={{
                                                 '& .MuiOutlinedInput-root': {
-                                                    borderRadius: 2,
+                                                    borderRadius: 1,
                                                     bgcolor: '#f8f9fa',
                                                     '& fieldset': { borderColor: 'rgba(0,0,0,0.06)' },
                                                 }
                                             }}
                                         />
                                     </Grid>
-                                    <Grid size={{ xs: 4, sm: 1 }}>
+                                    <Grid size={{ xs: 6, sm: 1 }}>
                                         <TextField
                                             fullWidth
                                             size="small"
@@ -690,7 +690,7 @@ export default function FacturacionTab({ productos, onFacturaEmitida }: Facturac
                                             onChange={(e) => setRecargo(e.target.value)}
                                             sx={{
                                                 '& .MuiOutlinedInput-root': {
-                                                    borderRadius: 2,
+                                                    borderRadius: 1,
                                                     bgcolor: '#f8f9fa',
                                                     '& fieldset': { borderColor: 'rgba(0,0,0,0.06)' },
                                                 }
@@ -856,7 +856,7 @@ export default function FacturacionTab({ productos, onFacturaEmitida }: Facturac
                                         }
                                     }}
                                 >
-                                    ✅ Emitir Factura
+                                    Emitir Factura
                                 </Button>
                                 <Button
                                     variant="contained"
@@ -877,7 +877,7 @@ export default function FacturacionTab({ productos, onFacturaEmitida }: Facturac
                                         }
                                     }}
                                 >
-                                    📝 Venta Ajustada
+                                    Venta Ajustada
                                 </Button>
                                 <Button
                                     variant="outlined"
@@ -918,13 +918,13 @@ export default function FacturacionTab({ productos, onFacturaEmitida }: Facturac
                         sx={{
                             borderRadius: 3,
                             border: "1px solid rgba(0,0,0,0.04)",
-                            bgcolor: "#fff",
+                            bgcolor: "#f8f9fa",
                             boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
                             overflow: "hidden",
-                            height: '100%'
+                            m: 1
                         }}
                     >
-                        <CardContent sx={{ p: 3 }}>
+                        <CardContent sx={{ p: 1 }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                                 <Typography variant="h6"
                                     sx={{
