@@ -33,6 +33,8 @@ import type { ProductoCarrito } from '../../types/venta.types';
 import CustomDataGridR, { type Column } from '../../components/CustomDataGridR';
 import FacturacionTab from '../../components/FacturacionTab';
 import CuadreCajaTab from '../../components/CuadreCaja';
+import ReporteCajaTab from '../../components/ReporteCajaTab';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 interface ProductoAPI {
@@ -603,7 +605,7 @@ export default function PuntoVentaPage() {
                         />
 
                         <Tab
-                            icon={<ShoppingBasketIcon sx={{ fontSize: "large" }} />}
+                            icon={<TrendingUpIcon sx={{ fontSize: "large" }} />}
                             iconPosition="start"
                             label="Reporte de Caja"
                             sx={{
@@ -1595,12 +1597,7 @@ export default function PuntoVentaPage() {
 
                     {/*Reporte Caja*/}
                     {tab === 4 && (
-                        <Box sx={{ p: 2 }}>
-                            <Typography variant="h6" gutterBottom>
-                                Reporte Caja
-                            </Typography>
-
-                        </Box>
+                        <ReporteCajaTab />
                     )}
 
                     {/* ================= TAB CUADRE DE CAJA ================= */}
