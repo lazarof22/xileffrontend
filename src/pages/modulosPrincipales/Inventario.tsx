@@ -26,6 +26,8 @@ import { useEffect, useState } from 'react';
 import { TabContext, TabList, TabPanel } from "@mui/lab";
 import CancelIcon from '@mui/icons-material/Cancel';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import AlmacenesTab from '../../components/AlmacenesTabs';
+import MovimientosTab from '../../components/MovimientosTabs';
 
 interface EstadoBackend {
     _id: string;
@@ -469,12 +471,15 @@ export default function InventoryPage() {
             </Box>
 
             {/* Tabs */}
+            {/* Tabs */}
             <Box sx={{ width: '100%', px: 2 }}>
                 <TabContext value={tabValue}>
                     <Box sx={{ borderBottom: 1, borderColor: 'divider', mt: 2 }}>
                         <TabList onChange={handleTabChange}>
                             <Tab label="Productos" value="1" />
                             <Tab label="Kardex" value="2" />
+                            <Tab label="Almacenes" value="3" />
+                            <Tab label="Movimientos" value="4" />
                         </TabList>
                     </Box>
 
@@ -562,6 +567,19 @@ export default function InventoryPage() {
                                 />
                             </CardContent>
                         </Card>
+                    </TabPanel>
+                    {/* ═══════════════════════════════════════════════════
+                    TAB ALMACENES
+                ═══════════════════════════════════════════════════ */}
+                    <TabPanel value="3">
+                        <AlmacenesTab />
+                    </TabPanel>
+
+                    {/* ═══════════════════════════════════════════════════
+                    TAB MOVIMIENTOS
+                ═══════════════════════════════════════════════════ */}
+                    <TabPanel value="4">
+                        <MovimientosTab />
                     </TabPanel>
                 </TabContext>
 
