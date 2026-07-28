@@ -504,7 +504,6 @@ export default function PuntoVentaPage() {
                             }}
                         />
 
-                        // Reemplazar el Tab 2 actual:
                         <Tab
                             icon={<ReceiptLongIcon sx={{ fontSize: "large" }} />}
                             iconPosition="start"
