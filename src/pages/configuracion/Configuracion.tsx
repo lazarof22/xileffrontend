@@ -1595,7 +1595,7 @@ export default function ConfiguracionPage() {
                                         boxShadow: "0 6px 16px rgba(9, 80, 212, 0.58)"
                                     }
                                 }}
-                                >
+                            >
                                 {accionLicencia || 'Ejecutar Acción'}
                             </Button>
 
