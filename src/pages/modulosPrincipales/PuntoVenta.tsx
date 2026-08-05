@@ -29,6 +29,9 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import DialogCrearCliente, { type ClienteFormData } from '../../components/AddClientDialog';
 import DialogPagoEfectivo, { type PagoEfectivoData } from '../../components/PagoEfectivoDialog';
 import DialogPagoCredito, { type PagoCreditoData } from '../../components/PagoCreditoDialog';
+import DialogPagoTransferencia, { type PagoTransferenciaData } from '../../components/PagoTransferenciaDialog';
+import LoginExtraccionDialog from '../../components/LoginExtraccionDialog';
+import ExtraccionDialog, { type ExtraccionData } from '../../components/ExtraccionDialog';
 import type { ProductoCarrito } from '../../types/venta.types';
 import CustomDataGridR, { type Column } from '../../components/CustomDataGridR';
 import FacturacionTab from '../../components/FacturacionTab';
@@ -69,6 +72,9 @@ export default function PuntoVentaPage() {
     const [productos, setProductos] = useState<ProductoAPI[]>([]);
     const [loadingProductos, setLoadingProductos] = useState(false);
     const [errorProductos, setErrorProductos] = useState<string | null>(null);
+    const [openPagoTransferencia, setOpenPagoTransferencia] = useState(false);
+    const [openLoginExtraccion, setOpenLoginExtraccion] = useState(false);
+    const [openExtraccion, setOpenExtraccion] = useState(false);
 
     const [ventasHistorial, setVentasHistorial] = useState<VentaHistorial[]>([]);
 
@@ -421,6 +427,35 @@ export default function PuntoVentaPage() {
         setCliente("");
         setNit("");
     };
+
+    const handleOpenPagoTransferencia = (): void => setOpenPagoTransferencia(true);
+    const handleClosePagoTransferencia = (): void => setOpenPagoTransferencia(false);
+    const handlePagoTransferenciaCompletado = (data: PagoTransferenciaData): void => {
+        console.log('Transferencia procesada:', data);
+    };
+
+    // 3. HANDLERS
+    const handleOpenExtraccion = (): void => {
+        setOpenLoginExtraccion(true); // Primero abre el login
+    };
+
+    const handleLoginSuccess = (): void => {
+        setOpenExtraccion(true); // Login OK → abre extracción
+    };
+
+    const handleCloseLogin = (): void => {
+        setOpenLoginExtraccion(false);
+    };
+
+    const handleCloseExtraccion = (): void => {
+        setOpenExtraccion(false);
+    };
+
+    const handleExtraccionCompletada = (data: ExtraccionData): void => {
+        console.log('Extracción registrada:', data);
+        // Aquí puedes: actualizar saldo de caja, refrescar reportes, etc.
+    };
+
 
     return (
         <Box>
@@ -1472,6 +1507,7 @@ export default function PuntoVentaPage() {
                                         variant="contained"
                                         size="small"
                                         startIcon={<PhoneAndroidIcon sx={{ fontSize: "medium" }} />}
+                                        onClick={handleOpenPagoTransferencia}
                                         sx={{
                                             ml: 1,
                                             background: "linear-gradient(135deg, rgba(245, 6, 6, 0.9), rgba(10, 83, 218, 0.9))",
@@ -1487,10 +1523,22 @@ export default function PuntoVentaPage() {
                                     >
                                         Transferencia
                                     </Button>
+                                    <DialogPagoTransferencia
+                                        open={openPagoTransferencia}
+                                        onClose={handleClosePagoTransferencia}
+                                        montoTotal={totalFinal}
+                                        productosCarrito={carrito}
+                                        subtotal={subtotal}
+                                        descuentoTotal={montoDescuento}
+                                        impuesto={montoImpuesto}
+                                        onPagoCompletado={handlePagoTransferenciaCompletado}
+                                        onVentaExitosa={handleVentaExitosa}
+                                    />
                                     <Button
                                         variant="contained"
                                         size="small"
                                         startIcon={<PhoneAndroidIcon sx={{ fontSize: "medium" }} />}
+                                        onClick={handleOpenExtraccion}
                                         sx={{
                                             ml: 1,
                                             background: "linear-gradient(135deg, rgb(6, 70, 245), rgba(45, 218, 10, 0.9))",
@@ -1506,6 +1554,18 @@ export default function PuntoVentaPage() {
                                     >
                                         Extracción
                                     </Button>
+                                    <LoginExtraccionDialog
+                                        open={openLoginExtraccion}
+                                        onClose={handleCloseLogin}
+                                        onLoginSuccess={handleLoginSuccess}
+                                    />
+
+                                    <ExtraccionDialog
+                                        open={openExtraccion}
+                                        onClose={handleCloseExtraccion}
+                                        saldoDisponible={totalFinal} // o el saldo real de tu caja
+                                        onExtraccionCompletada={handleExtraccionCompletada}
+                                    />
                                 </Box>
                             </Box>
                         </Card>
