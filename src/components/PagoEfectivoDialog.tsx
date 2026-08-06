@@ -10,16 +10,18 @@ import {
     Alert,
     Snackbar,
     Typography,
-    Divider,
     Box,
     Card,
     InputAdornment,
     MenuItem,
-    Autocomplete
+    Autocomplete,
+    Stack,
+    Divider,
 } from '@mui/material';
 import MoneyIcon from '@mui/icons-material/Money';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import {
     procesarVentaEfectivo,
     convertirDesgloseBilletes,
@@ -29,6 +31,7 @@ import type { ProductoCarrito } from '../types/venta.types';
 import CurrencyExchangeIcon from '@mui/icons-material/CurrencyExchange';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import EuroIcon from '@mui/icons-material/Euro';
+import DesgloseEfectivoDialog, { type DesgloseData } from './DesgloseEfectivoDialog';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -93,21 +96,6 @@ const initialPago: PagoEfectivoData = {
     billetes_1: '',
 };
 
-const billetesConfig = [
-    { key: 'billestes_5000' as const, label: 'Billetes de 5000', denom: 5000 },
-    { key: 'billetes_2000' as const, label: 'Billetes de 2000', denom: 2000 },
-    { key: 'billetes_1000' as const, label: 'Billetes de 1000', denom: 1000 },
-    { key: 'billetes_500' as const, label: 'Billetes de 500', denom: 500 },
-    { key: 'billetes_200' as const, label: 'Billetes de 200', denom: 200 },
-    { key: 'billetes_100' as const, label: 'Billetes de 100', denom: 100 },
-    { key: 'billetes_50' as const, label: 'Billetes de 50', denom: 50 },
-    { key: 'billetes_20' as const, label: 'Billetes de 20', denom: 20 },
-    { key: 'billetes_10' as const, label: 'Billetes de 10', denom: 10 },
-    { key: 'billetes_5' as const, label: 'Billetes de 5', denom: 5 },
-    { key: 'billetes_3' as const, label: 'Billetes de 3', denom: 3 },
-    { key: 'billetes_1' as const, label: 'Billetes de 1', denom: 1 },
-];
-
 interface ClienteOption {
     id_cliente: string;
     nombre_cliente: string;
@@ -142,6 +130,12 @@ export default function DialogPagoEfectivo({
     const [idCliente, setIdCliente] = useState<string>('');
     const [telefono, setTelefono] = useState<string>('');
     const [clienteMongoId, setClienteMongoId] = useState<string>('');
+
+    // ═══ Estados para el Desglose Reutilizable ═══
+    const [openDesglose, setOpenDesglose] = useState(false);
+    const [desgloseGuardado, setDesgloseGuardado] = useState<DesgloseData | null>(null);
+    const [totalDesglose, setTotalDesglose] = useState(0);
+
     const [snackbar, setSnackbar] = useState<{
         open: boolean;
         message: string;
@@ -159,6 +153,8 @@ export default function DialogPagoEfectivo({
                 monto_a_pagar: montoTotal.toFixed(2)
             });
             setErrors({});
+            setDesgloseGuardado(null);
+            setTotalDesglose(0);
         }
     }, [open, montoTotal]);
 
@@ -187,13 +183,38 @@ export default function DialogPagoEfectivo({
         }
     };
 
-    const calcularTotalBilletes = (): number => {
-        let total = 0;
-        billetesConfig.forEach(billete => {
-            const cantidad = parseInt(pagoData[billete.key]) || 0;
-            total += cantidad * billete.denom;
+    // ═══ Handler del Desglose Reutilizable ═══
+    const handleDesgloseAceptar = (desglose: DesgloseData, total: number): void => {
+        setDesgloseGuardado(desglose);
+        setTotalDesglose(total);
+
+        // Actualizar pagoData con los valores del desglose
+        const desgloseStrings: Record<string, string> = {};
+        Object.entries(desglose).forEach(([key, val]) => {
+            desgloseStrings[key] = String(val);
         });
-        return total;
+
+        const aPagar = parseFloat(pagoData.monto_a_pagar) || 0;
+        const cambio = total - aPagar;
+
+        setPagoData(prev => ({
+            ...prev,
+            ...desgloseStrings,
+            monto_pagado: total.toFixed(2),
+            cambio: cambio >= 0 ? cambio.toFixed(2) : '0.00',
+        }));
+
+        if (errors.monto_pagado) {
+            setErrors(prev => {
+                const newErrors = { ...prev };
+                delete newErrors.monto_pagado;
+                return newErrors;
+            });
+        }
+    };
+
+    const calcularTotalBilletes = (): number => {
+        return totalDesglose;
     };
 
     const validate = (): boolean => {
@@ -271,7 +292,7 @@ export default function DialogPagoEfectivo({
             // ─── PASO 2: Llamar a procesarVentaEfectivo ────────────
             const resultado = await procesarVentaEfectivo({
                 desglose: desglose,
-                montoPagado: totalDesgloseCalculado,  // Total del desglose
+                montoPagado: totalDesgloseCalculado,
                 montoPagar: montoAPagar,
                 cambio: cambio,
                 clienteIdVenta: clienteId,
@@ -303,6 +324,8 @@ export default function DialogPagoEfectivo({
 
             setPagoData(initialPago);
             setErrors({});
+            setDesgloseGuardado(null);
+            setTotalDesglose(0);
 
             setTimeout(() => {
                 onClose();
@@ -323,6 +346,8 @@ export default function DialogPagoEfectivo({
     const handleClose = (): void => {
         setPagoData(initialPago);
         setErrors({});
+        setDesgloseGuardado(null);
+        setTotalDesglose(0);
         onClose();
     };
 
@@ -388,9 +413,12 @@ export default function DialogPagoEfectivo({
         }
     };
 
+    const simboloMoneda = moneda === 'EUR' ? '€' : '$';
+    const puedeAbrirDesglose = moneda && parseFloat(pagoData.monto_a_pagar || '0') > 0;
+
     return (
         <>
-            <Dialog open={open} onClose={handleClose} maxWidth="lg" fullWidth>
+            <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
                 <DialogTitle>
                     <Typography variant="h6" sx={{
                         borderRadius: 1, boxShadow: 2, p: 1, textAlign: "center",
@@ -404,14 +432,19 @@ export default function DialogPagoEfectivo({
 
                 <DialogContent>
                     <Box sx={{ display: "flex", gap: 3, flexDirection: { xs: "column", md: "row" } }}>
-                        {/* COLUMNA IZQUIERDA */}
+                        {/* ═══ COLUMNA IZQUIERDA ═══ */}
                         <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
+                            {/* Moneda */}
                             <TextField
                                 select
                                 fullWidth
                                 label="Moneda"
                                 value={moneda}
-                                onChange={(e) => setMoneda(e.target.value)}
+                                onChange={(e) => {
+                                    setMoneda(e.target.value);
+                                    setDesgloseGuardado(null);
+                                    setTotalDesglose(0);
+                                }}
                                 slotProps={{
                                     input: {
                                         startAdornment: moneda && (
@@ -442,36 +475,95 @@ export default function DialogPagoEfectivo({
                                 </MenuItem>
                             </TextField>
 
+                            {/* Cliente */}
                             <Autocomplete
                                 options={clientes}
                                 getOptionLabel={(option) => option.nombre_cliente}
                                 loading={loadingClientes}
                                 onChange={handleClienteSeleccionado}
+                                onOpen={fetchClientes}
                                 value={clientes.find(c => c.nombre_cliente === cliente) || null}
                                 renderInput={(params) => (
                                     <TextField {...params} label="Cliente"
                                         sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1, bgcolor: '#f8f9fa', '& fieldset': { borderColor: 'rgba(0,0,0,0.06)' } } }}
-                                        error={!!errors.cliente} helperText={errors.cliente} 
-                                        />
+                                        error={!!errors.cliente} helperText={errors.cliente}
+                                    />
                                 )}
                             />
 
+                            {/* Monto a Pagar */}
                             <TextField fullWidth label="Monto a Pagar"
                                 value={pagoData.monto_a_pagar} disabled
                                 slotProps={{ input: { readOnly: true } }}
                                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1, bgcolor: '#f8f9fa', '& fieldset': { borderColor: 'rgba(0,0,0,0.06)' } } }}
                             />
 
-                            <TextField fullWidth label="Monto Pagado"
-                                value={pagoData.monto_pagado}
-                                onChange={(e) => handleChange("monto_pagado", e.target.value)}
-                                error={!!errors.monto_pagado}
-                                helperText={errors.monto_pagado}
-                                disabled={loading}
-                                autoFocus placeholder="0.00"
-                                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1, bgcolor: '#f8f9fa', '& fieldset': { borderColor: 'rgba(0,0,0,0.06)' } } }}
-                            />
+                            {/* ─── Botón Desglose de Billetes ─── */}
+                            <Button
+                                variant="outlined"
+                                fullWidth
+                                startIcon={<ReceiptLongIcon />}
+                                onClick={() => setOpenDesglose(true)}
+                                disabled={!puedeAbrirDesglose}
+                                sx={{
+                                    textTransform: 'none',
+                                    fontWeight: 600,
+                                    borderRadius: 2,
+                                    py: 1.2,
+                                    borderColor: 'rgba(0,89,255,0.3)',
+                                    color: 'rgba(0,89,255,0.9)',
+                                    '&:hover': {
+                                        borderColor: 'rgba(0,89,255,0.6)',
+                                        bgcolor: 'rgba(0,89,255,0.04)'
+                                    },
+                                    '&:disabled': {
+                                        borderColor: 'rgba(0,0,0,0.12)',
+                                        color: 'rgba(0,0,0,0.26)'
+                                    }
+                                }}
+                            >
+                                {desgloseGuardado
+                                    ? '✓ Desglose Completado'
+                                    : '💵 Desglose de Billetes'
+                                }
+                            </Button>
 
+                            {/* ─── Resumen del desglose ─── */}
+                            {desgloseGuardado && (
+                                <Card sx={{
+                                    p: 2,
+                                    borderRadius: 2,
+                                    bgcolor: 'rgba(0,89,255,0.03)',
+                                    border: '1px solid rgba(0,89,255,0.12)',
+                                }}>
+                                    <Stack spacing={1}>
+                                        <Typography variant="body2" color="text.secondary">
+                                            Total en billetes:{" "}
+                                            <strong style={{ color: '#1a3c44' }}>
+                                                {simboloMoneda}{totalDesglose.toFixed(2)}
+                                            </strong>
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary">
+                                            Monto pagado:{" "}
+                                            <strong style={{ color: '#1a3c44' }}>
+                                                {simboloMoneda}{parseFloat(pagoData.monto_pagado || '0').toFixed(2)}
+                                            </strong>
+                                        </Typography>
+                                        {totalDesglose >= parseFloat(pagoData.monto_a_pagar || '0') && (
+                                            <Typography variant="caption" sx={{ color: '#2e7d32', fontWeight: 700 }}>
+                                                ✓ Desglose cuadrado
+                                            </Typography>
+                                        )}
+                                        {totalDesglose < parseFloat(pagoData.monto_a_pagar || '0') && (
+                                            <Typography variant="caption" sx={{ color: '#d32f2f', fontWeight: 700 }}>
+                                                ✗ Faltan: {simboloMoneda}{Math.abs(totalDesglose - parseFloat(pagoData.monto_a_pagar || '0')).toFixed(2)}
+                                            </Typography>
+                                        )}
+                                    </Stack>
+                                </Card>
+                            )}
+
+                            {/* Cambio */}
                             <TextField fullWidth label="Cambio"
                                 value={pagoData.cambio} disabled
                                 slotProps={{ input: { readOnly: true } }}
@@ -485,72 +577,86 @@ export default function DialogPagoEfectivo({
                             />
                         </Box>
 
-                        {/* COLUMNA DERECHA */}
+                        {/* ═══ COLUMNA DERECHA — Resumen de pago ═══ */}
                         <Box sx={{
-                            flex: 1.5,
-                            backgroundColor: "rgba(0, 0, 0, 0.06)",
+                            flex: 1,
+                            backgroundColor: "rgba(0, 0, 0, 0.04)",
                             borderRadius: 2,
-                            p: 2,
+                            p: 3,
                             display: "flex",
                             flexDirection: "column",
+                            justifyContent: "center",
+                            gap: 2,
                         }}>
-                            <Box sx={{
-                                backgroundColor: "rgba(255,255,255,0.7)",
-                                borderRadius: 1,
-                                p: 1,
-                                mb: 2,
-                                textAlign: "center",
+                            <Typography variant="h6" sx={{
+                                fontWeight: 700,
+                                textAlign: 'center',
+                                background: "linear-gradient(135deg, rgba(0, 89, 255, 0.84), rgba(230, 21, 118, 0.9))",
+                                WebkitBackgroundClip: "text",
+                                WebkitTextFillColor: "transparent",
                             }}>
-                                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                                    Desglose de Billetes
-                                </Typography>
-                            </Box>
+                                Resumen de Pago
+                            </Typography>
 
-                            <Box sx={{
-                                display: "flex",
-                                flexWrap: "wrap",
-                                justifyContent: "center",
-                                gap: 2,
-                            }}>
-                                {billetesConfig.map(billete => (
-                                    <Card key={billete.key} sx={{
-                                        width: { xs: 'calc(50% - 8px)', sm: 'calc(33.333% - 11px)' },
+                            <Stack spacing={2}>
+                                <Box sx={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    p: 1.5,
+                                    borderRadius: 1,
+                                    bgcolor: 'rgba(255,255,255,0.7)',
+                                }}>
+                                    <Typography color="text.secondary">Subtotal</Typography>
+                                    <Typography sx={{ fontWeight: 600 }}>{simboloMoneda}{subtotal.toFixed(2)}</Typography>
+                                </Box>
+                                <Box sx={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    p: 1.5,
+                                    borderRadius: 1,
+                                    bgcolor: 'rgba(255,255,255,0.7)',
+                                }}>
+                                    <Typography color="text.secondary">Descuento</Typography>
+                                    <Typography sx={{ fontWeight: 600 }} color="error">-{simboloMoneda}{descuentoTotal.toFixed(2)}</Typography>
+                                </Box>
+                                <Box sx={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    p: 1.5,
+                                    borderRadius: 1,
+                                    bgcolor: 'rgba(255,255,255,0.7)',
+                                }}>
+                                    <Typography color="text.secondary">Impuesto</Typography>
+                                    <Typography sx={{ fontWeight: 600 }}>{simboloMoneda}{impuesto.toFixed(2)}</Typography>
+                                </Box>
+                                <Divider />
+                                <Box sx={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    p: 1.5,
+                                    borderRadius: 1,
+                                    bgcolor: 'linear-gradient(135deg, rgba(0,114,255,0.08), rgba(142,45,226,0.08))',
+                                    border: '1px solid rgba(0,114,255,0.15)',
+                                }}>
+                                    <Typography sx={{ fontWeight: 700 }}>Total a Pagar</Typography>
+                                    <Typography sx={{ fontWeight: 800, fontSize: '1.2rem' }}>{simboloMoneda}{montoTotal.toFixed(2)}</Typography>
+                                </Box>
+                                {parseFloat(pagoData.cambio) > 0 && (
+                                    <Box sx={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
                                         p: 1.5,
-                                        backgroundColor: "rgba(255,255,255,0.8)",
+                                        borderRadius: 1,
+                                        bgcolor: 'rgba(46, 125, 50, 0.08)',
+                                        border: '1px solid rgba(46, 125, 50, 0.2)',
                                     }}>
-                                        <TextField fullWidth label={billete.label} margin="dense" size="small"
-                                            type="number" value={pagoData[billete.key]}
-                                            onChange={(e) => handleChange(billete.key, e.target.value)}
-                                            disabled={loading}
-                                            slotProps={{ htmlInput: { min: 0 } }}
-                                            placeholder="0"
-                                        />
-                                    </Card>
-                                ))}
-                            </Box>
-
-                            <Box sx={{
-                                mt: 2,
-                                p: 1.5,
-                                borderRadius: 1,
-                                backgroundColor: "rgba(0, 89, 255, 0.05)",
-                                border: "1px solid rgba(0, 89, 255, 0.2)",
-                            }}>
-                                <Typography variant="body2" color="text.secondary">
-                                    Total en billetes: <strong>${calcularTotalBilletes().toFixed(2)}</strong>
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    Monto pagado: <strong>${parseFloat(pagoData.monto_pagado || "0").toFixed(2)}</strong>
-                                </Typography>
-                                {calcularTotalBilletes() !== (parseFloat(pagoData.monto_pagado) || 0) && (
-                                    <Typography variant="caption" color="error">⚠️ Los totales no coinciden</Typography>
+                                        <Typography sx={{ fontWeight: 700, color: 'success.main' }}>Cambio</Typography>
+                                        <Typography sx={{ fontWeight: 800, fontSize: '1.1rem', color: 'success.main' }}>
+                                            {simboloMoneda}{parseFloat(pagoData.cambio).toFixed(2)}
+                                        </Typography>
+                                    </Box>
                                 )}
-                                {calcularTotalBilletes() > parseFloat(pagoData.monto_pagado || "0") && (
-                                    <Typography variant="caption" color="error" sx={{ display: 'block', mb: 1 }}>
-                                        ⚠️ El total en billetes no coincide con el monto pagado, inserte un monto mayor
-                                    </Typography>
-                                )}
-                            </Box>
+                            </Stack>
                         </Box>
                     </Box>
                 </DialogContent>
@@ -562,27 +668,34 @@ export default function DialogPagoEfectivo({
                     gap: 2,
                     width: "100%",
                 }}>
-                    <Button onClick={handleClose} disabled={loading}
+                    <Button
+                        onClick={handleClose}
+                        disabled={loading}
                         startIcon={<CancelIcon />}
                         sx={{
-                            minWidth: 240,
+                            minWidth: 200,
                             background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
+                            borderRadius: 2,
                             boxShadow: "0 4px 19px rgba(0,0,0,0.2)", color: "white",
                             "&:hover": { background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(226, 45, 187, 0.9))" }
                         }}>
                         Cancelar
                     </Button>
-                    <Button variant="contained" onClick={handleFinalizarPago}
+                    <Button
+                        variant="contained"
+                        onClick={handleFinalizarPago}
                         disabled={
                             loading ||
-                            calcularTotalBilletes() < parseFloat(pagoData.monto_pagado || "0") ||
+                            !desgloseGuardado ||
+                            totalDesglose < parseFloat(pagoData.monto_a_pagar || "0") ||
                             parseFloat(pagoData.monto_a_pagar || "0") === 0 ||
                             productosCarrito.length === 0
                         }
                         startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <CheckCircleIcon />}
                         sx={{
-                            minWidth: 240,
+                            minWidth: 200,
                             background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
+                            borderRadius: 2,
                             boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
                             "&:hover": { boxShadow: "0 4px 12px rgba(13, 248, 5, 0.93)" }
                         }}>
@@ -590,6 +703,16 @@ export default function DialogPagoEfectivo({
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            {/* ═══ Dialog de Desglose Reutilizable ═══ */}
+            <DesgloseEfectivoDialog
+                open={openDesglose}
+                onClose={() => setOpenDesglose(false)}
+                moneda={moneda as 'CUP' | 'USD' | 'EUR'}
+                montoAPagar={parseFloat(pagoData.monto_a_pagar) || 0}
+                onAceptar={handleDesgloseAceptar}
+            />
+
             <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={handleCloseSnackbar}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
                 <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>

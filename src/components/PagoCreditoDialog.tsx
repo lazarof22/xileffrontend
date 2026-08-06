@@ -411,15 +411,22 @@ export default function PagoCreditoDialog({
                 </DialogContent>
 
                 <DialogActions sx={{ display: "flex", p: 2, ml: 0, gap: 2, width: "100%" }}>
-                    <Button onClick={handleClose} disabled={loading} fullWidth startIcon={<CancelIcon />}
+                    <Button
+                        onClick={handleClose}
+                        disabled={loading}
+                        fullWidth
+                        startIcon={<CancelIcon />}
                         sx={{
                             flex: 1,
                             background: "linear-gradient(135deg, rgba(255,0,0,0.9), rgba(196, 45, 226, 0.9))",
                             boxShadow: "0 4px 19px rgba(0,0,0,0.2)", color: "white",
+                            borderRadius: 2
                         }}>
                         Cancelar
                     </Button>
-                    <Button variant="contained" onClick={handleFinalizarPago}
+                    <Button
+                        variant="contained"
+                        onClick={handleFinalizarPago}
                         disabled={
                             loading ||
                             !clienteMongoId ||
@@ -432,6 +439,7 @@ export default function PagoCreditoDialog({
                             flex: 1,
                             background: "linear-gradient(135deg, rgba(10, 83, 218, 0.9), rgba(10, 218, 20, 0.9))",
                             boxShadow: "0 4px 19px rgba(0,0,0,0.2)",
+                            borderRadius: 2
                         }}>
                         {loading ? 'Procesando...' : 'Finalizar Pago'}
                     </Button>
