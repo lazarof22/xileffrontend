@@ -5,6 +5,7 @@ import {
   AppBar, Toolbar, Typography, Drawer, List, ListItemButton,
   ListItemIcon, ListItemText, IconButton, Box, Collapse
 } from '@mui/material';
+import BallotIcon from '@mui/icons-material/Ballot';
 
 import MenuIcon from '@mui/icons-material/Menu';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -83,8 +84,9 @@ const reportesAuditoria = [
 ];
 
 const menuSections = [
-  { text: 'Nomencladores', icon: <SettingsIcon />, path: '/nomencladores' },
-  { text: 'Configuración', icon: <VpnKeyIcon />, path: '/configuracion' },
+  { text: 'Nomencladores', icon:<BallotIcon/> , path: '/nomencladores' },
+  { text: 'Configuración', icon:<SettingsIcon />, path: '/configuracion' },
+  { text: 'Licencia', icon: <VpnKeyIcon />, path: '/licencia' },
 ];
 
 interface MenuItem {

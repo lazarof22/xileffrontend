@@ -16,6 +16,7 @@ import ClientesPage from './pages/clientesProveedores/Clientes';
 import ContabilidadPage from './pages/contabilidadFinanzas/Contabilidad';
 import FinanzasPage from './pages/contabilidadFinanzas/Finanzas';
 import Reportes from './pages/reportes y auditoria/Reportes';
+import LicenciaPage from './pages/configuracion/Licencia';
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
           <Route path="/nomencladores" element={<NomencladoresPage />} />
           <Route path="/configuracion" element={<ConfiguracionPage />} />
           <Route path="/reportes" element={<Reportes />} />
+          <Route path="/licencia" element={<LicenciaPage/>} />
         </Route>
       </Routes>
     </BrowserRouter>
